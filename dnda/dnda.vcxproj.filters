@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="adat.h">
+      <Filter>collections</Filter>
+    </ClInclude>
+    <ClInclude Include="archive.h">
+      <Filter>collections</Filter>
+    </ClInclude>
+    <ClInclude Include="aref.h">
+      <Filter>collections</Filter>
+    </ClInclude>
+    <ClInclude Include="cflags.h">
+      <Filter>collections</Filter>
+    </ClInclude>
+    <ClInclude Include="collection.h">
+      <Filter>collections</Filter>
+    </ClInclude>
+    <ClInclude Include="crt.h">
+      <Filter>runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="draw.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="bitops.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="initializer_list.h">
+      <Filter>collections</Filter>
+    </ClInclude>
+    <ClInclude Include="win.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="color.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="dice.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="pma.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="point.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="rect.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="grammar.h">
+      <Filter>string</Filter>
+    </ClInclude>
+    <ClInclude Include="command.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>logic</Filter>
+    </ClInclude>
+    <ClInclude Include="sprite.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="stringid.h">
+      <Filter>string</Filter>
+    </ClInclude>
+    <ClInclude Include="stringcreator.h">
+      <Filter>string</Filter>
+    </ClInclude>
+    <ClInclude Include="resources.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="io.h">
+      <Filter>runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="surface.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="csort.h">
+      <Filter>runtime</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="archive.cpp">
+      <Filter>collections</Filter>
+    </ClCompile>
+    <ClCompile Include="collection.cpp">
+      <Filter>collections</Filter>
+    </ClCompile>
+    <ClCompile Include="crt.cpp">
+      <Filter>runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="crt_memory.cpp">
+      <Filter>runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="crt_parse.cpp">
+      <Filter>runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="draw.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="draw_input.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="draw_text.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="bitops.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="win_draw.cpp">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="win_io_file.cpp">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="color.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="dice.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="pma.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="point.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="grammar.cpp">
+      <Filter>string</Filter>
+    </ClCompile>
+    <ClCompile Include="command.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="attackinfo.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="creature.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="creature_chat.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="game.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="game_create.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="item.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="location.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="magic.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="names.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="race.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="role.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="skills.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="slot.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="spells.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="sprite.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="sprite_resources.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="stringcreator.cpp">
+      <Filter>string</Filter>
+    </ClCompile>
+    <ClCompile Include="resources.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="io.cpp">
+      <Filter>runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="io_strategy.cpp">
+      <Filter>runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="logs_driver.cpp">
+      <Filter>string</Filter>
+    </ClCompile>
+    <ClCompile Include="surface.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="view.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="serialize.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="state.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="traps.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="collections">
+      <UniqueIdentifier>{0ae17223-e0f3-4466-9fa5-668926d7ef1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="runtime">
+      <UniqueIdentifier>{aa6dbc57-f11d-47f3-ba5d-dcd912a36c09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui">
+      <UniqueIdentifier>{85a70fd6-8c85-4b04-a48e-98fbc414fb67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform">
+      <UniqueIdentifier>{8876a827-d034-4170-a85c-c8997e2e1970}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="support">
+      <UniqueIdentifier>{fdf1fe23-f989-4915-b4bc-f7bdbd800a30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="string">
+      <UniqueIdentifier>{421c1d98-31db-4052-a7d8-0029f24276d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="logic">
+      <UniqueIdentifier>{465d28d5-3fae-4f82-9325-008695e0e27b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="images.xml">
+      <Filter>logic</Filter>
+    </Xml>
+  </ItemGroup>
+</Project>
