@@ -387,7 +387,7 @@ void				lookhere(short unsigned index);
 void				makewave(short unsigned index, bool(*proc)(short unsigned) = ispassabledoor);
 void				play();
 void				release(const creature* target, unsigned experience_cost);
-void				savemap();
+bool				serialize(bool writemode);
 void				set(short unsigned i, tile_s value);
 void				set(short unsigned i, tile_s value, int w, int h);
 void				set(short unsigned i, map_object_s value);

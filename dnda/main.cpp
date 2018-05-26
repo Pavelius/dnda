@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 	p2->equip({SwordLong, Artifact, OfStrenght, 2});
 	for(int i=0; i<6; i++)
 		game::add(game::get(14, 14), new creature(GoblinWarrior));
-	game::savemap();
+	game::serialize(true);
 	game::play();
 }
 

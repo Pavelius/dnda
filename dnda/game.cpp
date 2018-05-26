@@ -486,7 +486,7 @@ void game::play() {
 			break;
 		}
 		if(exit_index != 0xFFFF) {
-			savemap();
+			serialize(true);
 			// Кто-то активировал переход на другой уровень
 			// Загрузим карту следующего уровня и сохраним состояние этого
 		}
@@ -761,6 +761,14 @@ char* location::getname(char* result) const {
 	return result;
 }
 
+template<> void archive::set<location>(location& e) {
+	set(e.type);
+	set(e.x1); set(e.y1); set(e.x2); set(e.y2);
+	set(e.diety);
+	set(e.name);
+	set(e.owner);
+}
+
 template<> void archive::set<creature>(creature& e) {
 	set(e.race);
 	set(e.type);
@@ -792,16 +800,21 @@ template<> void archive::set<creature>(creature& e) {
 	//set(e.leader);
 }
 
-void game::savemap() {
+bool game::serialize(bool writemode) {
 	char temp[260];
 	zcpy(temp, "maps/D");
 	sznum(zend(temp), statistic.level, 2, "XX");
 	sznum(zend(temp), statistic.index, 5, "00000");
 	zcat(temp, ".dat");
-	io::file file(temp, StreamWrite);
+	io::file file(temp, writemode ? StreamWrite : StreamRead);
 	if(!file)
-		return;
-	archive a(file, true);
+		return false;
+	archive a(file, writemode);
+	if(!a.signature("SAV"))
+		return false;
+	if(!a.version(0, 1))
+		return false;
 	a.set(locations);
 	a.set(creatures);
+	return true;
 }
