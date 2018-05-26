@@ -201,9 +201,6 @@
     <ClCompile Include="view.cpp">
       <Filter>ui</Filter>
     </ClCompile>
-    <ClCompile Include="serialize.cpp">
-      <Filter>logic</Filter>
-    </ClCompile>
     <ClCompile Include="state.cpp">
       <Filter>logic</Filter>
     </ClCompile>

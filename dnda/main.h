@@ -131,7 +131,7 @@ enum duration_s : unsigned {
 	Minute = 12, FiveMinutes = 5 * Minute, Turn = 10 * Minute,
 	Halfhour = 30 * Minute, Hour = 60 * Minute, HalfDay = 12 * Hour, Day = 24 * Hour,
 	Week = 7 * Day, Month = 30 * Day, Season = 3 * Month, Year = 4 * Season,
-	Permanent = 100*Year
+	Permanent = 100 * Year
 };
 enum identify_s : unsigned char {
 	Unknown, KnowQuality, KnowMagic, KnowEffect,
@@ -211,7 +211,6 @@ struct attackinfo {
 	int				roll() const;
 };
 struct creature {
-	unsigned		unid;
 	race_s			race;
 	class_s			type;
 	gender_s		gender;
@@ -235,9 +234,15 @@ struct creature {
 	item			wears[Amunitions + 1];
 	item			backpack[16];
 	//
-	creature() {}
+	constexpr creature() : race(NoRace), type(Cleric), gender(NoGender), role(Character), direction(Left),
+		abilities(), skills(), spells(), name(), level(),
+		wears(), backpack(), states(),
+		hp(), mhp(), mp(), mmp(),
+		recoil(), restore_hits(), restore_mana(), experience(), money(),
+		charmer(0), enemy(0), horror(), leader(),
+		position(), guard() {}
+	creature(role_s value);
 	creature(race_s race, gender_s gender, class_s type);
-	creature(role_s role);
 	operator bool() const { return hp > 0; }
 	void* operator new(unsigned size);
 	//
@@ -366,6 +371,7 @@ map_object_s		getobject(short unsigned i);
 inline unsigned char getx(short unsigned i) { return i % max_map_x; }
 inline unsigned char gety(short unsigned i) { return i / max_map_x; }
 void				initialize();
+bool				isbooming();
 bool				isdungeon();
 bool				isexplore(short unsigned i);
 bool				isexperience(short unsigned i);
@@ -380,7 +386,7 @@ void				looktarget(short unsigned index);
 void				lookhere(short unsigned index);
 void				makewave(short unsigned index, bool(*proc)(short unsigned) = ispassabledoor);
 void				play();
-int					resetplace(int mode);
+void				release(const creature* target, unsigned experience_cost);
 void				savemap();
 void				set(short unsigned i, tile_s value);
 void				set(short unsigned i, tile_s value, int w, int h);
@@ -436,7 +442,6 @@ extern adat<creature*, 512>		creatures;
 extern adat<groundinfo, 2048>	grounditems;
 extern adat<creature*, 6>		players;
 const attackinfo&	getattackinfo(trap_s slot);
-char*				getdatetext(char* result);
 unsigned			getday();
 unsigned			gethour();
 unsigned			getminute();

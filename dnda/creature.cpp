@@ -649,22 +649,6 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 	defender->damage(damage);
 }
 
-static void release_links(const creature* player, unsigned exeperience_cost) {
-	// Ќачислим опыт, всем, кто считал его врагом
-	for(auto e : creatures) {
-		if(!*e)
-			continue;
-		if(e->enemy == player) {
-			e->addexp(exeperience_cost);
-			e->enemy = 0;
-		}
-		if(e->horror == player)
-			e->horror = 0;
-		if(e->charmer == player)
-			e->charmer = 0;
-	}
-}
-
 void creature::damage(int value) {
 	hp -= value;
 	if(value <= 0)
@@ -689,7 +673,7 @@ void creature::damage(int value) {
 			e.loot();
 			drop(position, e);
 		}
-		release_links(this, getcostexp());
+		game::release(this, getcostexp());
 	}
 }
 

@@ -176,7 +176,6 @@
     <ClCompile Include="race.cpp" />
     <ClCompile Include="resources.cpp" />
     <ClCompile Include="role.cpp" />
-    <ClCompile Include="serialize.cpp" />
     <ClCompile Include="skills.cpp" />
     <ClCompile Include="slot.cpp" />
     <ClCompile Include="spells.cpp" />

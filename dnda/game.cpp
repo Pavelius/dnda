@@ -1,3 +1,4 @@
+#include "archive.h"
 #include "main.h"
 
 // ABOUT TIME
@@ -9,6 +10,7 @@ int						isqrt(int num);
 static unsigned			start_year;
 unsigned				segments = 7 * Hour;
 static unsigned			exit_index;
+static creature			creature_data[1024];
 adat<location, 128>		locations;
 adat<creature*, 512>	creatures;
 adat<groundinfo, 2048>	grounditems;
@@ -28,8 +30,20 @@ static const direction_s orientations_5b5[25] = {
 	LeftDown, Down, Down, RightDown, RightDown
 };
 
+void* creature::operator new(unsigned size) {
+	for(auto& e : creature_data) {
+		if(!e)
+			return &e;
+	}
+	return creature_data;
+}
+
 void areainfo::clear() {
 	memset(this, 0, sizeof(*this));
+}
+
+bool game::isbooming() {
+	return creatures.count >= sizeof(creatures.data) / sizeof(creatures.data[0]);
 }
 
 bool game::isvisible(short unsigned i) {
@@ -724,7 +738,70 @@ location* game::getlocation(short unsigned i) {
 	return 0;
 }
 
+void game::release(const creature* player, unsigned exeperience_cost) {
+	// Ќачислим опыт, всем, кто считал его врагом
+	for(auto e : creatures) {
+		if(!*e)
+			continue;
+		if(e->enemy == player) {
+			e->addexp(exeperience_cost);
+			e->enemy = 0;
+		}
+		if(e->horror == player)
+			e->horror = 0;
+		if(e->charmer == player)
+			e->charmer = 0;
+		if(e->leader == player)
+			e->leader = 0;
+	}
+}
+
 char* location::getname(char* result) const {
 	zcpy(result, getstr(type));
 	return result;
+}
+
+template<> void archive::set<creature>(creature& e) {
+	set(e.race);
+	set(e.type);
+	set(e.gender);
+	set(e.role);
+	set(e.direction);
+	set(e.abilities);
+	set(e.skills);
+	set(e.spells);
+	set(e.name);
+	set(e.level);
+	set(e.hp);
+	set(e.mhp);
+	set(e.mp);
+	set(e.mmp);
+	set(e.recoil);
+	set(e.restore_hits);
+	set(e.restore_mana);
+	set(e.experience);
+	set(e.money);
+	set(e.position);
+	set(e.guard);
+	set(e.states);
+	set(e.wears);
+	set(e.backpack);
+	//set(e.charmer);
+	//set(e.enemy);
+	//set(e.horror);
+	//set(e.leader);
+}
+
+void game::savemap() {
+	char temp[260];
+	zcpy(temp, "maps/D");
+	sznum(zend(temp), statistic.level, 2, "XX");
+	sznum(zend(temp), statistic.index, 5, "00000");
+	zcat(temp, ".dat");
+	io::file file(temp, StreamWrite);
+	if(!file)
+		return;
+	archive a(file, true);
+	a.set(locations);
+	a.set(creatures);
 }

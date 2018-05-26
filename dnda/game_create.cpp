@@ -206,7 +206,7 @@ static creature* create_bartender(location& e, short unsigned index) {
 }
 
 static creature* create_monster(short unsigned index) {
-	if(creatures.count >= sizeof(creatures.data) / sizeof(creatures.data[0]) - 8)
+	if(game::isbooming())
 		return 0;
 	auto p = new creature((role_s)xrand(0, GiantRat));
 	add(index, p);
