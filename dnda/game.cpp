@@ -751,8 +751,8 @@ void game::release(const creature* player, unsigned exeperience_cost) {
 			e->horror = 0;
 		if(e->charmer == player)
 			e->charmer = 0;
-		if(e->leader == player)
-			e->leader = 0;
+		//if(e->leader == player)
+		//	e->leader = 0;
 	}
 }
 
