@@ -34,7 +34,7 @@ const char* creature::getmonstername() const {
 	return role_data[role].name;
 }
 
-creature::creature(role_s role) {
+void creature::create(role_s role) {
 	clear();
 	auto& e = role_data[role];
 	this->race = e.race;

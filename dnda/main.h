@@ -162,44 +162,44 @@ public:
 	constexpr item(item_s type, item_type_s magic, magic_s effect, unsigned char quality, identify_s identify = Unknown) : type(type), effect(effect), count(0), magic(magic), quality(quality), identify(identify), forsale(0), damaged(0) {}
 	item(item_s type, int level, int chance_curse);
 	operator bool() const { return type != NoItem; }
-	void clear();
-	void detectevil(bool interactive);
-	item_s getammo() const;
-	int	getattack() const;
-	int	getarmor() const;
-	int	getbonus() const;
-	int	getbonus(magic_s type) const;
-	unsigned getcost() const { return getcostsingle()*getcount(); }
-	unsigned getcostsingle() const;
-	int getcount() const;
-	char getdamagemin() const;
-	char getdamagemax() const;
-	int getdefence() const;
-	skill_s	getfocus() const;
-	identify_s getidentify() const { return identify; }
+	void			clear();
+	void			detectevil(bool interactive);
+	item_s			getammo() const;
+	int				getattack() const;
+	int				getarmor() const;
+	int				getbonus() const;
+	int				getbonus(magic_s type) const;
+	unsigned		getcost() const { return getcostsingle()*getcount(); }
+	unsigned		getcostsingle() const;
+	int				getcount() const;
+	char			getdamagemin() const;
+	char			getdamagemax() const;
+	int				getdefence() const;
+	skill_s			getfocus() const;
+	identify_s		getidentify() const { return identify; }
 	static unsigned	getitems(item_s* result, slot_s* slots, unsigned slots_count);
-	item_type_s getmagic() const { return magic; }
-	char* getname(char* result, bool show_info = true) const;
-	int	getsalecost() const;
-	int	getspeed() const;
-	item_s gettype() const { return type; }
-	int	getweight() const;
-	int	getweightsingle() const;
-	bool is(slot_s value) const;
-	bool is(item_flag_s value) const;
-	bool isarmor() const { return type >= LeatherArmour && type <= Bracers; }
-	bool isartifact() const { return magic == Artifact; }
-	bool iscountable() const;
-	bool iscursed() const { return magic == Cursed; }
-	bool isforsale() const { return forsale != 0; }
-	bool istwohanded() const;
-	void loot();
-	void setcount(int count);
-	void set(identify_s value);
-	void set(item_type_s value) { magic = value; }
-	void set(magic_s value) { effect = value; }
-	void setforsale() { forsale = 1; }
-	void setsold() { forsale = 0; }
+	item_type_s		getmagic() const { return magic; }
+	char*			getname(char* result, bool show_info = true) const;
+	int				getsalecost() const;
+	int				getspeed() const;
+	item_s			gettype() const { return type; }
+	int				getweight() const;
+	int				getweightsingle() const;
+	bool			is(slot_s value) const;
+	bool			is(item_flag_s value) const;
+	bool			isarmor() const { return type >= LeatherArmour && type <= Bracers; }
+	bool			isartifact() const { return magic == Artifact; }
+	bool			iscountable() const;
+	bool			iscursed() const { return magic == Cursed; }
+	bool			isforsale() const { return forsale != 0; }
+	bool			istwohanded() const;
+	void			loot();
+	void			setcount(int count);
+	void			set(identify_s value);
+	void			set(item_type_s value) { magic = value; }
+	void			set(magic_s value) { effect = value; }
+	void			setforsale() { forsale = 1; }
+	void			setsold() { forsale = 0; }
 };
 struct attackinfo {
 	char			bonus;
@@ -241,8 +241,6 @@ struct creature {
 		recoil(), restore_hits(), restore_mana(), experience(), money(),
 		charmer(0), enemy(0), horror(), leader(),
 		position(), guard() {}
-	creature(role_s value);
-	creature(race_s race, gender_s gender, class_s type);
 	operator bool() const { return hp > 0; }
 	void* operator new(unsigned size);
 	//
@@ -253,6 +251,8 @@ struct creature {
 	void			chat(creature* opponent);
 	void			clear();
 	void			clear(state_s value) { states[value] = 0; }
+	void			create(role_s value);
+	void			create(race_s race, gender_s gender, class_s type);
 	void			damage(int count);
 	bool			dropdown(item& value);
 	bool			equip(item value);
@@ -344,8 +344,9 @@ struct areainfo {
 };
 namespace game {
 creature*			add(short unsigned index, creature* element);
-creature*			add(short unsigned index, class_s type, race_s race, gender_s gender, bool is_player = false);
-void				create(tile_s type, bool explored = false, bool visualize = false);
+creature*			add(short unsigned index, role_s type);
+creature*			add(short unsigned index, race_s race, gender_s gender, class_s type, bool is_player = false);
+void				create(tile_s type, short unsigned index, int level, bool explored = false, bool visualize = false);
 int					distance(short unsigned i1, short unsigned i2);
 void				drop(short unsigned i, item object);
 unsigned short		genname(race_s race, gender_s gender);
@@ -448,5 +449,4 @@ unsigned			getminute();
 unsigned			getmonth();
 unsigned			getturn();
 unsigned			getyear();
-unsigned			getunid();
 extern unsigned		segments;

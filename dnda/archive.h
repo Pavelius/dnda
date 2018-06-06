@@ -77,5 +77,11 @@ struct archive {
 		else
 			source.read(&value, sizeof(value));
 	}
-
+	// Raw write/read (for fastest serialize arrays)
+	template<class T> void setr(T& value) {
+		if(writemode)
+			source.write(&value, sizeof(value));
+		else
+			source.read(&value, sizeof(value));
+	}
 };

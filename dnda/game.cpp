@@ -10,6 +10,7 @@ int						isqrt(int num);
 static unsigned			start_year;
 unsigned				segments = 7 * Hour;
 static unsigned			exit_index;
+static creature			hero_data[128];
 static creature			creature_data[1024];
 adat<location, 128>		locations;
 adat<creature*, 512>	creatures;
@@ -30,12 +31,20 @@ static const direction_s orientations_5b5[25] = {
 	LeftDown, Down, Down, RightDown, RightDown
 };
 
-void* creature::operator new(unsigned size) {
+static creature* add_creature() {
 	for(auto& e : creature_data) {
 		if(!e)
 			return &e;
 	}
 	return creature_data;
+}
+
+static creature* add_hero() {
+	for(auto& e : hero_data) {
+		if(!e)
+			return &e;
+	}
+	return hero_data;
 }
 
 void areainfo::clear() {
@@ -136,6 +145,9 @@ void game::initialize() {
 	creatures.clear();
 	locations.clear();
 	grounditems.clear();
+	for(auto& e : creature_data)
+		e.hp = 0;
+	statistic.clear();
 }
 
 int	game::getnight() {
@@ -462,11 +474,17 @@ creature* game::add(short unsigned index, creature* element) {
 	return element;
 }
 
-creature* game::add(short unsigned index, class_s type, race_s race, gender_s gender, bool is_player) {
-	auto p = new creature(race, gender, type);
+creature* game::add(short unsigned index, race_s race, gender_s gender, class_s type, bool is_player) {
+	auto p = add_hero(); p->create(race, gender, type);
 	add(index, p);
 	if(is_player)
 		p->setplayer();
+	return p;
+}
+
+creature* game::add(short unsigned index, role_s type) {
+	auto p = add_creature(); p->create(type);
+	add(index, p);
 	return p;
 }
 
@@ -794,10 +812,10 @@ template<> void archive::set<creature>(creature& e) {
 	set(e.states);
 	set(e.wears);
 	set(e.backpack);
-	//set(e.charmer);
-	//set(e.enemy);
-	//set(e.horror);
-	//set(e.leader);
+	set(e.charmer);
+	set(e.enemy);
+	set(e.horror);
+	set(e.leader);
 }
 
 bool game::serialize(bool writemode) {
@@ -809,11 +827,19 @@ bool game::serialize(bool writemode) {
 	io::file file(temp, writemode ? StreamWrite : StreamRead);
 	if(!file)
 		return false;
-	archive a(file, writemode);
+	archive::dataset pointers[] = {creature_data, hero_data};
+	archive a(file, writemode, pointers);
 	if(!a.signature("SAV"))
 		return false;
-	if(!a.version(0, 1))
+	if(!a.version(0, 2))
 		return false;
+	a.set(location_type);
+	a.set(game::statistic);
+	a.setr(mpflg);
+	a.setr(mptil);
+	a.setr(mpobj);
+	a.setr(mprnd);
+	a.set(creature_data);
 	a.set(locations);
 	a.set(creatures);
 	return true;

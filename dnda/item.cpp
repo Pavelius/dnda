@@ -122,9 +122,9 @@ item::item(item_s type, int level, int chance_curse) : item(type) {
 	else
 		quality = 3;
 	// Effect can be or not can be
-	if(item_data[type].effects
-		&& (magic == Artifact || (magic >= Cursed && d100() < level)))
+	if(item_data[type].effects && (magic == Artifact || (magic >= Cursed && d100() < level)))
 		effect = item_data[type].effects.data[rand()%item_data[type].effects.count];
+	// Set maximum item count in set
 	if(item_data[type].count)
 		count = item_data[type].count - 1;
 }

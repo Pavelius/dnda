@@ -140,7 +140,7 @@ static spell_s choose_spells(creature* p) {
 	return source[rand() % count];
 }
 
-creature::creature(race_s race, gender_s gender, class_s type) {
+void creature::create(race_s race, gender_s gender, class_s type) {
 	clear();
 	this->race = race;
 	this->gender = gender;

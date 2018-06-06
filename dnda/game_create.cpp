@@ -186,44 +186,37 @@ static void create_location(int x, int y, int w, int h) {
 static void create_commoner(short unsigned index) {}
 
 static creature* create_shopkeeper(location& e, short unsigned index) {
-	e.owner = new creature(Shopkeeper);
-	add(index, e.owner);
+	e.owner = game::add(index, Shopkeeper);
 	return e.owner;
 }
 
 static creature* create_adventurer(short unsigned index) {
-	auto p = new creature(Human,
+	return game::add(index, Human,
 		(gender_s)xrand(Male, Female),
 		(class_s)xrand(Fighter, Mage));
-	add(index, p);
-	return p;
 }
 
 static creature* create_bartender(location& e, short unsigned index) {
-	e.owner = new creature(Bartender);
-	add(index, e.owner);
+	e.owner = game::add(index, Shopkeeper);
 	return e.owner;
 }
 
 static creature* create_monster(short unsigned index) {
 	if(game::isbooming())
 		return 0;
-	auto p = new creature((role_s)xrand(0, GiantRat));
-	add(index, p);
-	return p;
+	return game::add(index, (role_s)xrand(0, GiantRat));
 }
 
 static creature* create_priest(location& e, short unsigned index) {
 	e.diety = (diety_s)xrand(GodBane, GodTyr);
 	switch(e.diety) {
 	case GodGruumsh:
-		e.owner = new creature(Dwarf, Male, Cleric);
+		e.owner = game::add(index, Dwarf, Male, Cleric);
 		break;
 	default:
-		e.owner = new creature(Human, Male, Cleric);
+		e.owner = game::add(index, Human, Male, Cleric);
 		break;
 	}
-	add(index, e.owner);
 	return e.owner;
 }
 
@@ -655,9 +648,7 @@ static void update_doors() {
 	}
 }
 
-void game::create(tile_s type, bool explored, bool visualize) {
-	initialize();
-	location_type = type;
+static void area_create(bool explored, bool visualize) {
 	auto count = max_map_x * max_map_y;
 	for(short unsigned i = 0; i < count; i++)
 		set(i, (unsigned char)(rand() % 256));
@@ -666,7 +657,7 @@ void game::create(tile_s type, bool explored, bool visualize) {
 			set(i, Explored, true);
 	}
 	//
-	if(type == Floor) {
+	if(location_type == Floor) {
 		for(short unsigned i = 0; i < count; i++)
 			set(i, NoTile);
 	} else {
@@ -674,7 +665,7 @@ void game::create(tile_s type, bool explored, bool visualize) {
 		create_objects(0, 0, max_map_x - 1, max_map_y - 1, xrand(4, 12), Swamp);
 		create_objects(0, 0, max_map_x - 1, max_map_y - 1, max_map_x*max_map_y*(dense_forest / 3) / 100, Tree);
 	}
-	if(type == City) {
+	if(location_type == City) {
 		create_city(2, 2, max_map_x - 2, max_map_y - 2, 0);
 		update_rect(-3);
 		qsort(locations.data, locations.count, sizeof(locations.data[0]), compare_location);
@@ -707,5 +698,16 @@ void game::create(tile_s type, bool explored, bool visualize) {
 	for(auto& e : locations) {
 		e.x2--;
 		e.y2--;
+	}
+}
+
+void game::create(tile_s type, short unsigned index, int level, bool explored, bool visualize) {
+	initialize();
+	if(!serialize(false)) {
+		location_type = type;
+		statistic.index = index;
+		statistic.level = level;
+		area_create(explored, visualize);
+		serialize(true);
 	}
 }
