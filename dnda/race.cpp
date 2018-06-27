@@ -4,7 +4,7 @@ static constexpr struct race_info {
 	const char*			name;
 	cflags<skill_s>		skills;
 } race_data[] = {{"Нет расы"},
-{"Человек", {Bargaining, History, Gambling}},
+{"Человек", {Bargaining, Gambling}},
 {"Гном", {Smithing, Mining}},
 {"Эльф", {Survival, WeaponFocusBows}},
 {"Полурослик", {HideInShadow, Acrobatics}},
