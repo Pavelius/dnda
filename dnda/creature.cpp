@@ -4,36 +4,36 @@ using namespace game;
 
 adat<creature*, 6>	players;
 static creature*	current_player;
-static unsigned	experience_level[] = {
-	0, 1000, 2000, 4000, 8000, 16000, 32000, 64000
+static unsigned	experience_level[] = {0,
+1000, 2000, 4000, 8000, 16000, 32000, 64000
 };
-static unsigned	experience_cost[] = {
-	5, 10, 20, 30, 50, 80, 100, 150,
+static unsigned	experience_cost[] = {5,
+10, 20, 30, 50, 80, 100, 150,
 };
-static char	str_tohit_bonus[] = {
-	-5, -4, -2, -1, -1, -1, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 1, 2, 3, 3,
-	4, 4, 5, 5, 5, 6
+static char	str_tohit_bonus[] = {-5,
+-4, -2, -1, -1, -1, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 1, 2, 3, 3,
+4, 4, 5, 5, 5, 6
 };
-static char	str_damage_bonus[] = {
-	-5, -4, -2, -1, -1, -1, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 1, 2, 3, 4, 5,
-	6, 7, 8, 9, 10, 11
+static char	str_damage_bonus[] = {-5,
+-4, -2, -1, -1, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 1, 2, 3, 4, 5,
+6, 7, 8, 9, 10, 11
 };
-static char	dex_tohit_bonus[] = {
-	-5, -4, -2, -1, -1, -1, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 1, 2, 3, 4, 4,
-	5, 5, 6, 6, 7, 7
+static char	dex_tohit_bonus[] = {-5,
+-4, -2, -1, -1, -1, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 1, 2, 3, 4, 4,
+5, 5, 6, 6, 7, 7
 };
-static char	dex_speed_bonus[] = {
-	-4, -3, -2, -1, -1, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 1, 2, 2, 3,
-	3, 3, 4, 4, 4
+static char	dex_speed_bonus[] = {-4,
+-3, -2, -1, -1, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 1, 2, 2, 3,
+3, 3, 4, 4, 4
 };
-static char	int_check_bonus[] = {
-	-3, -3, -2, -2, -2, -1, -1, -1, 0, 0,
-	0, 0, 0, 0, 0, 1, 1, 2, 3, 3,
-	4, 4, 5, 5, 5
+static char	int_check_bonus[] = {-3,
+-3, -2, -2, -2, -1, -1, -1, 0, 0,
+0, 0, 0, 0, 0, 1, 1, 2, 3, 3,
+4, 4, 5, 5, 5
 };
 const int chance_loot = 40;
 
@@ -70,16 +70,6 @@ getstr_enum(class);
 
 static int roll3d6() {
 	return (rand() % 6) + (rand() % 6) + (rand() % 6) + 3;
-}
-
-static unsigned char getrang(int value) {
-	if(value <= 0)
-		return 0;
-	else if(value <= 50)
-		return 1;
-	else if(value <= 80)
-		return 2;
-	return 3;
 }
 
 static void start_equipment(creature& e) {
@@ -161,7 +151,7 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 			set(choose_spells(this), 1);
 	}
 	// ѕовысим навыки
-	auto skill_checks = imax(1, (int)maptbl(int_check_bonus, abilities[Intellegence]));
+	auto skill_checks = imax(2, (int)maptbl(int_check_bonus, abilities[Intellegence]));
 	raise_skills(this, skill_checks);
 	// ¬осполним хиты
 	mhp = class_data[type].hp; hp = getmaxhits();
@@ -174,8 +164,8 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 
 void creature::clear() {
 	memset(this, 0, sizeof(creature));
-	position = 0xFFFF;
-	guard = 0xFFFF;
+	position = Blocked;
+	guard = Blocked;
 	role = Character;
 }
 
@@ -198,6 +188,8 @@ int creature::getarmor() const {
 	result += wears[Legs].getarmor();
 	result += wears[Melee].getarmor();
 	result += wears[OffHand].getarmor();
+	result += wears[LeftFinger].getbonus(OfArmor);
+	result += wears[RightFinger].getbonus(OfArmor);
 	return result;
 }
 
@@ -208,7 +200,9 @@ int creature::getdefence() const {
 	result += wears[Elbows].getdefence();
 	result += wears[Legs].getdefence();
 	result += wears[Melee].getdefence();
-	result += wears[OffHand].getdefence();
+	result += wears[OffHand].getdefence() + (wears[OffHand].isarmor() ? wears[Torso].getquality() : 0);
+	result += wears[LeftFinger].getbonus(OfDefence);
+	result += wears[RightFinger].getbonus(OfDefence);
 	result += get(Acrobatics) / 30; // RULE: Acrobatics raise armor class by +1 for every 30%.
 	if(is(Shielded))
 		result += 4;
@@ -415,9 +409,9 @@ void creature::trapeffect() {
 }
 
 bool creature::move(short unsigned i) {
-	if(i == 0xFFFF)
+	if(i == Blocked)
 		return false;
-	if(position != 0xFFFF) {
+	if(position != Blocked) {
 		auto n = getdirection({(short)getx(position), (short)gety(position)}, {(short)getx(i), (short)gety(i)});
 		switch(n) {
 		case Left:
@@ -453,7 +447,7 @@ bool creature::moveto(short unsigned index) {
 	if(distance(position, index) > 1) {
 		makewave(index);
 		index = getstepto(position);
-		if(index == 0xFFFF)
+		if(index == Blocked)
 			return false;
 	}
 	return move(index);
@@ -484,7 +478,7 @@ void creature::makemove() {
 		moveto(enemy->position);
 	else if(horror)
 		moveaway(horror->position);
-	else if(guard != 0xFFFF)
+	else if(guard != Blocked)
 		moveto(guard);
 	else if(leader) {
 		if(distance(leader->position, position) <= 3)
@@ -652,7 +646,7 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 void creature::damage(int value) {
 	hp -= value;
 	if(value <= 0)
-		act("%герой прин€л%а удар на броню");
+		act("%герой выдержал%а удар");
 	else
 		act("%герой получил%а %1i урона", value);
 	if(hp <= 0)
@@ -869,8 +863,7 @@ void creature::setlos() {
 
 int creature::get(ability_s value) const {
 	static magic_s effects[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma};
-	return abilities[value]
-		+ getbonus(effects[value]);
+	return abilities[value] + getbonus(effects[value]);
 }
 
 attackinfo creature::getattackinfo(slot_s slot) const {
@@ -931,7 +924,7 @@ void testweapon(creature& e) {
 }
 
 bool creature::use(short unsigned index) {
-	if(index == 0xFFFF)
+	if(index == Blocked)
 		return false;
 	switch(game::gettile(index)) {
 	case Door:
@@ -1018,7 +1011,7 @@ int	creature::get(skill_s* source) const {
 
 void creature::levelup() {
 	// RULE: ƒобавим 2-5 попытки навыков в зависимости от интеллекта (в среднем 3)
-	auto n = imax(1, (int)maptbl(int_check_bonus, abilities[Intellegence]));
+	auto n = imax(2, (int)maptbl(int_check_bonus, abilities[Intellegence]));
 	raise_skills(this, n);
 	level++;
 }

@@ -11,6 +11,7 @@
 
 const int max_map_x = 96;
 const int max_map_y = 96;
+const unsigned short Blocked = 0xFFFF;
 
 enum item_s : unsigned char {
 	NoItem,
