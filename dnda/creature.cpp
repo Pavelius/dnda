@@ -140,7 +140,7 @@ static spell_s choose_spells(creature* p) {
 	return source[rand() % count];
 }
 
-void creature::create(race_s race, gender_s gender, class_s type) {
+creature::creature(race_s race, gender_s gender, class_s type) {
 	clear();
 	this->race = race;
 	this->gender = gender;
@@ -198,19 +198,17 @@ int creature::getarmor() const {
 	result += wears[Legs].getarmor();
 	result += wears[Melee].getarmor();
 	result += wears[OffHand].getarmor();
-	result += getbonus(OfDeflection);
 	return result;
 }
 
 int creature::getdefence() const {
 	auto result = wears[Head].getdefence();
-	result += wears[Torso].getdefence();
+	result += wears[Torso].getdefence() + wears[Torso].getquality();
 	result += wears[TorsoBack].getdefence();
 	result += wears[Elbows].getdefence();
 	result += wears[Legs].getdefence();
 	result += wears[Melee].getdefence();
 	result += wears[OffHand].getdefence();
-	result += getbonus(OfDeflection);
 	result += get(Acrobatics) / 30; // RULE: Acrobatics raise armor class by +1 for every 30%.
 	if(is(Shielded))
 		result += 4;
@@ -259,7 +257,7 @@ bool creature::askyn(creature* opponent, const char* format, ...) {
 }
 
 int	creature::getmaxhits() const {
-	if(role==Character)
+	if(role == Character)
 		return mhp + get(Constitution);
 	return mhp;
 }
@@ -279,11 +277,11 @@ const char* creature::getname() const {
 	return game::getnamepart(name);
 }
 
-char* creature::getfullname(char* temp, bool show_level, bool show_alignment) const {
-	zcpy(temp, getname());
+char* creature::getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const {
+	zcpy(result, getname());
 	if(show_level)
-		szprint(zend(temp), " %1-%3 %2i уровня", getstr(type), level, getstr(race));
-	return temp;
+		szprints(zend(result), result_maximum, " %1-%3 %2i уровня", getstr(type), level, getstr(race));
+	return result;
 }
 
 int creature::getdiscount(creature* customer) const {
@@ -317,7 +315,7 @@ bool creature::pickup(item value) {
 		}
 	}
 	if(value.gettype() == Coin) {
-		act("%герой собрал%а %1.", value.getname(temp));
+		act("%герой собрал%а %1.", value.getname(temp, zendof(temp)));
 		money += value.getcount();
 		return true;
 	}
@@ -325,7 +323,7 @@ bool creature::pickup(item value) {
 		if(e)
 			continue;
 		e = value;
-		act("%герой поднял%а %1.", value.getname(temp));
+		act("%герой поднял%а %1.", value.getname(temp, zendof(temp)));
 		return true;
 	}
 	return false;
@@ -352,7 +350,7 @@ bool creature::dropdown(item& value) {
 		value.setforsale();
 	}
 	drop(position, value);
-	act("%герой положил%а %1.", value.getname(temp));
+	act("%герой положил%а %1.", value.getname(temp, zendof(temp)));
 	return true;
 }
 
@@ -641,11 +639,13 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 		attacker->act("%герой промазал%а.");
 		return;
 	}
-	bool critical_hit = s >= ai.critical;
+	bool critical_hit = s >= (20 - ai.critical);
 	attacker->act(critical_hit ? "%герой критически попал%а." : "%герой попал%а.");
 	auto damage = ai.roll();
-	if(critical_hit)
-		damage *= ai.multiplier;
+	if(critical_hit) {
+		for(auto i = ai.multiplier; i > 0; i--)
+			damage += ai.roll();
+	}
 	defender->damage(damage);
 }
 
@@ -877,21 +877,14 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 	auto attack_per_level = class_data[type].attack;
 	if(!attack_per_level)
 		attack_per_level = 2;
-	attackinfo result;
-	result.clear();
+	attackinfo result = {0};
 	result.bonus = level / attack_per_level;
 	auto& weapon = wears[slot];
 	if(weapon) {
-		if(weapon.is(Slashing))
-			result.critical--;
-		if(weapon.is(Piercing))
-			result.multiplier++;
-		result.speed = wears[slot].getspeed() + wears[slot].getbonus(OfSpeed);
-		result.damage[0] = wears[slot].getdamagemin();
-		result.damage[1] = wears[slot].getdamagemax();
+		wears[slot].get(result);
 		auto focus = weapon.getfocus();
 		if(focus)
-			result.damage[1] += get(focus) / 20;
+			result.bonus += get(focus) / 20;
 	}
 	switch(slot) {
 	case Melee:
@@ -909,7 +902,7 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 static void weapon_information(item weapon, const attackinfo& ai) {
 	char t1[260];
 	logs::add("%1 с бонусом [%2i] наносит [%3i-%4i] урона",
-		weapon.getname(t1, false), ai.bonus, ai.damage[0], ai.damage[1]);
+		weapon.getname(t1, zendof(t1), false), ai.bonus, ai.damage[0], ai.damage[1]);
 }
 
 int creature::getattacktime(slot_s slot) const {
@@ -1095,7 +1088,7 @@ void creature::lookfloor() {
 		if(i != 0)
 			logs::add(" и ");
 		char temp[260];
-		logs::add(source[i]->getname(temp, true));
+		logs::add(source[i]->getname(temp, zendof(temp), true));
 	}
 	logs::add(".");
 }

@@ -3,25 +3,21 @@ extern "C" void*	realloc(void *ptr, unsigned size);
 extern "C" void		free(void* pointer);
 
 // Return last element in sequence.
-template<class T> inline T* seqlast(T* p)
-{
+template<class T> inline T* seqlast(T* p) {
 	while(p->next)
 		p = p->next;
 	return p;
 }
 
-struct crt_memory_block
-{
+struct crt_memory_block {
 	char				signature[4];
 	unsigned			size;
 	crt_memory_block*	next;
 };
 static crt_memory_block	first_block = {"CRT"};
 
-static crt_memory_block* getprev(crt_memory_block* p)
-{
-	for(auto p1 = &first_block; p1->next; p1 = p1->next)
-	{
+static crt_memory_block* getprev(crt_memory_block* p) {
+	for(auto p1 = &first_block; p1->next; p1 = p1->next) {
 		if(p1->next == p)
 			return p1;
 	}
@@ -29,8 +25,7 @@ static crt_memory_block* getprev(crt_memory_block* p)
 }
 
 // Used for rellocate simple classes like new char[1000]
-void* operator new(unsigned size)
-{
+void* operator new(unsigned size) {
 	if(!size)
 		return 0;
 	crt_memory_block* p = (crt_memory_block*)malloc(size + sizeof(crt_memory_block));
@@ -45,14 +40,12 @@ void* operator new(unsigned size)
 }
 
 // Used for rellocate simple classes like new char[1000]
-void* operator new[](unsigned size)
-{
+void* operator new[](unsigned size) {
 	return operator new(size);
 }
 
 // Used for delete simple classes like delete char*
-void operator delete(void* ptr)
-{
+void operator delete(void* ptr) {
 	if(!ptr)
 		return;
 	crt_memory_block* p = (crt_memory_block*)ptr - 1;
@@ -63,13 +56,11 @@ void operator delete(void* ptr)
 	free(p);
 }
 
-void operator delete(void* p, unsigned size)
-{
+void operator delete(void* p, unsigned size) {
 	operator delete(p);
 }
 
-void* rmreserve(void* ptr, unsigned size, bool force_to_size = false)
-{
+void* rmreserve(void* ptr, unsigned size, bool force_to_size = false) {
 	if(!ptr)
 		return new char[size];
 	crt_memory_block* p = (crt_memory_block*)ptr - 1;
@@ -84,16 +75,14 @@ void* rmreserve(void* ptr, unsigned size, bool force_to_size = false)
 	return p + 1;
 }
 
-int rmblockcount()
-{
+int rmblockcount() {
 	int result = 0;
 	for(auto p = first_block.next; p; p = p->next)
 		result++;
 	return result;
 }
 
-bool rmblock(void* ptr)
-{
+bool rmblock(void* ptr) {
 	crt_memory_block* p = (crt_memory_block*)ptr - 1;
 	return getprev(p) != 0;
 }

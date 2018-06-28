@@ -5,6 +5,27 @@ const int SP = 10;
 const int CP = 1;
 static_assert(sizeof(item) == sizeof(int), "Invalid sizeof(item). Must be equal sizeof(int).");
 
+static struct magic_info {
+	const char*		id;
+	const char*		name;
+} magic_data[] = {{""},
+{"armor", "брони"},
+{"charisma", "харизмы"},
+{"constitution", "телосложения"},
+{"defence", "защиты"},
+{"destruction", "разрушения"},
+{"dexterity", "ловкости"},
+{"intellegene", "интеллекта"},
+{"precision", "точности"},
+{"sharping", "остроты"},
+{"smashing", "раскалывания"},
+{"speed", "скорости"},
+{"strenght", "силы"},
+{"wisdow", "мудрости"},
+};
+assert_enum(magic, OfWisdow);
+getstr_enum(magic);
+
 static const char* key_names[][2] = {{"simple", "простой"},
 // Металлические ключи
 {"bronze", "бронзовый"},
@@ -17,38 +38,30 @@ static const char* key_names[][2] = {{"simple", "простой"},
 {"stone", "каменный"},
 {"crystal", "кристальный"},
 };
-static magic_s swords_effect[] = {
-	OfDeflection, OfSpeed, OfPrecision,
-};
-static magic_s axe_effect[] = {
-	OfStrenght, OfDestruction,
-};
-static magic_s bludgeon_effect[] = {
-	OfStrenght, OfDestruction, OfConstitution
-};
-static magic_s pierce_effect[] = {
-	OfDeflection, OfPrecision, OfSpeed,
-};
-static constexpr struct iteminfo {
-	struct combatinfo {
-		char speed;
-		char damage[2];
-		char attack[2]; // Melee or ranger attack bonus
-		char armor[2]; // Bonus to hit and damage reduction
+static magic_s swords_effect[] = {OfDefence, OfDexterity, OfSpeed, OfPrecision, OfSharping};
+static magic_s axe_effect[] = {OfStrenght, OfDestruction, OfSharping, OfSmashing};
+static magic_s bludgeon_effect[] = {OfStrenght, OfDestruction, OfSmashing, OfConstitution};
+static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
+static constexpr struct item_info {
+	struct combat_info {
+		char			speed;
+		char			damage[2];
+		char			attack; // Melee or ranger attack bonus
+		char			armor[2]; // Bonus to hit and damage reduction
 	};
-	const char* name;
-	int	cost;
-	combatinfo combat;
+	const char*			name;
+	int					cost;
+	combat_info			combat;
 	cflags<item_flag_s>	flags;
-	cflags<slot_s> slots;
-	skill_s focus;
-	aref<magic_s> effects;
-	item_s ammunition;
-	unsigned char count;
+	cflags<slot_s>		slots;
+	skill_s				focus;
+	aref<magic_s>		effects;
+	item_s				ammunition;
+	unsigned char		count;
 } item_data[] = {{"Пусто"},
 {"Боевой топор", 5 * GP, {1, {1, 8}}, {Slashing, Versatile}, {Melee}, WeaponFocusAxes, axe_effect},
 {"Дубина", 5 * CP, {2, {1, 6}}, {Bludgeon}, {Melee}, NoSkill, bludgeon_effect},
-{"Кинжал", 2 * GP, {3, {1, 4}}, {Piercing}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
+{"Кинжал", 2 * GP, {3, {1, 4}, 1}, {Piercing}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
 {"Молот", 2 * GP, {1, {2, 5}}, {Bludgeon}, {Melee}, WeaponFocusAxes, bludgeon_effect},
 {"Булава", 8 * GP, {1, {1, 7}}, {Bludgeon}, {Melee}, WeaponFocusAxes, bludgeon_effect},
 {"Копье", 8 * SP, {1, {1, 8}}, {Piercing, Versatile}, {Melee}, NoSkill, pierce_effect},
@@ -56,8 +69,8 @@ static constexpr struct iteminfo {
 {"Длинный меч", 15 * GP, {1, {1, 8}}, {Slashing}, {Melee}, WeaponFocusBlades, swords_effect},
 {"Короткий меч", 10 * GP, {1, {1, 6}}, {Slashing}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
 {"Двуручный меч", 50 * GP, {0, {2, 12}}, {Slashing, TwoHanded}, {Melee}, WeaponFocusBlades, swords_effect},
-{"Арбалет", 40 * GP, {0, {2, 7}}, {Piercing}, {Ranged}, NoSkill, pierce_effect, Bolt},
-{"Тяжелый арбалет", 80 * GP, {0, {3, 9}}, {Piercing}, {Ranged}, NoSkill, pierce_effect, Bolt},
+{"Арбалет", 40 * GP, {0, {2, 7}, 1}, {Piercing}, {Ranged}, NoSkill, pierce_effect, Bolt},
+{"Тяжелый арбалет", 80 * GP, {0, {3, 9}, 1}, {Piercing}, {Ranged}, NoSkill, pierce_effect, Bolt},
 {"Длинный лук", 60 * GP, {1, {1, 8}}, {Piercing}, {Ranged}, WeaponFocusBows, pierce_effect, Arrow},
 {"Лук", 30 * GP, {2, {1, 6}}, {Piercing}, {Ranged}, WeaponFocusBows, pierce_effect, Arrow},
 {"Дротик", 1 * SP, {3, {1, 3}}, {Piercing}, {Ranged}},
@@ -67,12 +80,12 @@ static constexpr struct iteminfo {
 {"Стрела", 2 * CP, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 {"Болт", 1 * CP, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 //
-{"Кожанная броня", 5 * GP, {0, {}, {}, {2}}, {}, {Torso}},
-{"Клепанная броня", 20 * GP, {0, {}, {}, {3}}, {}, {Torso}},
-{"Чешуйчатый доспех", 30 * GP, {0, {}, {}, {5}}, {}, {Torso}},
-{"Кольчуга", 50 * GP, {0, {}, {}, {5, 1}}, {}, {Torso}},
-{"Бахрец", 200 * GP, {0, {}, {}, {6, 2}}, {}, {Torso}},
-{"Латы", 800 * GP, {0, {}, {}, {8, 3}}, {}, {Torso}},
+{"Кожанная броня", 5 * GP, {0, {}, 0, {2}}, {}, {Torso}},
+{"Клепанная броня", 20 * GP, {0, {}, 0, {3}}, {}, {Torso}},
+{"Чешуйчатый доспех", 30 * GP, {0, {}, 0, {5}}, {}, {Torso}},
+{"Кольчуга", 50 * GP, {0, {}, 0, {5, 1}}, {}, {Torso}},
+{"Бахрец", 200 * GP, {0, {}, 0, {6, 2}}, {}, {Torso}},
+{"Латы", 800 * GP, {0, {}, 0, {8, 3}}, {}, {Torso}},
 //
 {"Щит", 20 * GP, {0, {}, {}, {2}}, {}, {OffHand}},
 {"Шлем", 5 * GP, {0, {}, {}, {1}}, {}, {Head}},
@@ -122,8 +135,9 @@ item::item(item_s type, int level, int chance_curse) : item(type) {
 	else
 		quality = 3;
 	// Effect can be or not can be
-	if(item_data[type].effects && (magic == Artifact || (magic >= Cursed && d100() < level)))
-		effect = item_data[type].effects.data[rand()%item_data[type].effects.count];
+	if(item_data[type].effects
+		&& (magic == Artifact || (magic != Mundane && d100() < level)))
+		effect = item_data[type].effects.data[rand() % item_data[type].effects.count];
 	// Set maximum item count in set
 	if(item_data[type].count)
 		count = item_data[type].count - 1;
@@ -143,7 +157,28 @@ void item::loot() {
 	forsale = 0;
 }
 
-int item::getbonus() const {
+void item::get(attackinfo& e) const {
+	auto b = getquality();
+	e.bonus += item_data[type].combat.attack + b + getbonus(OfPrecision) - damaged;
+	e.speed += item_data[type].combat.speed + getbonus(OfSpeed);
+	e.damage[0] += item_data[type].combat.damage[0];
+	e.damage[1] += item_data[type].combat.damage[1] + getbonus(OfDestruction) - damaged / 2;
+	e.critical += getbonus(OfSmashing);
+	e.multiplier += getbonus(OfSmashing);
+	if(is(Bludgeon)) {
+		e.damage[0] += b / 2;
+		e.damage[1] += b / 2;
+	} else
+		e.damage[1] += b / 2;
+	if(is(Slashing))
+		e.critical++;
+	if(is(Piercing))
+		e.multiplier++;
+	if(e.damage[1] < e.damage[0])
+		e.damage[1] = e.damage[0];
+}
+
+int item::getquality() const {
 	switch(magic) {
 	case Cursed: return -(quality + 1);
 	case Magical: return quality + 1;
@@ -152,43 +187,14 @@ int item::getbonus() const {
 	}
 }
 
+magic_s item::geteffect() const {
+	if(item_data[type].effects.count)
+		return effect;
+	return NoEffect;
+}
+
 int item::getbonus(magic_s value) const {
-	if(!type || type > Bracers || !effect)
-		return 0;
-	if(effect != value || identify < KnowEffect)
-		return 0;
-	return getbonus();
-}
-
-int item::getattack() const {
-	return item_data[type].combat.attack[0] + getbonus() - damaged;
-}
-
-int item::getdefence() const {
-	return item_data[type].combat.armor[0] + getbonus() - damaged;
-}
-
-int item::getarmor() const {
-	return item_data[type].combat.armor[1] - damaged / 2;
-}
-
-int item::getspeed() const {
-	return item_data[type].combat.speed;
-}
-
-char item::getdamagemin() const {
-	return item_data[type].combat.damage[0];
-}
-
-char item::getdamagemax() const {
-	auto r = item_data[type].combat.damage[1];
-	auto b = getbonus() - damaged / 2;
-	if(item_data[type].flags.is(Bludgeon))
-		r += b;
-	else
-		r += b / 2;
-	r += getbonus(OfDestruction);
-	return imax(r, item_data[type].combat.damage[0]);
+	return (geteffect() == value) ? getquality() : 0;
 }
 
 unsigned item::getcostsingle() const {
@@ -197,30 +203,6 @@ unsigned item::getcostsingle() const {
 
 int item::getsalecost() const {
 	return getcost() / 3;
-}
-
-int	item::getweightsingle() const {
-	switch(gettype()) {
-	case SwordLong: return 200;
-	case SwordShort: return 150;
-	case Dagger: return 50;
-	case Spear: return 250;
-	case Staff: return 200;
-	case Mace: return 700;
-	case AxeBattle: return 850;
-	case HammerWar: return 850;
-		//
-	case LeatherArmour: return 1000;
-	case ChainMail: return 2500;
-	case ScaleMail: return 2500;
-	case PlateMail: return 3500;
-	case Helmet: return 250;
-		//
-	case Arrow: return 3;
-	case Coin: return 1;
-	case DoorKey: return 10;
-	default: return 100;
-	}
 }
 
 bool item::iscountable() const {
@@ -258,34 +240,66 @@ bool item::istwohanded() const {
 	return item_data[type].flags.is(TwoHanded);
 }
 
-char* item::getname(char* result, bool show_info) const {
-	auto bonus = getbonus((magic_s)effect);
-	zcpy(result, item_data[type].name);
-	if(getidentify() >= KnowEffect && type <= Bracers && effect) {
-		zcat(result, " ");
-		zcat(result, getstr((magic_s)effect));
+int item::getarmor() const {
+	return item_data[type].combat.armor[1] + getbonus(OfArmor);
+}
+
+int item::getdefence() const {
+	return item_data[type].combat.armor[0] - damaged + getbonus(OfDefence);
+}
+
+int	item::getweightsingle() const {
+	switch(gettype()) {
+	case SwordLong: return 200;
+	case SwordShort: return 150;
+	case Dagger: return 50;
+	case Spear: return 250;
+	case Staff: return 200;
+	case Mace: return 700;
+	case AxeBattle: return 850;
+	case HammerWar: return 850;
+		//
+	case LeatherArmour: return 1000;
+	case ChainMail: return 2500;
+	case ScaleMail: return 2500;
+	case PlateMail: return 3500;
+	case Helmet: return 250;
+		//
+	case Arrow: return 3;
+	case Coin: return 1;
+	case DoorKey: return 10;
+	default: return 100;
 	}
-	if(bonus != 0 && getidentify() >= KnowMagic)
-		szprint(zend(result), "%+1i", bonus);
+}
+
+static void szblock(stringcreator& sc, char* p, const char* pm, const char* format, ...) {
+	sc.prints(zend(p), pm, p[0] ? " " : " (");
+	sc.printv(zend(p), pm, format, xva_start(format));
+}
+
+char* item::getname(char* result, const char* result_maximum, bool show_info) const {
+	stringcreator sc;
+	auto bonus = getquality();
+	auto effect = geteffect();
+	sc.prints(result, result_maximum, item_data[type].name);
+	if(getidentify() >= KnowEffect && effect != NoEffect)
+		sc.prints(zend(result), result_maximum, " %1%+2i", getstr((magic_s)effect), bonus);
 	if(show_info) {
 		auto p = zend(result);
 		if(getidentify() >= KnowQuality) {
 			if(is(Melee) || is(Ranged)) {
-				zcat(p, p[0] ? " " : " (");
-				szprint(zend(result), "урон %2i-%3i", getattack(), getdamagemin(), getdamagemax());
-			} else if(is(Torso) || is(Head) || is(Legs) || is(Elbows) || is(OffHand)) {
-				zcat(p, p[0] ? " " : " (");
-				szprint(zend(result), "защита %1i/%2i", getdefence(), getarmor());
-			}
+				attackinfo e = {0}; get(e);
+				szblock(sc, p, result_maximum, "урон %2i-%3i", e.bonus, e.damage[0], e.damage[1]);
+			} else if(is(Torso) || is(Head) || is(Legs) || is(Elbows) || is(OffHand))
+				szblock(sc, p, result_maximum, "защита %1i/%2i", getdefence(), getarmor());
 		}
-		if(forsale) {
-			zcat(p, p[0] ? " " : " (");
-			szprint(zend(result), "цена %1i", getcostsingle());
-		}
-		if(p[0]) zcat(result, ")");
+		if(forsale)
+			szblock(sc, p, result_maximum, "цена %1i", getcostsingle());
+		if(p[0])
+			sc.prints(zend(p), result_maximum, ")");
 	}
 	if(getcount() > 2)
-		szprint(zend(result), " %1i шт", getcount());
+		sc.prints(zend(result), result_maximum, " %1i шт", getcount());
 	return result;
 }
 

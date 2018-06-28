@@ -1,15 +1,13 @@
 #pragma once
 
-struct stringcreator
-{
+struct stringcreator {
 	// Custom print tokens set
-	struct plugin
-	{
+	struct plugin {
 		const char*		name;
-		char*			(*proc)(char* result);
+		char*			(*proc)(char* result, const char* result_maximum);
 		plugin*			next;
 		static plugin*	first;
-		plugin(const char* name, char* (*proc)(char* result));
+		plugin(const char* name, char* (*proc)(char* result, const char* result_maximum));
 		static plugin*	find(const char* name);
 	};
 	const char*			parseformat(char* result, const char* result_max, const char* format, const char* format_param);
@@ -18,12 +16,10 @@ struct stringcreator
 	static char*		parsenumber(char* dst, const char* result_max, unsigned value, int precision, const int radix);
 	virtual void		parsevariable(char* result, const char* result_max, const char** format);
 	void				printv(char* result, const char* result_max, const char* format, const char* format_param);
-	void				print(char* result, const char* format, ...);
-	void				printn(char* result, const char* format, ...);
-	void				println(char* result, const char* format, ...);
+	void				prints(char* result, const char* result_maximum, const char* format, ...);
 };
 
 // Macro for correct declaration string indentifier.
-#define PRINTPLG(name) static char* get_##name(char* result);\
+#define PRINTPLG(name) static char* get_##name(char* result, const char* result_maximum);\
 static stringcreator::plugin print_##name = {#name, get_##name};\
-static char* get_##name(char* result)
+static char* get_##name(char* result, const char* result_maximum)

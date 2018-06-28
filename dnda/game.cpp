@@ -10,7 +10,6 @@ int						isqrt(int num);
 static unsigned			start_year;
 unsigned				segments = 7 * Hour;
 static unsigned			exit_index;
-static creature			hero_data[128];
 static creature			creature_data[1024];
 adat<location, 128>		locations;
 adat<creature*, 512>	creatures;
@@ -31,20 +30,12 @@ static const direction_s orientations_5b5[25] = {
 	LeftDown, Down, Down, RightDown, RightDown
 };
 
-static creature* add_creature() {
+void* creature::operator new(unsigned size) {
 	for(auto& e : creature_data) {
 		if(!e)
 			return &e;
 	}
 	return creature_data;
-}
-
-static creature* add_hero() {
-	for(auto& e : hero_data) {
-		if(!e)
-			return &e;
-	}
-	return hero_data;
 }
 
 void areainfo::clear() {
@@ -122,18 +113,18 @@ unsigned getturn() {
 	return segments / Minute;
 }
 
-static char* zadd(char* result, const char* format, ...) {
-	szprintv(zend(result), format, xva_start(format));
+static char* zadd(char* result, const char* result_maximum, const char* format, ...) {
+	szprintvs(zend(result), result_maximum, format, xva_start(format));
 }
 
-const char* getstrfdat(char* result, unsigned segments, bool show_time) {
+const char* game::getdate(char* result, const char* result_maximum, unsigned segments, bool show_time) {
 	auto v = getday();
 	result[0] = 0;
 	if(v)
-		szprint(result, "День %1i", v);
+		szprints(result, result_maximum, "День %1i", v);
 	if(result[0])
-		zcat(result, ", ");
-	szprint(zend(result), "%1i часов %2i минут", gethour(), getminute());
+		szprints(zend(result), result_maximum, ", ");
+	szprints(zend(result), result_maximum, "%1i часов %2i минут", gethour(), getminute());
 	return result;
 }
 
@@ -475,7 +466,7 @@ creature* game::add(short unsigned index, creature* element) {
 }
 
 creature* game::add(short unsigned index, race_s race, gender_s gender, class_s type, bool is_player) {
-	auto p = add_hero(); p->create(race, gender, type);
+	auto p = new creature(race, gender, type);
 	add(index, p);
 	if(is_player)
 		p->setplayer();
@@ -483,7 +474,7 @@ creature* game::add(short unsigned index, race_s race, gender_s gender, class_s 
 }
 
 creature* game::add(short unsigned index, role_s type) {
-	auto p = add_creature(); p->create(type);
+	auto p = new creature(type);
 	add(index, p);
 	return p;
 }
@@ -719,7 +710,7 @@ void game::lookhere(short unsigned index) {
 				else
 					logs::add(",");
 			}
-			source[i]->getname(temp);
+			source[i]->getname(temp, zendof(temp));
 			szlower(temp, 1);
 			logs::add(temp);
 		}
@@ -827,7 +818,7 @@ bool game::serialize(bool writemode) {
 	io::file file(temp, writemode ? StreamWrite : StreamRead);
 	if(!file)
 		return false;
-	archive::dataset pointers[] = {creature_data, hero_data};
+	archive::dataset pointers[] = {creature_data};
 	archive a(file, writemode, pointers);
 	if(!a.signature("SAV"))
 		return false;

@@ -128,7 +128,6 @@
     <ClInclude Include="command.h" />
     <ClInclude Include="crt.h" />
     <ClInclude Include="csort.h" />
-    <ClInclude Include="dice.h" />
     <ClInclude Include="draw.h" />
     <ClInclude Include="grammar.h" />
     <ClInclude Include="initializer_list.h" />
@@ -156,7 +155,6 @@
     <ClCompile Include="crt.cpp" />
     <ClCompile Include="crt_memory.cpp" />
     <ClCompile Include="crt_parse.cpp" />
-    <ClCompile Include="dice.cpp" />
     <ClCompile Include="draw.cpp" />
     <ClCompile Include="draw_input.cpp" />
     <ClCompile Include="draw_text.cpp" />
@@ -164,11 +162,12 @@
     <ClCompile Include="game_create.cpp" />
     <ClCompile Include="grammar.cpp" />
     <ClCompile Include="io.cpp" />
-    <ClCompile Include="io_strategy.cpp" />
+    <ClCompile Include="io_strategy.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="item.cpp" />
     <ClCompile Include="location.cpp" />
     <ClCompile Include="logs_driver.cpp" />
-    <ClCompile Include="magic.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="names.cpp" />
     <ClCompile Include="pma.cpp" />

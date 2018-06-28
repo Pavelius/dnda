@@ -36,7 +36,7 @@ void item::detectevil(bool interactive) {
 	char temp[260];
 	if(getidentify() < KnowMagic && iscursed()) {
 		if(interactive)
-			logs::add("%1 осветился красным светом.", getname(temp));
+			logs::add("%1 осветился красным светом.", getname(temp, zendof(temp)));
 		set(KnowMagic);
 	}
 }
@@ -97,7 +97,7 @@ bool creature::use(spell_s value) {
 		break;
 	case Identify:
 		if(getplayer()->canhear(position))
-			logs::add("%1 озарилось синим светом.", ti.item->getname(temp));
+			logs::add("%1 озарилось синим светом.", ti.item->getname(temp, zendof(temp)));
 		ti.item->set(KnowEffect);
 		break;
 	}

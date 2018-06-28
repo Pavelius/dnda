@@ -2,7 +2,6 @@
 #include "aref.h"
 #include "cflags.h"
 #include "crt.h"
-#include "dice.h"
 #include "grammar.h"
 #include "point.h"
 #include "rect.h"
@@ -37,8 +36,13 @@ enum slot_s : unsigned char {
 };
 enum magic_s : unsigned char {
 	NoEffect,
-	OfArmor, OfDeflection, OfPrecision, OfSpeed, OfDestruction,
-	OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma
+	OfArmor,
+	OfCharisma, OfConstitution,
+	OfDefence, OfDestruction, OfDexterity,
+	OfIntellegence,
+	OfPrecision,
+	OfSharping, OfSmashing, OfSpeed, OfStrenght,
+	OfWisdow,
 };
 enum race_s : unsigned char {
 	NoRace,
@@ -143,45 +147,44 @@ enum item_flag_s : unsigned char {
 	Bludgeon, Slashing, Piercing,
 	TwoHanded, Versatile,
 };
+struct attackinfo;
 struct targetinfo;
 struct targetdesc;
 class item {
-	item_s type;
+	item_s			type;
 	//
-	unsigned char effect;
+	magic_s			effect;
 	//
-	unsigned char count : 6;
-	unsigned char damaged : 2;
+	unsigned char	count : 6;
+	unsigned char	damaged : 2;
 	//
-	item_type_s	magic : 2;
-	unsigned char quality : 2;
-	identify_s identify : 2;
-	unsigned char forsale : 1;
+	item_type_s		magic : 2;
+	unsigned char	quality : 2;
+	identify_s		identify : 2;
+	unsigned char	forsale : 1;
 public:
-	constexpr item(item_s type = NoItem) : type(type), effect(0), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
+	constexpr item(item_s type = NoItem) : type(type), effect(NoEffect), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
 	constexpr item(item_s type, item_type_s magic, magic_s effect, unsigned char quality, identify_s identify = Unknown) : type(type), effect(effect), count(0), magic(magic), quality(quality), identify(identify), forsale(0), damaged(0) {}
-	item(item_s type, int level, int chance_curse);
+	item(item_s type, int level, int chance_curse = 10);
 	operator bool() const { return type != NoItem; }
 	void			clear();
 	void			detectevil(bool interactive);
+	void			get(attackinfo& e) const;
 	item_s			getammo() const;
-	int				getattack() const;
 	int				getarmor() const;
-	int				getbonus() const;
 	int				getbonus(magic_s type) const;
 	unsigned		getcost() const { return getcostsingle()*getcount(); }
 	unsigned		getcostsingle() const;
 	int				getcount() const;
-	char			getdamagemin() const;
-	char			getdamagemax() const;
 	int				getdefence() const;
+	magic_s			geteffect() const;
 	skill_s			getfocus() const;
 	identify_s		getidentify() const { return identify; }
 	static unsigned	getitems(item_s* result, slot_s* slots, unsigned slots_count);
 	item_type_s		getmagic() const { return magic; }
-	char*			getname(char* result, bool show_info = true) const;
+	char*			getname(char* result, const char* result_maximum, bool show_info = true) const;
+	int				getquality() const;
 	int				getsalecost() const;
-	int				getspeed() const;
 	item_s			gettype() const { return type; }
 	int				getweight() const;
 	int				getweightsingle() const;
@@ -207,7 +210,6 @@ struct attackinfo {
 	char			damage[2];
 	char			multiplier;
 	char			speed;
-	void			clear();
 	int				roll() const;
 };
 struct creature {
@@ -241,6 +243,8 @@ struct creature {
 		recoil(), restore_hits(), restore_mana(), experience(), money(),
 		charmer(0), enemy(0), horror(), leader(),
 		position(), guard() {}
+	creature(role_s value);
+	creature(race_s race, gender_s gender, class_s type);
 	operator bool() const { return hp > 0; }
 	void* operator new(unsigned size);
 	//
@@ -251,8 +255,6 @@ struct creature {
 	void			chat(creature* opponent);
 	void			clear();
 	void			clear(state_s value) { states[value] = 0; }
-	void			create(role_s value);
-	void			create(race_s race, gender_s gender, class_s type);
 	void			damage(int count);
 	bool			dropdown(item& value);
 	bool			equip(item value);
@@ -269,7 +271,7 @@ struct creature {
 	unsigned		getcostexp() const;
 	int				getdefence() const;
 	int				getdiscount(creature* customer) const;
-	char*			getfullname(char* temp, bool show_level, bool show_alignment) const;
+	char*			getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
 	int				getitems(item** result, unsigned maximum_count, target_s target) const;
 	creature*		getleader() const;
 	int				getlos() const;
@@ -365,6 +367,7 @@ int					getrand(short unsigned i);
 cflags<skill_s>		getskills(race_s value);
 short unsigned		getstepto(short unsigned index);
 short unsigned		getstepfrom(short unsigned index);
+const char*			getdate(char* result, const char* result_maximum, unsigned segments, bool show_time);
 trap_s				gettrap(short unsigned i);
 tile_s				gettile();
 tile_s				gettile(short unsigned i);

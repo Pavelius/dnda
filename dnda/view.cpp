@@ -129,8 +129,8 @@ static char* szweight(char* result, int value) {
 	return result;
 }
 
-static char* szpercent(char* result, int value) {
-	return szprint(result, "%1i%%", value);
+static char* szpercent(char* result, const char* result_maximum, int value) {
+	return szprints(result, result_maximum, "%1i%%", value);
 }
 
 static int textr(int x, int y, int width, const char* value) {
@@ -144,7 +144,7 @@ static int textl(int x, int y, int width, const char* value) {
 }
 
 static int textl(int x, int y, int width, item& value) {
-	char temp[260]; value.getname(temp);
+	char temp[260]; value.getname(temp, zendof(temp));
 	draw::state push;
 	if(value.getidentify() >= KnowMagic) {
 		switch(value.getmagic()) {
@@ -171,15 +171,15 @@ static int shortcut(int x, int y, int w, int key) {
 	char temp[32];
 	char temx[32];
 	draw::fore = colors::green;
-	szprint(temx, "%1)", key2str(temp, key));
+	szprints(temx, zendof(temx), "%1)", key2str(temp, key));
 	draw::text(x, y, temx);
 	return x + w;
 }
 
 static int field(int x, int y, int w, const char* name, int value) {
 	char temp[128];
-	draw::text(x, y, szprint(temp, "%1:", name));
-	draw::text(x + w, y, szprint(temp, "%1i", value));
+	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
+	draw::text(x + w, y, szprints(temp, zendof(temp), "%1i", value));
 	return draw::texth();
 }
 
@@ -190,15 +190,15 @@ static int field(int x, int y, const char* value) {
 
 static int field(int x, int y, int w, const char* name, const char* value) {
 	char temp[128];
-	draw::text(x, y, szprint(temp, "%1:", name));
+	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
 	draw::text(x + w, y, value);
 	return draw::texth();
 }
 
 static int field(int x, int y, int w, const char* name, int value, int max_value) {
 	char temp[128];
-	draw::text(x, y, szprint(temp, "%1:", name));
-	draw::text(x + w, y, szprint(temp, "%1i/%2i", value, max_value));
+	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
+	draw::text(x + w, y, szprints(temp, zendof(temp), "%1i/%2i", value, max_value));
 	return draw::texth();
 }
 
@@ -654,7 +654,7 @@ static void view_info(const creature& e) {
 	draw::state push;
 	draw::fore = colors::white;
 	view_dialog({x, y, x + width, y + height});
-	draw::textf(x, y, width, e.getfullname(temp, true, true));
+	draw::textf(x, y, width, e.getfullname(temp, zendof(temp), true, true));
 	auto loc = game::getlocation(e.position);
 	if(loc) {
 		auto p = loc->getname(temp);
@@ -808,9 +808,9 @@ static int view_total(int x, int y, int width, item** source, unsigned count) {
 		rcount++;
 	}
 	if(rcount)
-		szprint(temp, "Всего %1.", szweight(temx, result));
+		szprints(temp, zendof(temp), "Всего %1.", szweight(temx, result));
 	else
-		szprint(temp, "Нет подходящих предметов.");
+		szprints(temp, zendof(temp), "Нет подходящих предметов.");
 	return draw::textf(x, y, width, temp);
 }
 
@@ -852,7 +852,7 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 }
 
 static void character_pickup(creature& e) {
-	char temp[260]; szprint(temp, "Поднять предметы");
+	char temp[260]; szprints(temp, zendof(temp), "Поднять предметы");
 	item* source[48];
 	auto index = e.position;
 	auto p = source;
@@ -875,7 +875,7 @@ static void character_pickup(creature& e) {
 }
 
 static void character_dropdown(creature& e) {
-	char temp[260]; szprint(temp, "Положить предметы");
+	char temp[260]; szprints(temp, zendof(temp), "Положить предметы");
 	item* source[48];
 	auto p = source;
 	for(auto& s : e.backpack) {
@@ -902,7 +902,7 @@ static void character_stuff(creature& e) {
 }
 
 static item* choose_item(creature& e, point camera, slot_s slot) {
-	char temp[260]; szprint(temp, "Что одеть на %1?", getstr(slot));
+	char temp[260]; szprints(temp, zendof(temp), "Что одеть на %1?", getstr(slot));
 	item* source[sizeof(e.backpack) / sizeof(e.backpack[0])];
 	auto p = source;
 	for(auto& s : e.backpack) {
@@ -928,7 +928,7 @@ static void character_invertory(creature& e) {
 		for(auto i = Head; i <= Amunitions; i = (slot_s)(i + 1)) {
 			char temp[260];
 			auto x1 = shortcut(x, y, 32, Alpha + 'A' + i);
-			x1 = textl(x1, y, 108, szprint(temp, "%1:", getstr(i)));
+			x1 = textl(x1, y, 108, szprints(temp, zendof(temp), "%1:", getstr(i)));
 			if(e.wears[i]) {
 				x1 = textl(x1, y, 300, e.wears[i]);
 				x1 = textr(x1, y, 60, szweight(temp, e.wears[i].getweight()));
@@ -1055,7 +1055,7 @@ bool logs::choose(creature& e, skill_s& result, skill_s* source, unsigned count,
 				continue;
 			auto x1 = shortcut(x, y, 32, Alpha + 'A' + (index++));
 			x1 = textl(x1, y, 308, getstr(i));
-			x1 = textl(x1, y, 60, szpercent(temp, e.get(i)));
+			x1 = textl(x1, y, 60, szpercent(temp, zendof(temp), e.get(i)));
 			y += dy;
 		}
 		if(!index)
@@ -1109,7 +1109,7 @@ bool logs::choose(creature& e, spell_s& result, spell_s* source, unsigned count)
 				continue;
 			auto x1 = shortcut(x, y, 32, Alpha + 'A' + (index++));
 			x1 = textl(x1, y, 308, getstr(i));
-			x1 = textl(x1, y, 60, szprint(temp, "%1i", e.getcost(i)));
+			x1 = textl(x1, y, 60, szprints(temp, zendof(temp), "%1i", e.getcost(i)));
 			y += dy;
 		}
 		if(!index)
@@ -1169,7 +1169,7 @@ static void character_spell(creature& e) {
 
 static void character_time(creature& e) {
 	char temp[260];
-	getstrfdat(temp, segments, true);
+	game::getdate(temp, zendof(temp), segments, true);
 	logs::add("Прошло %1.", temp);
 }
 
@@ -1212,7 +1212,7 @@ void logs::minimap(creature& e) {
 	while(true) {
 		draw::rectf({0, 0, draw::getwidth(), draw::getheight()}, colors::form);
 		if(game::statistic.level)
-			szprint(temp, "Уровень %1i", game::statistic.level);
+			szprints(temp, zendof(temp), "Уровень %1i", game::statistic.level);
 		//view_dialog(bsgets(Minimap, Name), temp, 1);
 		view_mini((draw::getwidth() - w) / 2, (draw::getheight() - h) / 2, camera);
 		int id = draw::input();

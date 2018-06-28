@@ -5,7 +5,7 @@ const unsigned maximum_string_lenght = 4096;
 
 stringcreator::plugin* stringcreator::plugin::first;
 
-stringcreator::plugin::plugin(const char* name, char* (*proc)(char* result)) : name(name), proc(proc), next(0) {
+stringcreator::plugin::plugin(const char* name, char* (*proc)(char* result, const char* result_maximum)) : name(name), proc(proc), next(0) {
 	seqlink(this);
 }
 
@@ -22,7 +22,7 @@ void stringcreator::parseidentifier(char* result, const char* result_max, const 
 		return;
 	auto p = plugin::find(identifier);
 	if(p)
-		p->proc(result);
+		p->proc(result, result_max);
 	else {
 		// Fix error command
 		zcat(result, "[-");
@@ -164,40 +164,25 @@ void stringcreator::printv(char* result, const char* result_maximum, const char*
 			break;
 		default:
 			if(result < result_maximum)
-				*result++ = *src++;
+				*result++ = *src;
+			src++;
 			break;
 		}
 	}
 }
 
-void stringcreator::print(char* result, const char* src, ...) {
-	printv(result, result + maximum_string_lenght, src, xva_start(src));
+void stringcreator::prints(char* result, const char* result_maximum, const char* src, ...) {
+	printv(result, result_maximum, src, xva_start(src));
 }
 
-void stringcreator::printn(char* result, const char* src, ...) {
-	printv(result, result + maximum_string_lenght, src, xva_start(src));
-	if(result[0]) {
-		szupper(result, 1);
-		zcat(result, " ");
-	}
-}
-
-void stringcreator::println(char* result, const char* src, ...) {
-	printv(result, result + maximum_string_lenght, src, xva_start(src));
-	if(result[0]) {
-		szupper(result, 1);
-		zcat(result, "\n");
-	}
-}
-
-char* szprintv(char* result, const char* src, const char* vl) {
+char* szprintvs(char* result, const char* result_maximum, const char* src, const char* vl) {
 	stringcreator e;
-	e.printv(result, result + maximum_string_lenght, src, vl);
+	e.printv(result, result_maximum, src, vl);
 	return result;
 }
 
-char* szprint(char* result, const char* src, ...) {
+char* szprints(char* result, const char* result_maximum, const char* src, ...) {
 	stringcreator e;
-	e.printv(result, result + maximum_string_lenght, src, xva_start(src));
+	e.printv(result, result_maximum, src, xva_start(src));
 	return result;
 }

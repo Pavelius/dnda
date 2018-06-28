@@ -360,13 +360,6 @@ char* szfnamewe(char* result, const char* name)
 	return result;
 }
 
-void printc(const char* format, ...)
-{
-	char temp[4096 * 4];
-	szprintv(temp, format, xva_start(format));
-	printcnf(temp);
-}
-
 const char* szline(const char* p, int number)
 {
 	if(number < 1)

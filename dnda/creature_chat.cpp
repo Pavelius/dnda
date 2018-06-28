@@ -51,7 +51,7 @@ static bool chat_location(creature* player, creature* opponent) {
 			game::set(game::get(x, y), Explored, true);
 	char temp[4096];
 	char name[260]; p->getname(name);
-	szprint(temp, maprnd(talk_start), name);
+	szprints(temp, zendof(temp), maprnd(talk_start), name);
 	player->say(temp);
 	return true;
 }

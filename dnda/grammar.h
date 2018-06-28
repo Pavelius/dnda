@@ -11,5 +11,5 @@ namespace grammar
 	char* by(char* r, const char* s);
 	char* of(char* r, const char* s);
 	char* to(char* r, const char* s);
-	char* get(char* result, const char* word, int count);
+	char* get(char* result, const char* result_maximum, const char* word, int count);
 }

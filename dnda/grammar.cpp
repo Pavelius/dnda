@@ -101,11 +101,11 @@ char* grammar::pluar::of(char* r, const char* s) {
 	return r;
 }
 
-char* grammar::get(char* result, const char* word, int count) {
+char* grammar::get(char* result, const char* result_maximum, const char* word, int count) {
 	if(count <= 1) {
 		zcpy(result, word);
 	} else {
-		szprint(result, "%1i ", count);
+		szprints(result, result_maximum, "%1i ", count);
 		auto p = zend(result);
 		if(count <= 4)
 			of(p, word);
