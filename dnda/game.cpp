@@ -137,7 +137,7 @@ void game::initialize() {
 	locations.clear();
 	grounditems.clear();
 	for(auto& e : creature_data)
-		e.hp = 0;
+		e.clear();
 	statistic.clear();
 }
 
@@ -485,7 +485,7 @@ static int getpartycount() {
 
 void game::play() {
 	while(true) {
-		exit_index = 0xFFFF;
+		exit_index = Blocked;
 		turn();
 		segments++;
 		if(!players.count) {
@@ -494,7 +494,7 @@ void game::play() {
 			logs::next();
 			break;
 		}
-		if(exit_index != 0xFFFF) {
+		if(exit_index != Blocked) {
 			serialize(true);
 			// Кто-то активировал переход на другой уровень
 			// Загрузим карту следующего уровня и сохраним состояние этого
@@ -550,11 +550,11 @@ int game::getitems(item** result, unsigned maximum_count, short unsigned index) 
 }
 
 short unsigned game::getstepto(short unsigned index) {
-	auto current_index = 0xFFFF;
-	auto current_value = 0xFFFF;
+	auto current_index = Blocked;
+	auto current_value = Blocked;
 	for(auto d : all_aroud) {
 		auto i = to(index, d);
-		if(i == 0xFFFF)
+		if(i == Blocked)
 			continue;
 		if(movements[i] < current_value) {
 			current_value = movements[i];
@@ -565,11 +565,11 @@ short unsigned game::getstepto(short unsigned index) {
 }
 
 short unsigned game::getstepfrom(short unsigned index) {
-	auto current_index = 0xFFFF;
+	auto current_index = Blocked;
 	auto current_value = 0;
 	for(auto d : all_aroud) {
 		auto i = to(index, d);
-		if(i == 0xFFFF || movements[i] == 0xFFFF)
+		if(i == Blocked || movements[i] == Blocked)
 			continue;
 		if(movements[i] > current_value) {
 			current_value = movements[i];
@@ -581,7 +581,7 @@ short unsigned game::getstepfrom(short unsigned index) {
 
 void game::makewave(short unsigned index, bool(*proc)(short unsigned)) {
 	memset(movements, 0xFFFFFFFF, sizeof(movements));
-	if(index == 0xFFFF)
+	if(index == Blocked)
 		return;
 	auto start = index;
 	short unsigned push = 0;
@@ -595,7 +595,7 @@ void game::makewave(short unsigned index, bool(*proc)(short unsigned)) {
 			auto i = to(n, d);
 			if(!proc(i))
 				continue;
-			if(movements[i] == 0xFFFF || movements[i] > w) {
+			if(movements[i] == Blocked || movements[i] > w) {
 				movements[i] = w;
 				stack[push++] = i;
 			}
@@ -635,7 +635,7 @@ bool logs::getindex(const creature& e, short unsigned& result, target_s target, 
 		return false;
 	}
 	auto r = logs::choose(e, source, count);
-	if(r == 0xFFFF)
+	if(r == Blocked)
 		return false;
 	result = r;
 	return true;

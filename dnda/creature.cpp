@@ -30,10 +30,10 @@ static char	dex_speed_bonus[] = {-4,
 0, 0, 0, 0, 0, 0, 1, 2, 2, 3,
 3, 3, 4, 4, 4
 };
-static char	int_check_bonus[] = {-3,
--3, -2, -2, -2, -1, -1, -1, 0, 0,
-0, 0, 0, 0, 0, 1, 1, 2, 3, 3,
-4, 4, 5, 5, 5
+static char	int_checks[] = {2,
+2, 2, 2, 2, 3, 3, 3, 3, 4,
+4, 4, 5, 5, 6, 6, 6, 7, 7, 7,
+8, 8, 9, 9, 9
 };
 const int chance_loot = 40;
 
@@ -86,30 +86,33 @@ static void start_equipment(creature& e) {
 	}
 }
 
-static void correct_best_ability(creature& e) {
-	auto a = class_data[e.type].ability;
+void creature::choosebestability() {
+	auto a = class_data[type].ability;
 	auto b = Strenght;
 	for(auto i = Strenght; i <= Charisma; i = (ability_s)(i + 1)) {
-		if(e.abilities[i] > e.abilities[b])
+		if(abilities[i] > abilities[b])
 			b = i;
 	}
 	if(a != b)
-		iswap(e.abilities[a], e.abilities[b]);
+		iswap(abilities[a], abilities[b]);
 }
 
-static void raise_skills(creature* p, int number) {
-	skill_s source[sizeof(p->skills) / sizeof(p->skills[0])];
-	auto count = p->get(source);
+void creature::raiseskills(int number) {
+	skill_s source[sizeof(skills) / sizeof(skills[0])];
+	auto pb = source;
+	for(auto i = Bargaining; i <= TwoWeaponFighting; i = (skill_s)(i + 1)) {
+		if(skills[i])
+			*pb++ = i;
+	}
+	auto count = pb - source;
 	if(!count)
 		return;
 	zshuffle(source, count);
+	auto index = 0;
 	while(number >= 0) {
-		if(count == 0) {
-			count = p->get(source);
-			zshuffle(source, count);
-		}
-		if(count > 0)
-			p->raise(source[--count]);
+		if(index >= count)
+			index = 0;
+		raise(source[index++]);
 		number--;
 	}
 }
@@ -139,7 +142,7 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 	// Способности
 	for(auto& e : abilities)
 		e = roll3d6();
-	correct_best_ability(*this);
+	choosebestability();
 	for(auto e : game::getskills(race))
 		raise(e);
 	for(auto e : class_data[type].skills)
@@ -151,8 +154,8 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 			set(choose_spells(this), 1);
 	}
 	// Повысим навыки
-	auto skill_checks = imax(2, (int)maptbl(int_check_bonus, abilities[Intellegence]));
-	raise_skills(this, skill_checks);
+	auto skill_checks = maptbl(int_checks, abilities[Intellegence]);
+	raiseskills(skill_checks);
 	// Восполним хиты
 	mhp = class_data[type].hp; hp = getmaxhits();
 	mmp = 0; mp = getmaxmana();
@@ -176,7 +179,7 @@ int	creature::getbonus(magic_s value) const {
 	return result;
 }
 
-int	creature::get(skill_s value) const {
+int	creature::getbasic(skill_s value) const {
 	return skills[value];
 }
 
@@ -188,8 +191,8 @@ int creature::getarmor() const {
 	result += wears[Legs].getarmor();
 	result += wears[Melee].getarmor();
 	result += wears[OffHand].getarmor();
-	result += wears[LeftFinger].getbonus(OfArmor);
-	result += wears[RightFinger].getbonus(OfArmor);
+	result += wears[LeftFinger].getarmor();
+	result += wears[RightFinger].getarmor();
 	return result;
 }
 
@@ -280,8 +283,8 @@ char* creature::getfullname(char* result, const char* result_maximum, bool show_
 
 int creature::getdiscount(creature* customer) const {
 	// RULE: Навык торговли делает продажу/покупку более привлекательной.
-	auto bs = getminimal(Bargaining);
-	auto bc = customer->getminimal(Bargaining);
+	auto bs = get(Bargaining);
+	auto bc = customer->get(Bargaining);
 	auto delta = bc - bs;
 	return 40 * delta / 100;
 }
@@ -870,14 +873,17 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 	auto attack_per_level = class_data[type].attack;
 	if(!attack_per_level)
 		attack_per_level = 2;
-	attackinfo result = {0};
+	attackinfo result = {};
 	result.bonus = level / attack_per_level;
 	auto& weapon = wears[slot];
 	if(weapon) {
 		wears[slot].get(result);
 		auto focus = weapon.getfocus();
-		if(focus)
-			result.bonus += get(focus) / 20;
+		if(focus && getbasic(focus)) {
+			auto fs = get(focus);
+			result.bonus +=  fs/ 30;
+			result.damage[1] += fs / 40;
+		}
 	}
 	switch(slot) {
 	case Melee:
@@ -939,20 +945,20 @@ void creature::set(state_s value, unsigned segments_count) {
 		states[value] = stop;
 }
 
-bool creature::gettarget(targetinfo& result, const targetdesc td) const {
+bool creature::gettarget(targets& result, const targetdesc td) const {
 	if(td.target >= TargetCreature && td.target <= TargetHostileCreature) {
-		if(!logs::getcreature(*this, &result.creature, td.target, td.range))
+		if(!logs::getcreature(*this, &result.cre, td.target, td.range))
 			return false;
 	} else if(td.target >= TargetItem && td.target <= TargetItemWeapon) {
-		if(!logs::getitem(*this, &result.item, td.target))
+		if(!logs::getitem(*this, &result.itm, td.target))
 			return false;
 	} else {
 		switch(td.target) {
 		case TargetSelf:
-			result.creature = (creature*)this;
+			result.cre = (creature*)this;
 			break;
 		case TargetDoor:
-			if(!logs::getindex(*this, result.index, td.target, td.range))
+			if(!logs::getindex(*this, result.pos, td.target, td.range))
 				return false;
 			break;
 		default:
@@ -1000,19 +1006,9 @@ unsigned getexperiencelevel(unsigned value) {
 	return sizeof(experience_level) / sizeof(experience_level[0]);
 }
 
-int	creature::get(skill_s* source) const {
-	auto pb = source;
-	for(auto i = Bargaining; i <= TwoWeaponFighting; i = (skill_s)(i + 1)) {
-		if(skills[i])
-			*pb++ = i;
-	}
-	return pb - source;
-}
-
 void creature::levelup() {
-	// RULE: Добавим 2-5 попытки навыков в зависимости от интеллекта (в среднем 3)
-	auto n = imax(2, (int)maptbl(int_check_bonus, abilities[Intellegence]));
-	raise_skills(this, n);
+	auto n = maptbl(int_checks, abilities[Intellegence]);
+	raiseskills(n);
 	level++;
 }
 
@@ -1049,20 +1045,20 @@ void creature::passturn(unsigned minutes) {
 }
 
 void creature::update() {
-	if(!restore_hits)
-		restore_hits = segments;
-	if(!restore_mana)
-		restore_mana = segments;
 	// RULE: В среднем восстанавливаем 1 хит за 30 минут
 	if(segments >= restore_hits) {
 		if(hp < getmaxhits())
 			hp++;
+		if(!restore_hits)
+			restore_hits = segments;
 		restore_hits += imax(5, 40 - get(Constitution))*Minute;
 	}
 	// RULE: В среднем восстанавливаем 1 манну за 10 минут
 	if(segments >= restore_mana) {
 		if(mp < getmaxmana())
 			mp++;
+		if(!restore_mana)
+			restore_mana = segments;
 		restore_mana += imax(5, 50 - get(Intellegence) * 2)*Minute / 3;
 	}
 }
@@ -1087,8 +1083,8 @@ void creature::lookfloor() {
 }
 
 bool creature::roll(skill_s skill, int bonus) {
-	auto result = getminimal(skill) + bonus;
-	if(bonus <= 0)
+	auto result = get(skill) + bonus;
+	if(result <= 0)
 		return false;
 	return d100() < result;
 }

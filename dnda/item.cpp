@@ -44,6 +44,7 @@ static magic_s bludgeon_effect[] = {OfStrenght, OfDestruction, OfSmashing, OfCon
 static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
 static constexpr struct item_info {
 	struct combat_info {
+		attack_s		type;
 		char			speed;
 		char			damage[2];
 		char			attack; // Melee or ranger attack bonus
@@ -59,37 +60,37 @@ static constexpr struct item_info {
 	item_s				ammunition;
 	unsigned char		count;
 } item_data[] = {{"Пусто"},
-{"Боевой топор", 5 * GP, {1, {1, 8}}, {Slashing, Versatile}, {Melee}, WeaponFocusAxes, axe_effect},
-{"Дубина", 5 * CP, {2, {1, 6}}, {Bludgeon}, {Melee}, NoSkill, bludgeon_effect},
-{"Кинжал", 2 * GP, {3, {1, 4}, 1}, {Piercing}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
-{"Молот", 2 * GP, {1, {2, 5}}, {Bludgeon}, {Melee}, WeaponFocusAxes, bludgeon_effect},
-{"Булава", 8 * GP, {1, {1, 7}}, {Bludgeon}, {Melee}, WeaponFocusAxes, bludgeon_effect},
-{"Копье", 8 * SP, {1, {1, 8}}, {Piercing, Versatile}, {Melee}, NoSkill, pierce_effect},
-{"Посох", 1 * SP, {2, {1, 6}}, {Bludgeon, TwoHanded}, {Melee}, NoSkill, bludgeon_effect},
-{"Длинный меч", 15 * GP, {1, {1, 8}}, {Slashing}, {Melee}, WeaponFocusBlades, swords_effect},
-{"Короткий меч", 10 * GP, {1, {1, 6}}, {Slashing}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
-{"Двуручный меч", 50 * GP, {0, {2, 12}}, {Slashing, TwoHanded}, {Melee}, WeaponFocusBlades, swords_effect},
-{"Арбалет", 40 * GP, {0, {2, 7}, 1}, {Piercing}, {Ranged}, NoSkill, pierce_effect, Bolt},
-{"Тяжелый арбалет", 80 * GP, {0, {3, 9}, 1}, {Piercing}, {Ranged}, NoSkill, pierce_effect, Bolt},
-{"Длинный лук", 60 * GP, {1, {1, 8}}, {Piercing}, {Ranged}, WeaponFocusBows, pierce_effect, Arrow},
-{"Лук", 30 * GP, {2, {1, 6}}, {Piercing}, {Ranged}, WeaponFocusBows, pierce_effect, Arrow},
-{"Дротик", 1 * SP, {3, {1, 3}}, {Piercing}, {Ranged}},
-{"Пращя", 1 * SP, {2, {1, 4}}, {Bludgeon}, {Ranged}, NoSkill, {}, Rock},
+{"Боевой топор", 5 * GP, {Slashing, 1, {1, 8}}, {Versatile}, {Melee}, WeaponFocusAxes, axe_effect},
+{"Дубина", 5 * CP, {Bludgeon, 2, {1, 6}}, {}, {Melee}, NoSkill, bludgeon_effect},
+{"Кинжал", 2 * GP, {Piercing, 3, {1, 4}, 1}, {}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
+{"Молот", 2 * GP, {Bludgeon, 1, {2, 5}}, {}, {Melee}, WeaponFocusAxes, bludgeon_effect},
+{"Булава", 8 * GP, {Bludgeon, 1, {1, 7}}, {}, {Melee}, WeaponFocusAxes, bludgeon_effect},
+{"Копье", 8 * SP, {Piercing, 1, {1, 8}}, {Versatile}, {Melee}, NoSkill, pierce_effect},
+{"Посох", 1 * SP, {Bludgeon, 2, {1, 6}}, {TwoHanded}, {Melee}, NoSkill, bludgeon_effect},
+{"Длинный меч", 15 * GP, {Slashing, 1, {1, 8}}, {}, {Melee}, WeaponFocusBlades, swords_effect},
+{"Короткий меч", 10 * GP, {Slashing, 1, {1, 6}}, {}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
+{"Двуручный меч", 50 * GP, {Slashing, 0, {2, 12}}, {TwoHanded}, {Melee}, WeaponFocusBlades, swords_effect},
+{"Арбалет", 40 * GP, {Piercing, 0, {2, 7}, 1}, {}, {Ranged}, NoSkill, pierce_effect, Bolt},
+{"Тяжелый арбалет", 80 * GP, {Piercing, 0, {3, 9}, 1}, {}, {Ranged}, NoSkill, pierce_effect, Bolt},
+{"Длинный лук", 60 * GP, {Piercing, 1, {1, 8}}, {}, {Ranged}, WeaponFocusBows, pierce_effect, Arrow},
+{"Лук", 30 * GP, {Piercing, 2, {1, 6}}, {}, {Ranged}, WeaponFocusBows, pierce_effect, Arrow},
+{"Дротик", 1 * SP, {Piercing, 3, {1, 3}}, {}, {Ranged}},
+{"Пращя", 1 * SP, {Bludgeon, 2, {1, 4}}, {}, {Ranged}, NoSkill, {}, Rock},
 //
 {"Камень", 0, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 {"Стрела", 2 * CP, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 {"Болт", 1 * CP, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 //
-{"Кожанная броня", 5 * GP, {0, {}, 0, {2}}, {}, {Torso}},
-{"Клепанная броня", 20 * GP, {0, {}, 0, {3}}, {}, {Torso}},
-{"Чешуйчатый доспех", 30 * GP, {0, {}, 0, {5}}, {}, {Torso}},
-{"Кольчуга", 50 * GP, {0, {}, 0, {5, 1}}, {}, {Torso}},
-{"Бахрец", 200 * GP, {0, {}, 0, {6, 2}}, {}, {Torso}},
-{"Латы", 800 * GP, {0, {}, 0, {8, 3}}, {}, {Torso}},
+{"Кожанная броня", 5 * GP, {Bludgeon, 0, {}, 0, {2}}, {}, {Torso}},
+{"Клепанная броня", 20 * GP, {Bludgeon, 0, {}, 0, {3}}, {}, {Torso}},
+{"Чешуйчатый доспех", 30 * GP, {Bludgeon, 0, {}, 0, {5}}, {}, {Torso}},
+{"Кольчуга", 50 * GP, {Bludgeon, 0, {}, 0, {5, 1}}, {}, {Torso}},
+{"Бахрец", 200 * GP, {Bludgeon, 0, {}, 0, {6, 2}}, {}, {Torso}},
+{"Латы", 800 * GP, {Bludgeon, 0, {}, 0, {8, 3}}, {}, {Torso}},
 //
-{"Щит", 20 * GP, {0, {}, {}, {2}}, {}, {OffHand}},
-{"Шлем", 5 * GP, {0, {}, {}, {1}}, {}, {Head}},
-{"Наручи", 3 * GP, {0, {}, {}, {1}}, {}, {Elbows}},
+{"Щит", 20 * GP, {Bludgeon, 0, {}, {}, {2}}, {}, {OffHand}},
+{"Шлем", 5 * GP, {Bludgeon, 0, {}, {}, {1}}, {}, {Head}},
+{"Наручи", 3 * GP, {Bludgeon, 0, {}, {}, {1}}, {}, {Elbows}},
 //
 {"Сухпаек", 3 * SP},
 {"Яблоко", 1 * SP},
@@ -105,9 +106,9 @@ static constexpr struct item_info {
 {"Ключ"},
 {"Монета", 1, {}, {}, {}, NoSkill, {}, NoItem, 50},
 //
-{"Когти", 0, {4, {1, 3}}},
-{"Удар", 0, {0, {2, 7}}},
-{"Укус", 0, {2, {2, 5}}},
+{"Когти", 0, {Slashing, 4, {1, 3}}},
+{"Удар", 0, {Bludgeon, 0, {2, 7}}},
+{"Укус", 0, {Piercing, 2, {2, 5}}},
 };
 assert_enum(item, Bite);
 getstr_enum(item);
@@ -230,6 +231,10 @@ int item::getweight() const {
 
 bool item::is(slot_s value) const {
 	return item_data[type].slots.is(value);
+}
+
+bool item::is(attack_s value) const {
+	return item_data[type].combat.type == value;
 }
 
 bool item::is(item_flag_s value) const {

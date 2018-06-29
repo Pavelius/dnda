@@ -21,17 +21,17 @@ static struct skillinfo {
 {"Открыть замок", {Dexterity, Dexterity}, {TargetDoor, 1}, {0}, 50, "%герой вскрыл%а замок."},
 {"Очистить карманы", {Dexterity, Dexterity}, {TargetCreature, 1}, {0}, 25},
 {"Алхимия", {Intellegence, Intellegence}},
-{"Танцы", {Dexterity, Charisma}},
+{"Танцы", {Dexterity, Charisma}, {}, {0}, 10, "%герой станевал%а отличный танец."},
 {"Инженерное дело", {Intellegence, Intellegence}},
 {"Азартные игры", {Charisma, Dexterity}, {TargetCreature, 1}, {0, 2}, 25},
 {"История", {Intellegence, Intellegence}},
-{"Лечение", {Wisdow, Intellegence}, {TargetCreature, 1}},
+{"Лечение", {Wisdow, Intellegence}, {TargetCreature, 1}, {}, 10, "%герой перевязала раны."},
 {"Грамотность", {Intellegence, Intellegence}},
 {"Шахтерское дело", {Strenght, Intellegence}},
 {"Кузнечное дело", {Strenght, Intellegence}},
 {"Выживание", {Wisdow, Constitution}},
 //
-{"Владение луком", {Dexterity, Strenght}},
+{"Владение луком", {Dexterity, Dexterity}},
 {"Владение мечом", {Strenght, Dexterity}},
 {"Владение топором", {Strenght, Constitution}},
 {"Сражение двумя оружиями", {Strenght, Dexterity}},
@@ -45,16 +45,12 @@ static const char* talk_location[] = {"библиотеку", "ратушу", "магазин", "таверн
 static const char* talk_games[] = {"кубики", "карты", "наперстки"};
 
 void creature::raise(skill_s value) {
-	if(!skills[value])
-		skills[value] = get(skill_data[value].ability[0]) + get(skill_data[value].ability[1]);
-	else
-		skills[value] += xrand(5, 10);
+	skills[value] += xrand(3, 9);
 }
 
-int creature::getminimal(skill_s value) const {
-	auto result = get(value);
-	if(!skills[value])
-		result += get(skill_data[value].ability[0]) + get(skill_data[value].ability[1]);
+int creature::get(skill_s value) const {
+	auto result = getbasic(value);
+	result += get(skill_data[value].ability[0]) + get(skill_data[value].ability[1]);
 	return result;
 }
 
@@ -64,7 +60,7 @@ bool creature::use(skill_s value) {
 			logs::add("Вам надо немного прийти в себя и успокоится.");
 		return false;
 	}
-	targetinfo ti;
+	targets ti;
 	auto& e = skill_data[value];
 	if(e.type.target == NoTarget) {
 		if(isplayer())
@@ -79,8 +75,8 @@ bool creature::use(skill_s value) {
 	auto v = get(value);
 	if(e.koef[0])
 		v = v / e.koef[0];
-	if(e.koef[1] && ti.creature)
-		v = v - ti.creature->getminimal(value) / e.koef[1];
+	if(e.koef[1] && ti.cre)
+		v = v - ti.cre->get(value) / e.koef[1];
 	switch(value) {
 	case PickPockets:
 		switch(rand() % 5) {
@@ -106,31 +102,33 @@ bool creature::use(skill_s value) {
 			return false;
 		}
 		say("Давай сыграем в %1?", maprnd(talk_games));
-		if(ti.creature->money < stack) {
-			ti.creature->say("Нет. Я на мели. В другой раз.");
+		if(ti.cre->money < stack) {
+			ti.cre->say("Нет. Я на мели. В другой раз.");
 			return false;
 		}
 		break;
 	}
 	if(r >= v) {
-		if(isplayer())
-			logs::add("Попытка не удалась и тебя охватила злость.");
-		set(Anger, Minute*xrand(1, 4));
+		if(d100() < 60) {
+			if(isplayer())
+				logs::add("Попытка не удалась и тебя охватила злость.");
+			set(Anger, Minute*xrand(2, 5));
+		}
 		switch(value) {
 		case Gambling:
 			money -= stack;
-			ti.creature->money += stack;
+			ti.cre->money += stack;
 			if(isplayer())
 				logs::add("Ты проиграл [-%1i] монет.", stack);
-			if(ti.creature->isplayer())
+			if(ti.cre->isplayer())
 				logs::add("Ты выиграл [+%1i] монет.", stack);
 			break;
 		}
 		return false;
 	}
 	if(e.text_success) {
-		if(ti.creature)
-			ti.creature->act(e.text_success);
+		if(ti.cre)
+			ti.cre->act(e.text_success);
 	}
 	switch(value) {
 	case Diplomacy:
@@ -140,14 +138,14 @@ bool creature::use(skill_s value) {
 		set(Hiding, FiveMinutes*(1 + v / 20));
 		break;
 	case Lockpicking:
-		game::set(ti.index, Sealed, false);
+		game::set(ti.pos, Sealed, false);
 		break;
 	case PickPockets:
 		if(true) {
 			auto count = (unsigned)xrand(3, 18);
-			if(count > ti.creature->money)
-				count = ti.creature->money;
-			ti.creature->money -= count;
+			if(count > ti.cre->money)
+				count = ti.cre->money;
+			ti.cre->money -= count;
 			money += count;
 			if(isplayer())
 				act("Ты украл%а %1i монет.", count);
@@ -155,11 +153,11 @@ bool creature::use(skill_s value) {
 		break;
 	case Gambling:
 		money += stack;
-		ti.creature->money -= stack;
+		ti.cre->money -= stack;
 		if(isplayer())
 			act("Ты выиграл%а [+%1i] монет.", stack);
-		if(ti.creature->isplayer())
-			ti.creature->act("Ты проиграл%а [-%1i] монет.", stack);
+		if(ti.cre->isplayer())
+			ti.cre->act("Ты проиграл%а [-%1i] монет.", stack);
 		break;
 	}
 	if(e.experience)

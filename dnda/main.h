@@ -76,7 +76,7 @@ enum skill_s : unsigned char {
 	WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting,
 };
 enum state_s : unsigned char {
-	Anger, BlessedState, Charmed, Hiding, Goodwill, Lighted, Shielded, Scared,
+	Anger, Blessed, Charmed, Hiding, Goodwill, Lighted, Shielded, Scared,
 };
 enum tile_s : unsigned char {
 	NoTile,
@@ -145,12 +145,51 @@ enum item_type_s : unsigned char {
 	Mundane, Cursed, Magical, Artifact,
 };
 enum item_flag_s : unsigned char {
-	Bludgeon, Slashing, Piercing,
 	TwoHanded, Versatile,
 };
+enum attack_s : unsigned char {
+	Bludgeon, Slashing, Piercing,
+	Acid, Cold, Electricity, Fire, WaterAttack
+};
+enum save_s : char {
+	NoSave, SaveAbility, SaveSkill,
+};
 struct attackinfo;
-struct targetinfo;
+struct creature;
+struct location;
 struct targetdesc;
+class item;
+struct targets {
+	constexpr targets() : cre(0), itm(0), pos(Blocked) {}
+	creature*		cre;
+	item*			itm;
+	short unsigned	pos;
+};
+struct targetdesc {
+	target_s		target;
+	short			range;
+};
+struct effectc {
+	struct save_info {
+		save_s		type;
+		ability_s	ability;
+		skill_s		skill;
+	};
+	struct callback {
+		callback() = default;
+		callback(bool(*cre)(effectc& effect, creature& player, creature& target, bool interactive, bool run)) : cre(cre), itm(0), ind(0) {}
+		callback(bool(*itm)(effectc& effect, creature& player, item& target, bool interactive, bool run)) : cre(0), itm(itm), ind(0) {}
+		callback(bool(*ind)(effectc& effect, creature& player, short unsigned index, bool interactive, bool run)) : cre(0), itm(0), ind(ind) {}
+		bool(*cre)(effectc& effect, creature& player, creature& target, bool interactive, bool run);
+		bool(*itm)(effectc& effect, creature& player, item& target, bool interactive, bool run);
+		bool(*ind)(effectc& effect, creature& player, short unsigned index, bool interactive, bool run);
+	};
+	targetdesc		type;
+	save_info		save;
+	callback		proc;
+	//
+	bool			saving(const targets& ti, bool interactive) const;
+};
 class item {
 	item_s			type;
 	//
@@ -169,7 +208,6 @@ public:
 	item(item_s type, int level, int chance_curse = 10);
 	operator bool() const { return type != NoItem; }
 	void			clear();
-	void			detectevil(bool interactive);
 	void			get(attackinfo& e) const;
 	item_s			getammo() const;
 	int				getarmor() const;
@@ -190,6 +228,7 @@ public:
 	int				getweight() const;
 	int				getweightsingle() const;
 	bool			is(slot_s value) const;
+	bool			is(attack_s value) const;
 	bool			is(item_flag_s value) const;
 	bool			isarmor() const { return type >= LeatherArmour && type <= Bracers; }
 	bool			isartifact() const { return magic == Artifact; }
@@ -206,6 +245,7 @@ public:
 	void			setsold() { forsale = 0; }
 };
 struct attackinfo {
+	attack_s		type;
 	char			bonus;
 	char			critical;
 	char			damage[2];
@@ -219,13 +259,9 @@ struct creature {
 	gender_s		gender;
 	role_s			role;
 	direction_s		direction;
-	unsigned char	abilities[Charisma + 1];
-	unsigned char	skills[TwoWeaponFighting + 1];
-	unsigned		spells[2];
 	unsigned short	name;
 	unsigned char	level;
-	short			hp, mhp, mp, mmp;
-	unsigned		recoil, restore_hits, restore_mana;
+	unsigned		recoil;
 	unsigned		experience;
 	unsigned		money;
 	creature*		charmer;
@@ -233,7 +269,6 @@ struct creature {
 	creature*		horror;
 	creature*		leader;
 	unsigned short	position, guard;
-	unsigned		states[Scared + 1];
 	item			wears[Amunitions + 1];
 	item			backpack[16];
 	//
@@ -254,18 +289,19 @@ struct creature {
 	bool			askyn(creature* opponent, const char* format, ...);
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);
+	void			choosebestability();
 	void			clear();
 	void			clear(state_s value) { states[value] = 0; }
 	void			damage(int count);
 	bool			dropdown(item& value);
 	bool			equip(item value);
 	int				get(ability_s value) const;
-	int				get(skill_s value) const;
 	int				get(spell_s value) const;
-	int				get(skill_s* source) const;
+	int				get(skill_s value) const;
 	int				getarmor() const;
 	attackinfo		getattackinfo(slot_s slot) const;
 	int				getattacktime(slot_s slot) const;
+	int				getbasic(skill_s value) const;
 	int				getbonus(magic_s value) const;
 	int				getcreatures(creature** result, unsigned count, target_s target, int range = -1) const;
 	int				getcost(spell_s value) const;
@@ -273,12 +309,13 @@ struct creature {
 	int				getdefence() const;
 	int				getdiscount(creature* customer) const;
 	char*			getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
+	int				gethits() const { return hp; }
 	int				getitems(item** result, unsigned maximum_count, target_s target) const;
 	creature*		getleader() const;
 	int				getlos() const;
+	int				getmana() const { return mp; }
 	int				getmaxhits() const;
 	int				getmaxmana() const;
-	int				getminimal(skill_s value) const;
 	const char*		getmonstername() const;
 	int				getmoverecoil() const;
 	const char*		getname() const; // Name used predefined names array
@@ -286,9 +323,7 @@ struct creature {
 	int				getobjects(short unsigned* result, unsigned count, target_s target, int range) const;
 	static creature* getplayer();
 	short unsigned	getposition() const { return position; }
-	int				getspeed() const;
-	int				getstamina() const { return mp; }
-	bool			gettarget(targetinfo& result, const targetdesc td) const;
+	bool			gettarget(targets& result, const targetdesc td) const;
 	int				getweight() const;
 	bool			interact(short unsigned index);
 	bool			is(state_s value) const;
@@ -311,6 +346,7 @@ struct creature {
 	void			passturn(unsigned minutes);
 	bool			pickup(item value);
 	void			raise(skill_s value);
+	void			raiseskills(int number);
 	void			rangeattack();
 	bool			roll(skill_s skill, int bonus = 0);
 	void			say(const char* format, ...);
@@ -326,6 +362,14 @@ struct creature {
 	bool			use(short unsigned index);
 	void			wait(int segments = 0);
 	bool			walkaround();
+private:
+	friend struct archive;
+	unsigned char	abilities[Charisma + 1];
+	unsigned char	skills[TwoWeaponFighting + 1];
+	unsigned		spells[2];
+	short			hp, mhp, mp, mmp;
+	unsigned		restore_hits, restore_mana;
+	unsigned		states[Scared + 1];
 };
 struct location : rect {
 	location_s		type;
@@ -402,16 +446,6 @@ extern areainfo		statistic;
 short unsigned		to(short unsigned index, int id);
 void				turn();
 direction_s			turn(direction_s from, direction_s side);
-};
-struct targetinfo {
-	targetinfo() : creature(0), item(0), index(0xFFFF) {}
-	struct creature* creature;
-	class item*		item;
-	short unsigned	index;
-};
-struct targetdesc {
-	target_s		target;
-	short			range;
 };
 namespace logs {
 struct driver : stringcreator {

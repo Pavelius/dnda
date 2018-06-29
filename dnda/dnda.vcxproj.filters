@@ -198,6 +198,9 @@
     <ClCompile Include="traps.cpp">
       <Filter>logic</Filter>
     </ClCompile>
+    <ClCompile Include="effect.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="collections">

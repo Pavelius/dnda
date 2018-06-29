@@ -679,8 +679,8 @@ static void view_info(const creature& e) {
 	y += field(x, y, tw, "БР", e.getdefence(), e.getarmor());
 	x += dx + 6;
 	y = y1;
-	y += field(x, y, 40, "Хиты", e.hp, e.getmaxhits());
-	y += field(x, y, 40, "Мана", e.mp, e.getmaxmana());
+	y += field(x, y, 40, "Хиты", e.gethits(), e.getmaxhits());
+	y += field(x, y, 40, "Мана", e.getmana(), e.getmaxmana());
 	x += dx + 40 + 20 - tw;
 	y = y1;
 	y += field(x, y, 52, "Опыт", e.experience);
@@ -1051,7 +1051,7 @@ bool logs::choose(creature& e, skill_s& result, skill_s* source, unsigned count,
 		auto index = 0;
 		for(unsigned in = 0; in < count; in++) {
 			auto i = source[in];
-			if(e.get(i) <= 0)
+			if(e.getbasic(i) <= 0)
 				continue;
 			auto x1 = shortcut(x, y, 32, Alpha + 'A' + (index++));
 			x1 = textl(x1, y, 308, getstr(i));
@@ -1083,7 +1083,7 @@ bool logs::choose(creature& e, skill_s& result, bool can_escape) {
 	auto count = 0;
 	skill_s source[TwoWeaponFighting + 1];
 	for(auto i = Bargaining; i <= TwoWeaponFighting; i = (skill_s)(i + 1)) {
-		if(e.get(i) <= 0)
+		if(e.getbasic(i) <= 0)
 			continue;
 		source[count++] = i;
 	}
