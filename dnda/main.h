@@ -23,7 +23,8 @@ enum item_s : unsigned char {
 	LeatherArmour, StuddedLeatherArmour, ScaleMail, ChainMail, SplintMail, PlateMail,
 	Shield, Helmet, Bracers,
 	Ration, Apple, BreadHalflings, BreadEvlen, BreadDwarven, Cake, Sausage, Meat,
-	Scroll, Book,
+	ScrollRed, ScrollGreen, ScrollBlue,
+	Book,
 	PotionRed, PotionGreen, PotionBlue,
 	DoorKey, Coin,
 	Claws, Slam, Bite,
@@ -132,6 +133,7 @@ enum target_s : unsigned char {
 	TargetTrap,
 };
 enum spell_s : unsigned char {
+	NoSpell,
 	Bless, CharmPerson, DetectEvil, HealingSpell, Identify, Invisibility, MagicMissile, Sleep,
 	FirstSpell = Bless, LastSpell = Sleep
 };
@@ -245,6 +247,7 @@ public:
 	char*			getname(char* result, const char* result_maximum, bool show_info = true) const;
 	int				getquality() const;
 	int				getsalecost() const;
+	spell_s			getspell() const;
 	item_s			gettype() const { return type; }
 	int				getweight() const;
 	int				getweightsingle() const;

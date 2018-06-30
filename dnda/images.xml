@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<convert output="art" input="d:\resources\adom\gfx\adom">
+<convert output="d:\projects\dnda\art" input="d:\resources\adom\gfx\adom">
   <library output="...\font">
     <font input="Segoi UI" height="16"/>
   </library>
@@ -297,8 +297,10 @@
     <png input="...\item238"/>
     <png input="...\item22"/>
 
+    <png input="...\item188"/>
     <png input="...\item185"/>
-    
+    <png input="...\item186"/>
+
     <png input="...\item244"/>
     <png input="...\item482"/>
     <png input="...\item49"/>

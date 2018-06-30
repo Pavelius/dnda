@@ -41,6 +41,7 @@ static struct equipment_info {
 	race_s				race;
 	class_s				type;
 	item_s				equipment[8];
+	skill_s				skill;
 } equipment_data[] = {{Dwarf, Fighter, {AxeBattle, ScaleMail, Shield, Ration}},
 {NoRace, Cleric, {Mace, Ration}},
 {NoRace, Fighter, {SwordLong, LeatherArmour, Shield, Ration}},
@@ -59,9 +60,9 @@ static struct class_info {
 	cflags<spell_s>		spells;
 	item_s				equipment[8];
 } class_data[] = {{"Клерик", 8, 8, 2, Wisdow, {Diplomacy, Healing}, {Bless, HealingSpell}, {Mace}},
-{"Воин", 10, 4, 1, Strenght, {Survival, WeaponFocusBlades}, {}, {SwordLong, LeatherArmour, Shield}},
-{"Маг", 4, 10, 4, Intellegence, {Literacy, History}, {Identify, MagicMissile, Sleep}, {Staff}},
-{"Паладин", 10, 4, 1, Strenght, {Diplomacy, WeaponFocusBlades}, {DetectEvil}, {SwordLong, ScaleMail}},
+{"Воин", 10, 4, 1, Strenght, {Survival, WeaponFocusBlades, WeaponFocusAxes}, {}, {SwordLong, LeatherArmour, Shield}},
+{"Маг", 4, 10, 4, Intellegence, {Alchemy, Literacy, History}, {Identify, MagicMissile, Sleep}, {Staff}},
+{"Паладин", 10, 4, 1, Strenght, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}, {SwordLong, ScaleMail}},
 {"Следопыт", 10, 6, 2, Strenght, {Survival, WeaponFocusBows}, {}, {SwordLong, SwordShort, LeatherArmour}},
 {"Вор", 6, 4, 3, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff}, {}, {SwordShort, LeatherArmour}},
 };
@@ -147,12 +148,10 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 		raise(e);
 	for(auto e : class_data[type].skills)
 		raise(e);
+	if(abilities[Intellegence] >= 9)
+		raise(Literacy);
 	for(auto e : class_data[type].spells)
 		set(e, 1);
-	//if(class_data[type].spells) {
-	//	for(int i = 0; i < 2; i++)
-	//		set(choose_spells(this), 1);
-	//}
 	// Повысим навыки
 	auto skill_checks = maptbl(int_checks, abilities[Intellegence]);
 	raiseskills(skill_checks);

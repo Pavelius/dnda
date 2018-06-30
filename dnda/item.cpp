@@ -57,6 +57,7 @@ static constexpr struct item_info {
 	cflags<slot_s>		slots;
 	skill_s				focus;
 	aref<magic_s>		effects;
+	aref<spell_s>		spells;
 	item_s				ammunition;
 	unsigned char		count;
 } item_data[] = {{"Пусто"},
@@ -70,16 +71,16 @@ static constexpr struct item_info {
 {"Длинный меч", 15 * GP, {1, {1, 8, Slashing}}, {}, {Melee}, WeaponFocusBlades, swords_effect},
 {"Короткий меч", 10 * GP, {1, {1, 6, Slashing}}, {}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
 {"Двуручный меч", 50 * GP, {0, {2, 12, Slashing}}, {TwoHanded}, {Melee}, WeaponFocusBlades, swords_effect},
-{"Арбалет", 40 * GP, {0, {2, 7, Piercing}, 1}, {}, {Ranged}, NoSkill, pierce_effect, Bolt},
-{"Тяжелый арбалет", 80 * GP, {0, {3, 9, Piercing}, 1}, {}, {Ranged}, NoSkill, pierce_effect, Bolt},
-{"Длинный лук", 60 * GP, {1, {1, 8, Piercing}}, {}, {Ranged}, WeaponFocusBows, pierce_effect, Arrow},
-{"Лук", 30 * GP, {2, {1, 6, Piercing}}, {}, {Ranged}, WeaponFocusBows, pierce_effect, Arrow},
+{"Арбалет", 40 * GP, {0, {2, 7, Piercing}, 1}, {}, {Ranged}, NoSkill, pierce_effect, {}, Bolt},
+{"Тяжелый арбалет", 80 * GP, {0, {3, 9, Piercing}, 1}, {}, {Ranged}, NoSkill, pierce_effect, {}, Bolt},
+{"Длинный лук", 60 * GP, {1, {1, 8, Piercing}}, {}, {Ranged}, WeaponFocusBows, pierce_effect, {}, Arrow},
+{"Лук", 30 * GP, {2, {1, 6, Piercing}}, {}, {Ranged}, WeaponFocusBows, pierce_effect, {}, Arrow},
 {"Дротик", 1 * SP, {3, {1, 3, Piercing}}, {}, {Ranged}},
-{"Пращя", 1 * SP, {2, {1, 4}}, {}, {Ranged}, NoSkill, {}, Rock},
+{"Пращя", 1 * SP, {2, {1, 4}}, {}, {Ranged}, NoSkill, {}, {}, Rock},
 //
-{"Камень", 0, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
-{"Стрела", 2 * CP, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
-{"Болт", 1 * CP, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
+{"Камень", 0, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
+{"Стрела", 2 * CP, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
+{"Болт", 1 * CP, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
 //
 {"Кожанная броня", 5 * GP, {0, {}, 0, {2}}, {}, {Torso}},
 {"Клепанная броня", 20 * GP, {0, {}, 0, {3}}, {}, {Torso}},
@@ -101,15 +102,18 @@ static constexpr struct item_info {
 {"Колбаса", 8 * SP},
 {"Мясо", 5 * SP},
 //
-{"Свиток"},
+{"Свиток", 5 * GP},
+{"Свиток", 6 * GP},
+{"Свиток", 7 * GP},
+//
 {"Книга"},
 //
-{"Зелье", 20 * GP, {}, {}, {}, NoSkill, {}, NoItem},
-{"Зелье", 25 * GP, {}, {}, {}, NoSkill, {}, NoItem},
-{"Зелье", 30 * GP, {}, {}, {}, NoSkill, {}, NoItem},
+{"Зелье", 20 * GP, {}, {}, {}, NoSkill},
+{"Зелье", 25 * GP, {}, {}, {}, NoSkill},
+{"Зелье", 30 * GP, {}, {}, {}, NoSkill},
 //
 {"Ключ"},
-{"Монета", 1, {}, {}, {}, NoSkill, {}, NoItem, 50},
+{"Монета", 1, {}, {}, {}, NoSkill, {}, {}, NoItem, 50},
 //
 {"Когти", 0, {4, {1, 3, Slashing}}},
 {"Удар", 0, {0, {2, 7}}},
@@ -192,6 +196,12 @@ int item::getquality() const {
 	}
 }
 
+spell_s item::getspell() const {
+	if(item_data[type].spells.count)
+		return (spell_s)effect;
+	return NoSpell;
+}
+
 magic_s item::geteffect() const {
 	if(item_data[type].effects.count)
 		return effect;
@@ -246,7 +256,15 @@ bool item::istwohanded() const {
 }
 
 bool item::isreadable() const {
-	return type == Scroll || type == Book;
+	switch(type) {
+	case ScrollRed:
+	case ScrollBlue:
+	case ScrollGreen:
+	case Book:
+		return true;
+	default:
+		return false;
+	}
 }
 
 bool item::isedible() const {
