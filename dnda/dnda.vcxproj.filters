@@ -226,8 +226,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="images.xml">
+    <CustomBuild Include="images.xml">
       <Filter>logic</Filter>
-    </Xml>
+    </CustomBuild>
   </ItemGroup>
 </Project>

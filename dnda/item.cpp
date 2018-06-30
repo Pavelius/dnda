@@ -103,7 +103,11 @@ static constexpr struct item_info {
 //
 {"Свиток"},
 {"Книга"},
-{"Зелье", 20 * GP, {}, {}, {}, NoSkill, {}, NoItem, 5},
+//
+{"Зелье", 20 * GP, {}, {}, {}, NoSkill, {}, NoItem},
+{"Зелье", 25 * GP, {}, {}, {}, NoSkill, {}, NoItem},
+{"Зелье", 30 * GP, {}, {}, {}, NoSkill, {}, NoItem},
+//
 {"Ключ"},
 {"Монета", 1, {}, {}, {}, NoSkill, {}, NoItem, 50},
 //

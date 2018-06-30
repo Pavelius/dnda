@@ -190,7 +190,10 @@
     <ClCompile Include="win_io_file.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="images.xml" />
+    <CustomBuild Include="images.xml">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\xmlimg.exe "$(SolutionDir)\dnda\images.xml"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\art\font.pma</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

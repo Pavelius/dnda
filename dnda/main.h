@@ -23,7 +23,8 @@ enum item_s : unsigned char {
 	LeatherArmour, StuddedLeatherArmour, ScaleMail, ChainMail, SplintMail, PlateMail,
 	Shield, Helmet, Bracers,
 	Ration, Apple, BreadHalflings, BreadEvlen, BreadDwarven, Cake, Sausage, Meat,
-	Scroll, Book, Potion,
+	Scroll, Book,
+	PotionRed, PotionGreen, PotionBlue,
 	DoorKey, Coin,
 	Claws, Slam, Bite,
 	ManyItems

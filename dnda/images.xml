@@ -298,7 +298,11 @@
     <png input="...\item22"/>
 
     <png input="...\item185"/>
-    <png input="...\item61"/>
+    
+    <png input="...\item244"/>
+    <png input="...\item482"/>
+    <png input="...\item49"/>
+    
     <png input="...\item354"/>
     <png input="...\items37"/>
   </library>
