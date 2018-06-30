@@ -1,79 +1,77 @@
 #include "main.h"
 
+static void setstate(effectparam& e) {
+	// Set state and increase duration by level
+	for(auto s : e.effect.state)
+		e.cre->set(s, e.effect.duration * e.level);
+}
+
+static void setcharmer(effectparam& e) {
+	setstate(e);
+	e.cre->charmer = &e.player;
+}
+
+static void damage_effect(effectparam& e) {
+	// Apply damage to level
+	e.cre->damage(e.count + e.level);
+}
+
+static void detect_evil(effectparam& e) {
+	// Detect only first level items
+	char temp[260];
+	if(e.param >= e.level)
+		return;
+	if(e.itm->getidentify() < KnowMagic && e.itm->iscursed()) {
+		e.player.act(e.effect.text, e.itm->getname(temp, zendof(temp)));
+		e.itm->set(KnowMagic);
+		e.param++;
+	}
+}
+
+static void identify(effectparam& e) {
+	char temp[260];
+	e.player.act(e.effect.text, e.itm->getname(temp, zendof(temp)));
+	e.itm->set(KnowEffect);
+}
+
 static constexpr struct spell_info {
 	const char*			name;
 	short unsigned		cost;
+	short unsigned		cost_reduce_by_level;
 	effectc				effect;
-	unsigned			duration;
-	cflags<state_s>		state;
-	char				damage[2];
-	const char*			text_success;
-} spell_data[] = {{"Благословение", 8, {{TargetNotHostileCreature, 2}}, Turn, {Blessed}},
-{"Очаровать персону", 13, {{TargetCreature, 4}, {SaveAbility, Wisdow}}, Week, {Charmed}, {}, "Внезапно %герой стал%а вести себя очень дружелюбно."},
-{"Определить зло", 12, {{NoTarget}}, Instant, {}},
-{"Опознать предмет", 20, {{TargetItemUnidentified}}, Instant, {}},
-{"Волшебный снаряд", 4, {{TargetHostileCreature}}, Instant, {}, {2, 8}},
+} spell_data[] = {{"Благословение", 8, 0, {{TargetNotHostileCreature, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
+{"Очаровать персону", 13, 0, {{TargetCreature, 4}, {SaveAbility, Wisdow}, setcharmer, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}, {}},
+{"Определить зло", 12, 0, {{TargetInvertory}, {}, detect_evil, Instant, {}, "%1 осветился красным светом."}},
+{"Опознать предмет", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
+{"Волшебный снаряд", 4, 0, {{TargetHostileCreature}, {}, damage_effect, Instant, {}, "Несколько зеленых шариков поразили %героя.", {2, 8, Magic}}},
+{"Усыпление", 5, 0, {{TargetHostileCreature}, {SaveAbility, Wisdow}, setstate, Minute, {Sleeped}, "Внезапно %герой заснул%а.", {}}},
 };
-assert_enum(spell, MagicMissile);
+assert_enum(spell, LastSpell);
 getstr_enum(spell);
 
 int creature::getcost(spell_s value) const {
-	return spell_data[value].cost;
-}
-
-static void detect_evil(item& it, creature& caster, bool interactive) {
-	char temp[260];
-	if(it.getidentify() < KnowMagic && it.iscursed()) {
-		caster.act("%1 осветился красным светом.", it.getname(temp, zendof(temp)));
-		it.set(KnowMagic);
-	}
-}
-
-static void foreach(creature& e, void(*proc)(item& it, creature& caster, bool interactive)) {
-	bool interactive = creature::getplayer()->canhear(e.position);
-	for(auto& i : e.wears) {
-		if(i)
-			proc(i, e, interactive);
-	}
-	for(auto& i : e.backpack) {
-		if(i)
-			proc(i, e, interactive);
-	}
+	auto level = get(value);
+	if(level <= 1)
+		return spell_data[value].cost;
+	auto cost = spell_data[value].cost - spell_data[value].cost_reduce_by_level*(level - 1);
+	if(cost < 1)
+		cost = 1;
+	return cost;
 }
 
 bool creature::use(spell_s value) {
 	auto cost = getcost(value);
 	if(getmana() < cost)
 		return false;
-	char temp[260];
-	targets ti;
 	auto& e = spell_data[value];
-	if(e.effect.type.target && !gettarget(ti, e.effect.type))
+	effectparam ep(e.effect, *this, true);
+	if(e.effect.type.target && !gettarget(ep, e.effect.type))
 		return false;
 	act("%герой прокричал%а мистическую формулу.");
 	mp -= cost;
-	if(e.effect.saving(ti, true))
+	if(ep.saving())
 		return true;
-	if(e.state) {
-		for(auto s : e.state)
-			ti.cre->set(s, e.duration);
-	}
-	if(e.text_success) {
-		if(ti.cre)
-			ti.cre->act(e.text_success);
-	}
-	switch(value) {
-	case CharmPerson:
-		ti.cre->charmer = this;
-		break;
-	case DetectEvil:
-		foreach(*this, detect_evil);
-		break;
-	case Identify:
-		act("%1 озарилось синим светом.", ti.itm->getname(temp, zendof(temp)));
-		ti.itm->set(KnowEffect);
-		break;
-	}
+	ep.apply();
 	return true;
 }
 
@@ -86,7 +84,7 @@ static int compare(const void* p1, const void* p2) {
 bool logs::choose(creature& e, spell_s& result) {
 	auto count = 0;
 	spell_s source[sizeof(spell_data) / sizeof(spell_data[0])];
-	for(auto i = Bless; i <= Identify; i = (spell_s)(i + 1)) {
+	for(auto i = FirstSpell; i <= LastSpell; i = (spell_s)(i + 1)) {
 		if(e.get(i) <= 0)
 			continue;
 		source[count++] = i;

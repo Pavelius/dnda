@@ -408,7 +408,7 @@ void creature::trapeffect() {
 		}
 	}
 	auto ai = ::getattackinfo(trap);
-	damage(ai.roll());
+	damage(ai.damage.roll());
 }
 
 bool creature::move(short unsigned i) {
@@ -470,6 +470,9 @@ void creature::makemove() {
 		enemy = 0;
 	if(horror && !(*horror))
 		horror = 0;
+	// RULE: sleeped creature don't move
+	if(is(Sleeped))
+		return;
 	if(getplayer() == this) {
 		logs::turn(*this);
 		return;
@@ -638,10 +641,10 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 	}
 	bool critical_hit = s >= (20 - ai.critical);
 	attacker->act(critical_hit ? "%герой критически попал%а." : "%герой попал%а.");
-	auto damage = ai.roll();
+	auto damage = ai.damage.roll();
 	if(critical_hit) {
 		for(auto i = ai.multiplier; i > 0; i--)
-			damage += ai.roll();
+			damage += ai.damage.roll();
 	}
 	defender->damage(damage);
 }
@@ -654,6 +657,12 @@ void creature::damage(int value) {
 		act("%герой получил%а %1i урона", value);
 	if(hp <= 0)
 		act(" и упал%а");
+	else {
+		if(is(Sleeped)) {
+			act(" и проснул%ась");
+			remove(Sleeped);
+		}
+	}
 	act(".");
 	if(hp <= 0) {
 		for(auto& e : wears) {
@@ -882,14 +891,15 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 		if(focus && getbasic(focus)) {
 			auto fs = get(focus);
 			result.bonus +=  fs/ 30;
-			result.damage[1] += fs / 40;
+			result.damage.max += fs / 40;
 		}
-	}
+	} else
+		result.damage.max = 2;
 	switch(slot) {
 	case Melee:
 	case OffHand:
 		result.bonus += maptbl(str_tohit_bonus, get(Strenght));
-		result.damage[1] += maptbl(str_damage_bonus, get(Strenght));
+		result.damage.max += maptbl(str_damage_bonus, get(Strenght));
 		break;
 	case Ranged:
 		result.bonus += maptbl(dex_tohit_bonus, get(Dexterity));
@@ -901,7 +911,7 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 static void weapon_information(item weapon, const attackinfo& ai) {
 	char t1[260];
 	logs::add("%1 с бонусом [%2i] наносит [%3i-%4i] урона",
-		weapon.getname(t1, zendof(t1), false), ai.bonus, ai.damage[0], ai.damage[1]);
+		weapon.getname(t1, zendof(t1), false), ai.bonus, ai.damage.min, ai.damage.max);
 }
 
 int creature::getattacktime(slot_s slot) const {
@@ -939,6 +949,10 @@ bool creature::use(short unsigned index) {
 	return true;
 }
 
+void creature::remove(state_s value) {
+	states[value] = segments;
+}
+
 void creature::set(state_s value, unsigned segments_count) {
 	unsigned stop = segments + segments_count;
 	if(states[value] < stop)
@@ -960,6 +974,9 @@ bool creature::gettarget(targets& result, const targetdesc td) const {
 		case TargetDoor:
 			if(!logs::getindex(*this, result.pos, td.target, td.range))
 				return false;
+			break;
+		case TargetInvertory:
+			// All invertory of caster
 			break;
 		default:
 			return false;
@@ -1026,14 +1043,11 @@ void creature::addexp(unsigned count) {
 }
 
 int creature::get(spell_s value) const {
-	return (spells[value / 32] & (1 << (value % 32))) ? 1 : 0;
+	return spells[value];
 }
 
 void creature::set(spell_s value, int level) {
-	if(level)
-		spells[value / 32] |= 1 << (value % 32);
-	else
-		spells[value / 32] &= ~(1 << (value % 32));
+	spells[value] = level;
 }
 
 void creature::passturn(unsigned minutes) {

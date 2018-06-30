@@ -76,7 +76,8 @@ enum skill_s : unsigned char {
 	WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting,
 };
 enum state_s : unsigned char {
-	Anger, Blessed, Charmed, Hiding, Goodwill, Lighted, Shielded, Scared,
+	Anger, Blessed, Charmed, Hiding, Goodwill, Lighted, Shielded, Scared, Sleeped,
+	LastState = Sleeped
 };
 enum tile_s : unsigned char {
 	NoTile,
@@ -120,13 +121,13 @@ enum img_s : unsigned char {
 enum target_s : unsigned char {
 	NoTarget,
 	TargetSelf, TargetCreature, TargetNotHostileCreature, TargetFriendlyCreature, TargetHostileCreature,
-	TargetItem, TargetItemUnidentified, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon,
+	TargetItem, TargetItemUnidentified, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetInvertory,
 	TargetDoor, TargetDoorSealed,
 	TargetTrap,
 };
 enum spell_s : unsigned char {
-	Bless, CharmPerson, DetectEvil, Identify, MagicMissile,
-	FirstSpell = Bless, LastSpell = MagicMissile
+	Bless, CharmPerson, DetectEvil, Identify, MagicMissile, Sleep,
+	FirstSpell = Bless, LastSpell = Sleep
 };
 enum map_flag_s : unsigned char {
 	Visible, Hidden, Opened, Sealed, Explored, Experience,
@@ -149,13 +150,14 @@ enum item_flag_s : unsigned char {
 };
 enum attack_s : unsigned char {
 	Bludgeon, Slashing, Piercing,
-	Acid, Cold, Electricity, Fire, WaterAttack
+	Acid, Cold, Electricity, Fire, Magic, WaterAttack
 };
 enum save_s : char {
 	NoSave, SaveAbility, SaveSkill,
 };
 struct attackinfo;
 struct creature;
+struct effectc;
 struct location;
 struct targetdesc;
 class item;
@@ -169,26 +171,38 @@ struct targetdesc {
 	target_s		target;
 	short			range;
 };
+struct damageinfo {
+	char			min;
+	char			max;
+	attack_s		type;
+	explicit operator bool() const { return max != 0; }
+	int				roll() const;
+};
+struct effectparam : targets {
+	const effectc&	effect;
+	creature&		player;
+	bool			interactive;
+	int				param;
+	int				level;
+	int				count;
+	constexpr effectparam(const effectc& e, creature& player, bool interactive) :
+		effect(effect), player(player), interactive(interactive), param(0), level(1), count(0) {}
+	void			apply();
+	bool			saving() const;
+};
 struct effectc {
-	struct save_info {
+	struct savec {
 		save_s		type;
 		ability_s	ability;
 		skill_s		skill;
 	};
-	struct callback {
-		callback() = default;
-		callback(bool(*cre)(effectc& effect, creature& player, creature& target, bool interactive, bool run)) : cre(cre), itm(0), ind(0) {}
-		callback(bool(*itm)(effectc& effect, creature& player, item& target, bool interactive, bool run)) : cre(0), itm(itm), ind(0) {}
-		callback(bool(*ind)(effectc& effect, creature& player, short unsigned index, bool interactive, bool run)) : cre(0), itm(0), ind(ind) {}
-		bool(*cre)(effectc& effect, creature& player, creature& target, bool interactive, bool run);
-		bool(*itm)(effectc& effect, creature& player, item& target, bool interactive, bool run);
-		bool(*ind)(effectc& effect, creature& player, short unsigned index, bool interactive, bool run);
-	};
 	targetdesc		type;
-	save_info		save;
-	callback		proc;
-	//
-	bool			saving(const targets& ti, bool interactive) const;
+	savec			save;
+	void(*proc)(effectparam& e);
+	unsigned		duration;
+	cflags<state_s>	state;
+	const char*		text;
+	damageinfo		number;
 };
 class item {
 	item_s			type;
@@ -228,7 +242,6 @@ public:
 	int				getweight() const;
 	int				getweightsingle() const;
 	bool			is(slot_s value) const;
-	bool			is(attack_s value) const;
 	bool			is(item_flag_s value) const;
 	bool			isarmor() const { return type >= LeatherArmour && type <= Bracers; }
 	bool			isartifact() const { return magic == Artifact; }
@@ -245,13 +258,11 @@ public:
 	void			setsold() { forsale = 0; }
 };
 struct attackinfo {
-	attack_s		type;
 	char			bonus;
 	char			critical;
-	char			damage[2];
+	damageinfo		damage;
 	char			multiplier;
 	char			speed;
-	int				roll() const;
 };
 struct creature {
 	race_s			race;
@@ -348,6 +359,7 @@ struct creature {
 	void			raise(skill_s value);
 	void			raiseskills(int number);
 	void			rangeattack();
+	void			remove(state_s value);
 	bool			roll(skill_s skill, int bonus = 0);
 	void			say(const char* format, ...);
 	bool			sayv(const char* format, const char* param);
@@ -363,13 +375,13 @@ struct creature {
 	void			wait(int segments = 0);
 	bool			walkaround();
 private:
-	friend struct archive;
 	unsigned char	abilities[Charisma + 1];
-	unsigned char	skills[TwoWeaponFighting + 1];
-	unsigned		spells[2];
 	short			hp, mhp, mp, mmp;
 	unsigned		restore_hits, restore_mana;
-	unsigned		states[Scared + 1];
+	unsigned char	skills[TwoWeaponFighting + 1];
+	unsigned char	spells[LastSpell + 1];
+	unsigned		states[LastState + 1];
+	friend struct archive;
 };
 struct location : rect {
 	location_s		type;

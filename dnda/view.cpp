@@ -690,7 +690,7 @@ static void view_info(const creature& e) {
 	x = x1;
 	y = y1 + draw::texth() * 2;
 	// Draw status
-	for(auto i = Anger; i <= Scared; i = (state_s)(i + 1)) {
+	for(auto i = Anger; i <= LastState; i = (state_s)(i + 1)) {
 		if(!e.is(i))
 			continue;
 		const char* pt = getstr(i);

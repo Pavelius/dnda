@@ -9,7 +9,8 @@ static struct state_info {
 {"Щедрый"},
 {"Светится"},
 {"Защищен"},
-{"Страшен"}
+{"Страшен"},
+{"Спящий"}
 };
-assert_enum(state, Scared);
+assert_enum(state, Sleeped);
 getstr_enum(state);

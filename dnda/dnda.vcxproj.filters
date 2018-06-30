@@ -123,9 +123,6 @@
     <ClCompile Include="command.cpp">
       <Filter>support</Filter>
     </ClCompile>
-    <ClCompile Include="attackinfo.cpp">
-      <Filter>logic</Filter>
-    </ClCompile>
     <ClCompile Include="creature.cpp">
       <Filter>logic</Filter>
     </ClCompile>
@@ -199,6 +196,9 @@
       <Filter>logic</Filter>
     </ClCompile>
     <ClCompile Include="effect.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="damageinfo.cpp">
       <Filter>logic</Filter>
     </ClCompile>
   </ItemGroup>
