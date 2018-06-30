@@ -1016,6 +1016,14 @@ static item** select_items(item** pb, item** pe, const item* source, unsigned co
 			if(!(source[i].is(Melee) || source[i].is(Ranged)))
 				continue;
 			break;
+		case TargetItemReadable:
+			if(!source[i].isreadable())
+				continue;
+			break;
+		case TargetItemEdible:
+			if(!source[i].isedible())
+				continue;
+			break;
 		}
 		if(pb < pe)
 			*pb++ = (item*)&source[i];

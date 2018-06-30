@@ -101,6 +101,7 @@ static constexpr struct item_info {
 {"Мясо", 5 * SP},
 //
 {"Свиток"},
+{"Книга"},
 {"Зелье", 20 * GP, {}, {}, {}, NoSkill, {}, NoItem, 5},
 {"Ключ"},
 {"Монета", 1, {}, {}, {}, NoSkill, {}, NoItem, 50},
@@ -231,16 +232,32 @@ bool item::is(slot_s value) const {
 	return item_data[type].slots.is(value);
 }
 
-//bool item::is(attack_s value) const {
-//	return item_data[type].combat.damage.type == value;
-//}
-
 bool item::is(item_flag_s value) const {
 	return item_data[type].flags.is(value);
 }
 
 bool item::istwohanded() const {
 	return item_data[type].flags.is(TwoHanded);
+}
+
+bool item::isreadable() const {
+	return type == Scroll || type == Book;
+}
+
+bool item::isedible() const {
+	switch(type) {
+	case Meat:
+	case BreadEvlen:
+	case BreadDwarven:
+	case BreadHalflings:
+	case Ration:
+	case Apple:
+	case Cake:
+	case Sausage:
+		return true;
+	default:
+		return false;
+	}
 }
 
 int item::getarmor() const {

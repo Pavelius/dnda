@@ -23,7 +23,7 @@ enum item_s : unsigned char {
 	LeatherArmour, StuddedLeatherArmour, ScaleMail, ChainMail, SplintMail, PlateMail,
 	Shield, Helmet, Bracers,
 	Ration, Apple, BreadHalflings, BreadEvlen, BreadDwarven, Cake, Sausage, Meat,
-	Scroll, Potion,
+	Scroll, Book, Potion,
 	DoorKey, Coin,
 	Claws, Slam, Bite,
 	ManyItems
@@ -248,6 +248,7 @@ public:
 	bool			isartifact() const { return magic == Artifact; }
 	bool			iscountable() const;
 	bool			iscursed() const { return magic == Cursed; }
+	bool			isedible() const;
 	bool			isforsale() const { return forsale != 0; }
 	bool			isreadable() const;
 	bool			istwohanded() const;
