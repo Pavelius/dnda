@@ -58,10 +58,10 @@ static struct class_info {
 	cflags<skill_s>		skills;
 	cflags<spell_s>		spells;
 	item_s				equipment[8];
-} class_data[] = {{"Клерик", 8, 8, 2, Wisdow, {Diplomacy, Healing}, {Bless}, {Mace}},
+} class_data[] = {{"Клерик", 8, 8, 2, Wisdow, {Diplomacy, Healing}, {Bless, HealingSpell}, {Mace}},
 {"Воин", 10, 4, 1, Strenght, {Survival, WeaponFocusBlades}, {}, {SwordLong, LeatherArmour, Shield}},
-{"Маг", 4, 10, 4, Intellegence, {Literacy, History}, {Identify, MagicMissile}, {Staff}},
-{"Паладин", 10, 4, 1, Strenght, {Diplomacy, WeaponFocusBlades}, {}, {SwordLong, ScaleMail}},
+{"Маг", 4, 10, 4, Intellegence, {Literacy, History}, {Identify, MagicMissile, Sleep}, {Staff}},
+{"Паладин", 10, 4, 1, Strenght, {Diplomacy, WeaponFocusBlades}, {DetectEvil}, {SwordLong, ScaleMail}},
 {"Следопыт", 10, 6, 2, Strenght, {Survival, WeaponFocusBows}, {}, {SwordLong, SwordShort, LeatherArmour}},
 {"Вор", 6, 4, 3, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff}, {}, {SwordShort, LeatherArmour}},
 };
@@ -149,10 +149,10 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 		raise(e);
 	for(auto e : class_data[type].spells)
 		set(e, 1);
-	if(class_data[type].spells) {
-		for(int i = 0; i < 2; i++)
-			set(choose_spells(this), 1);
-	}
+	//if(class_data[type].spells) {
+	//	for(int i = 0; i < 2; i++)
+	//		set(choose_spells(this), 1);
+	//}
 	// Повысим навыки
 	auto skill_checks = maptbl(int_checks, abilities[Intellegence]);
 	raiseskills(skill_checks);
@@ -650,36 +650,50 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 }
 
 void creature::damage(int value) {
-	hp -= value;
-	if(value <= 0)
-		act("%герой выдержал%а удар");
-	else
-		act("%герой получил%а %1i урона", value);
-	if(hp <= 0)
-		act(" и упал%а");
-	else {
-		if(is(Sleeped)) {
-			act(" и проснул%ась");
-			remove(Sleeped);
+	if(value >= 0) {
+		value -= getarmor();
+		if(value < 0)
+			value = 0;
+		hp -= value;
+		if(value <= 0)
+			act("%герой выдержал%а удар");
+		else
+			act("%герой получил%а %1i урона", value);
+		if(hp <= 0)
+			act(" и упал%а");
+		else {
+			if(is(Sleeped)) {
+				act(" и проснул%ась");
+				remove(Sleeped);
+			}
 		}
-	}
-	act(".");
-	if(hp <= 0) {
-		for(auto& e : wears) {
-			if(!e)
-				continue;
-			if(isparty() || (d100() < chance_loot)) {
+		act(".");
+		if(hp <= 0) {
+			for(auto& e : wears) {
+				if(!e)
+					continue;
+				if(isparty() || (d100() < chance_loot)) {
+					e.loot();
+					drop(position, e);
+				}
+			}
+			for(auto& e : backpack) {
+				if(!e)
+					continue;
 				e.loot();
 				drop(position, e);
 			}
+			game::release(this, getcostexp());
 		}
-		for(auto& e : backpack) {
-			if(!e)
-				continue;
-			e.loot();
-			drop(position, e);
+	} else {
+		auto mhp = getmaxhits();
+		value = -value;
+		if(hp + value > mhp)
+			value = mhp - hp;
+		if(value > 0) {
+			hp += value;
+			act("%герой восстановил%1i урона.", value);
 		}
-		game::release(this, getcostexp());
 	}
 }
 
@@ -904,6 +918,10 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 	case Ranged:
 		result.bonus += maptbl(dex_tohit_bonus, get(Dexterity));
 		break;
+	}
+	if(is(Blessed)) {
+		result.bonus += 2;
+		result.damage.max++;
 	}
 	return result;
 }

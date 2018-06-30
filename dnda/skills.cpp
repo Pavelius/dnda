@@ -109,10 +109,13 @@ bool creature::use(skill_s value) {
 		break;
 	}
 	if(r >= v) {
-		if(d100() < 60) {
+		if(d100() < 40) {
 			if(isplayer())
 				logs::add("Попытка не удалась и тебя охватила злость.");
-			set(Anger, Minute*xrand(2, 5));
+			set(Anger, Minute * xrand(2, 5));
+		} else {
+			if(isplayer())
+				logs::add("Попытка не удалась.");
 		}
 		switch(value) {
 		case Gambling:
@@ -132,10 +135,10 @@ bool creature::use(skill_s value) {
 	}
 	switch(value) {
 	case Diplomacy:
-		set(Goodwill, FiveMinutes);
+		set(Goodwill, 5 * Minute);
 		break;
 	case HideInShadow:
-		set(Hiding, FiveMinutes*(1 + v / 20));
+		set(Hiding, 5 * Minute * (1 + v / 20));
 		break;
 	case Lockpicking:
 		game::set(ti.pos, Sealed, false);
@@ -148,16 +151,16 @@ bool creature::use(skill_s value) {
 			ti.cre->money -= count;
 			money += count;
 			if(isplayer())
-				act("Ты украл%а %1i монет.", count);
+				act("%герой украл%а %1i монет.", count);
 		}
 		break;
 	case Gambling:
 		money += stack;
 		ti.cre->money -= stack;
 		if(isplayer())
-			act("Ты выиграл%а [+%1i] монет.", stack);
+			act("%герой выиграл%а [+%1i] монет.", stack);
 		if(ti.cre->isplayer())
-			ti.cre->act("Ты проиграл%а [-%1i] монет.", stack);
+			ti.cre->act("%герой проиграл%а [-%1i] монет.", stack);
 		break;
 	}
 	if(e.experience)

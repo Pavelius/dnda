@@ -126,7 +126,7 @@ enum target_s : unsigned char {
 	TargetTrap,
 };
 enum spell_s : unsigned char {
-	Bless, CharmPerson, DetectEvil, Identify, MagicMissile, Sleep,
+	Bless, CharmPerson, DetectEvil, HealingSpell, Identify, Invisibility, MagicMissile, Sleep,
 	FirstSpell = Bless, LastSpell = Sleep
 };
 enum map_flag_s : unsigned char {
@@ -134,7 +134,7 @@ enum map_flag_s : unsigned char {
 };
 enum duration_s : unsigned {
 	Instant = 0,
-	Minute = 12, FiveMinutes = 5 * Minute, Turn = 10 * Minute,
+	Minute = 12, Turn = 10 * Minute,
 	Halfhour = 30 * Minute, Hour = 60 * Minute, HalfDay = 12 * Hour, Day = 24 * Hour,
 	Week = 7 * Day, Month = 30 * Day, Season = 3 * Month, Year = 4 * Season,
 	Permanent = 100 * Year
@@ -185,8 +185,8 @@ struct effectparam : targets {
 	int				param;
 	int				level;
 	int				count;
-	constexpr effectparam(const effectc& e, creature& player, bool interactive) :
-		effect(effect), player(player), interactive(interactive), param(0), level(1), count(0) {}
+	constexpr effectparam(const effectc& effect_param, creature& player, bool interactive) :
+		effect(effect_param), player(player), interactive(interactive), param(0), level(1), count(0) {}
 	void			apply();
 	bool			saving() const;
 };
