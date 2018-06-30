@@ -977,7 +977,7 @@ void creature::set(state_s value, unsigned segments_count) {
 		states[value] = stop;
 }
 
-bool creature::gettarget(targets& result, const targetdesc td) const {
+bool creature::gettarget(targetinfo& result, const targetdesc td) const {
 	if(td.target >= TargetCreature && td.target <= TargetHostileCreature) {
 		if(!logs::getcreature(*this, &result.cre, td.target, td.range))
 			return false;

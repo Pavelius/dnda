@@ -20,6 +20,8 @@ void effectparam::apply() {
 			break;
 		}
 	}
+	if(effect.experience)
+		player.addexp(effect.experience);
 	if(effect.text) {
 		if(cre)
 			cre->act(effect.text);

@@ -1,6 +1,6 @@
 #include "main.h"
 
-static void setstate(effectparam& e) {
+void setstate(effectparam& e) {
 	// Set state and increase duration by level
 	for(auto s : e.effect.state)
 		e.cre->set(s, e.effect.duration * e.level);
@@ -11,12 +11,12 @@ static void setcharmer(effectparam& e) {
 	e.cre->charmer = &e.player;
 }
 
-static void damage_effect(effectparam& e) {
+static void setdamage(effectparam& e) {
 	// Apply damage to level
 	e.cre->damage(e.count + e.level);
 }
 
-static void healing(effectparam& e) {
+void healdamage(effectparam& e) {
 	// Heal damage according level
 	e.cre->damage(-(e.count + e.level));
 }
@@ -43,14 +43,14 @@ static constexpr struct spell_info {
 	const char*			name;
 	short unsigned		cost;
 	short unsigned		cost_reduce_by_level;
-	effectc				effect;
+	effectinfo				effect;
 } spell_data[] = {{"Благословение", 8, 0, {{TargetNotHostileCreature, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
 {"Очаровать персону", 13, 0, {{TargetCreature, 4}, {SaveAbility, Wisdow}, setcharmer, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}, {}},
 {"Определить зло", 12, 0, {{TargetInvertory}, {}, detect_evil, Instant, {}, "%1 осветился красным светом."}},
-{"Исцеление", 7, 0, {{TargetNotHostileCreature, 1}, {}, healing, Instant, {}, "%1 озарился белым светом.", {2, 6, Magic}}},
+{"Исцеление", 7, 0, {{TargetNotHostileCreature, 1}, {}, healdamage, Instant, {}, "%1 озарился белым светом.", {2, 6, Magic}}},
 {"Опознать предмет", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
 {"Невидимость", 8, 0, {{TargetFriendlyCreature, 1}, {}, setstate, Hour, {Hiding}, "Внезапно %1 исчез%ла из виду."}},
-{"Волшебный снаряд", 4, 0, {{TargetHostileCreature}, {}, damage_effect, Instant, {}, "Несколько зеленых шариков поразили %героя.", {2, 8, Magic}}},
+{"Волшебный снаряд", 4, 0, {{TargetHostileCreature}, {}, setdamage, Instant, {}, "Несколько зеленых шариков поразили %героя.", {2, 8, Magic}}},
 {"Усыпление", 5, 0, {{TargetHostileCreature}, {SaveAbility, Wisdow}, setstate, Minute, {Sleeped}, "Внезапно %герой заснул%а.", {}}},
 };
 assert_enum(spell, LastSpell);

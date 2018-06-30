@@ -157,12 +157,12 @@ enum save_s : char {
 };
 struct attackinfo;
 struct creature;
-struct effectc;
+struct effectinfo;
 struct location;
 struct targetdesc;
 class item;
-struct targets {
-	constexpr targets() : cre(0), itm(0), pos(Blocked) {}
+struct targetinfo {
+	constexpr targetinfo() : cre(0), itm(0), pos(Blocked) {}
 	creature*		cre;
 	item*			itm;
 	short unsigned	pos;
@@ -178,19 +178,19 @@ struct damageinfo {
 	explicit operator bool() const { return max != 0; }
 	int				roll() const;
 };
-struct effectparam : targets {
-	const effectc&	effect;
+struct effectparam : targetinfo {
+	const effectinfo& effect;
 	creature&		player;
 	bool			interactive;
 	int				param;
 	int				level;
 	int				count;
-	constexpr effectparam(const effectc& effect_param, creature& player, bool interactive) :
+	constexpr effectparam(const effectinfo& effect_param, creature& player, bool interactive) :
 		effect(effect_param), player(player), interactive(interactive), param(0), level(1), count(0) {}
 	void			apply();
 	bool			saving() const;
 };
-struct effectc {
+struct effectinfo {
 	struct savec {
 		save_s		type;
 		ability_s	ability;
@@ -203,6 +203,7 @@ struct effectc {
 	cflags<state_s>	state;
 	const char*		text;
 	damageinfo		number;
+	unsigned		experience;
 };
 class item {
 	item_s			type;
@@ -334,7 +335,7 @@ struct creature {
 	int				getobjects(short unsigned* result, unsigned count, target_s target, int range) const;
 	static creature* getplayer();
 	short unsigned	getposition() const { return position; }
-	bool			gettarget(targets& result, const targetdesc td) const;
+	bool			gettarget(targetinfo& result, const targetdesc td) const;
 	int				getweight() const;
 	bool			interact(short unsigned index);
 	bool			is(state_s value) const;

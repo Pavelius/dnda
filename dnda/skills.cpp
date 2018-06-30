@@ -1,31 +1,59 @@
 #include "main.h"
 
+void setstate(effectparam& e);
+void healdamage(effectparam& e);
+
+static void removetrap(effectparam& e) {}
+
+static void removelock(effectparam& e) {
+	game::set(e.pos, Sealed, false);
+}
+
+static void pickpockets(effectparam& e) {
+	auto count = (unsigned)xrand(3, 18);
+	if(count > e.cre->money)
+		count = e.cre->money;
+	e.cre->money -= count;
+	e.player.money += count;
+	if(e.player.isplayer())
+		e.player.act("%герой украл%а %1i монет.", count);
+}
+
+static void dance(effectparam& e) {}
+
+static void gamble(effectparam& e) {
+	e.player.money += e.param;
+	e.cre->money -= e.param;
+	if(e.player.isplayer())
+		e.player.act("%герой выиграл%а [+%1i] монет.", e.param);
+	if(e.cre->isplayer())
+		e.cre->act("%герой проиграл%а [-%1i] монет.", e.param);
+}
+
 static struct skillinfo {
 	const char*		name;
 	ability_s		ability[2];
-	targetdesc		type;
+	effectinfo		effect;
 	unsigned char	koef[2];
-	unsigned		experience;
-	const char*		text_success;
 } skill_data[] = {{"Нет навыка"},
 {"Торговля", {Charisma, Intellegence}},
 {"Блеф", {Charisma, Dexterity}},
-{"Дипломатия", {Charisma, Wisdow}, {TargetCreature, 1}, {}, 0, "%герой одобрил%а предложение."},
+{"Дипломатия", {Charisma, Wisdow}, {{TargetCreature, 1}, {}, setstate, Turn / 2, {Goodwill}, "%герой одобрил%а предложение."}},
 //
 {"Акробатика", {Dexterity, Dexterity}},
 {"Внимательность", {Wisdow, Dexterity}},
 {"Атлетика", {Strenght, Dexterity}},
-{"Обезвредить ловушки", {Dexterity, Intellegence}, {TargetTrap, 1}},
+{"Обезвредить ловушки", {Dexterity, Intellegence}, {{TargetTrap, 1}, {}, removetrap, Instant, {}, "%герой обезвредил%а ловушку."}},
 {"Слышать звуки", {Wisdow, Intellegence}},
-{"Прятаться в тени", {Dexterity, Dexterity}, {TargetSelf}, {}, 0, "%герой внезапно изчез%ла из поля зрения."},
-{"Открыть замок", {Dexterity, Dexterity}, {TargetDoor, 1}, {0}, 50, "%герой вскрыл%а замок."},
-{"Очистить карманы", {Dexterity, Dexterity}, {TargetCreature, 1}, {0}, 25},
+{"Прятаться в тени", {Dexterity, Dexterity}, {{TargetSelf}, {}, setstate, Turn / 2, {Hiding}, "%герой внезапно изчез%ла из поля зрения."}},
+{"Открыть замок", {Dexterity, Intellegence}, {{TargetDoor, 1}, {}, removelock, Instant, {}, "%герой вскрыл%а замок."}, 50},
+{"Очистить карманы", {Dexterity, Charisma}, {{TargetCreature, 1}, {}, pickpockets, Instant, {}, 0, 25}},
 {"Алхимия", {Intellegence, Intellegence}},
-{"Танцы", {Dexterity, Charisma}, {}, {0}, 10, "%герой станевал%а отличный танец."},
+{"Танцы", {Dexterity, Charisma}, {{TargetSelf}, {}, dance, Instant, {}, "%герой станевал%а отличный танец.", 10}},
 {"Инженерное дело", {Intellegence, Intellegence}},
-{"Азартные игры", {Charisma, Dexterity}, {TargetCreature, 1}, {0, 2}, 25},
+{"Азартные игры", {Charisma, Dexterity}, {{TargetCreature, 1}, {}, gamble, Instant, {}, 0, 25}, {0, 2}},
 {"История", {Intellegence, Intellegence}},
-{"Лечение", {Wisdow, Intellegence}, {TargetCreature, 1}, {}, 10, "%герой перевязала раны."},
+{"Лечение", {Wisdow, Intellegence}, {{TargetCreature, 1}, {}, healdamage, Instant, {}, "%герой перевязал%а раны.", 5}},
 {"Грамотность", {Intellegence, Intellegence}},
 {"Шахтерское дело", {Strenght, Intellegence}},
 {"Кузнечное дело", {Strenght, Intellegence}},
@@ -60,23 +88,22 @@ bool creature::use(skill_s value) {
 			logs::add("Вам надо немного прийти в себя и успокоится.");
 		return false;
 	}
-	targets ti;
 	auto& e = skill_data[value];
-	if(e.type.target == NoTarget) {
+	effectparam ep(e.effect, *this, true);
+	if(e.effect.type.target == NoTarget) {
 		if(isplayer())
-			logs::add("Навык %1 не используется подобным образом", ::getstr(value));
+			logs::add("Навык %1 не используется подобным образом", getstr(value));
 		return false;
 	} else {
-		if(!gettarget(ti, e.type))
+		if(!gettarget(ep, ep.effect.type))
 			return false;
 	}
-	unsigned stack = 0;
 	auto r = d100();
 	auto v = get(value);
 	if(e.koef[0])
 		v = v / e.koef[0];
-	if(e.koef[1] && ti.cre)
-		v = v - ti.cre->get(value) / e.koef[1];
+	if(e.koef[1] && ep.cre)
+		v = v - ep.cre->get(value) / e.koef[1];
 	switch(value) {
 	case PickPockets:
 		switch(rand() % 5) {
@@ -95,15 +122,15 @@ bool creature::use(skill_s value) {
 		}
 		break;
 	case Gambling:
-		stack = 20 * (1 + get(Gambling) / 20);
-		if(money < stack) {
+		ep.param = 20 * (1 + get(Gambling) / 20);
+		if(money < ep.param) {
 			if(isplayer())
 				logs::add("У тебя нет достаточного количества денег.");
 			return false;
 		}
 		say("Давай сыграем в %1?", maprnd(talk_games));
-		if(ti.cre->money < stack) {
-			ti.cre->say("Нет. Я на мели. В другой раз.");
+		if(ep.cre->money < ep.param) {
+			ep.cre->say("Нет. Я на мели. В другой раз.");
 			return false;
 		}
 		break;
@@ -119,51 +146,16 @@ bool creature::use(skill_s value) {
 		}
 		switch(value) {
 		case Gambling:
-			money -= stack;
-			ti.cre->money += stack;
+			money -= ep.param;
+			ep.cre->money += ep.param;
 			if(isplayer())
-				logs::add("Ты проиграл [-%1i] монет.", stack);
-			if(ti.cre->isplayer())
-				logs::add("Ты выиграл [+%1i] монет.", stack);
+				logs::add("Ты проиграл [-%1i] монет.", ep.param);
+			if(ep.cre->isplayer())
+				logs::add("Ты выиграл [+%1i] монет.", ep.param);
 			break;
 		}
 		return false;
 	}
-	if(e.text_success) {
-		if(ti.cre)
-			ti.cre->act(e.text_success);
-	}
-	switch(value) {
-	case Diplomacy:
-		set(Goodwill, 5 * Minute);
-		break;
-	case HideInShadow:
-		set(Hiding, 5 * Minute * (1 + v / 20));
-		break;
-	case Lockpicking:
-		game::set(ti.pos, Sealed, false);
-		break;
-	case PickPockets:
-		if(true) {
-			auto count = (unsigned)xrand(3, 18);
-			if(count > ti.cre->money)
-				count = ti.cre->money;
-			ti.cre->money -= count;
-			money += count;
-			if(isplayer())
-				act("%герой украл%а %1i монет.", count);
-		}
-		break;
-	case Gambling:
-		money += stack;
-		ti.cre->money -= stack;
-		if(isplayer())
-			act("%герой выиграл%а [+%1i] монет.", stack);
-		if(ti.cre->isplayer())
-			ti.cre->act("%герой проиграл%а [-%1i] монет.", stack);
-		break;
-	}
-	if(e.experience)
-		addexp(e.experience);
+	ep.apply();
 	return true;
 }
