@@ -1068,6 +1068,10 @@ static item** select_items(item** pb, item** pe, const item* source, unsigned co
 			if(!(source[i].is(Melee) || source[i].is(Ranged)))
 				continue;
 			break;
+		case TargetItemChargeable:
+			if(!source[i].ischargeable())
+				continue;
+			break;
 		case TargetItemReadable:
 			if(!source[i].isreadable())
 				continue;
@@ -1083,12 +1087,12 @@ static item** select_items(item** pb, item** pe, const item* source, unsigned co
 	return pb;
 }
 
-int	creature::getitems(item** result, unsigned maximum_count, target_s target) const {
-	auto pb = result;
-	auto pe = result + maximum_count;
+unsigned creature::getitems(aref<item*> result, target_s target) const {
+	auto pb = result.data;
+	auto pe = result.data + result.count;
 	pb = select_items(pb, pe, wears, sizeof(wears) / sizeof(wears[0]), target);
 	pb = select_items(pb, pe, backpack, sizeof(backpack) / sizeof(backpack[0]), target);
-	return pb - result;
+	return pb - result.data;
 }
 
 unsigned getexperiencelevel(unsigned value) {
@@ -1198,7 +1202,7 @@ bool creature::roll(skill_s skill, int bonus) {
 	return d100() < result;
 }
 
-void creature::act(const char* format, ...) const {
+void creature::actv(const char* format, const char* param) const {
 	auto player = getplayer();
 	if(!player)
 		return;
@@ -1207,39 +1211,33 @@ void creature::act(const char* format, ...) const {
 	logs::driver driver(getname(), gender, 0);
 	if(wears[Melee])
 		driver.weapon = getstr(wears[Melee].gettype());
-	logs::addv(driver, format, xva_start(format));
+	logs::addv(driver, format, param);
 }
 
 void creature::use(item& it) {
-	bool consume = true;
-	spell_s spell = NoSpell;
-	switch(it.gettype()) {
-	case ScrollRed:
-	case ScrollGreen:
-	case ScrollBlue:
-		spell = it.getspell();
-		if(!spell) {
+	char temp[260]; it.getname(temp, zendof(temp), false);
+	if(it.ischargeable()) {
+		it.set(KnowEffect);
+		auto spell = it.getspell();
+		if(!spell)
+			hint("%1 не работает.", temp);
+		else if(!it.getcharges())
+			hint("%1 раряжена, ее нужно зарядить.", temp);
+		else {
+			grammar::what(temp, getstr(it.gettype())); szlower(temp);
+			use(spell, 1 + it.getquality(), "%герой выставил%а вперед %1.", temp);
+			it.setcharges(it.getcharges() - 1);
+			wait(Minute / 4);
+		}
+	} else {
+		it.set(KnowEffect);
+		auto spell = it.getspell();
+		if(!spell)
 			hint("Этот свиток пустой. Его нельзя прочитать.");
-			return;
+		else {
+			use(spell, 1 + it.getquality(), "%герой прочитал%а свиток.");
+			it.clear();
+			wait(Minute / 2);
 		}
-		use(spell, 1 + it.getquality(), "%герой прочитал%а свиток.");
-		break;
-	case WandRed:
-	case WandGreen:
-	case WandBlue:
-		spell = it.getspell();
-		if(!spell) {
-			hint("Эта палочка не работает.");
-			return;
-		}
-		if(!it.getcharges()) {
-			hint("Эта палочка раряжена.");
-			return;
-		}
-		use(spell, 1 + it.getquality(), "%герой выставил%а палочку.");
-		it.setcharges(it.getcharges() - 1);
-		break;
 	}
-	if(consume)
-		it.clear();
 }

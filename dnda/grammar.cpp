@@ -63,6 +63,14 @@ char* grammar::of(char* r, const char* s) {
 	return r;
 }
 
+char* grammar::what(char* r, const char* s) {
+	static grammar_map map[] = {{"а", "у"},
+	{}
+	};
+	change(r, s, map, "");
+	return r;
+}
+
 char* grammar::by(char* r, const char* s) {
 	static grammar_map map[] = {
 		{"би", "би"},

@@ -88,12 +88,14 @@ bool creature::use(spell_s value) {
 	return result;
 }
 
-bool creature::use(spell_s value, int level, const char* text) {
+bool creature::use(spell_s value, int level, const char* format, ...) {
 	effectparam ep(spell_data[value].effect, *this, true);
+	if(level < 1)
+		level = 1;
 	ep.level = level;
 	if(ep.type.target && !gettarget(ep, ep.type))
 		return false;
-	act(text);
+	actv(format, xva_start(format));
 	if(ep.saving())
 		return true;
 	ep.apply();

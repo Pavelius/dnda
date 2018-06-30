@@ -1360,8 +1360,15 @@ static void character_ranged_attack(creature& e) {
 	e.rangeattack();
 }
 
-static hotkey hotkeys[] = {
-	{KeyLeft, "Двигаться влево"},
+static void character_wand(creature& e) {
+	item* result = 0;
+	if(!logs::getitem(e, &result, TargetItemChargeable, "С какого предмета?"))
+		return;
+	if(result)
+		e.use(*result);
+}
+
+static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {KeyHome, "Двигаться вверх и влево"},
 {KeyEnd, "Двигаться вниз и влево"},
 {KeyRight, "Двигаться вправо"},
@@ -1389,6 +1396,7 @@ static hotkey hotkeys[] = {
 {F4, "Выбрать 4-го игрока", character_setplayer4},
 {KeySpace, "Подождать 10 минут", character_passturn},
 {Alpha + 'G', "Спрятать/Показать информацию", ui_show_hide_panel},
+{Alpha + 'Z', "Использовать палочку", character_wand},
 };
 
 int compare_hotkey(const void* p1, const void* p2) {

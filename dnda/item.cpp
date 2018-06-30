@@ -45,6 +45,7 @@ static magic_s bludgeon_effect[] = {OfStrenght, OfDestruction, OfSmashing, OfCon
 static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
 static spell_s scroll_spells[] = {Identify, Armor, ShieldSpell};
 static spell_s wand_spells[] = {MagicMissile, HealingSpell, ShokingGrasp};
+static spell_s staff_spells[] = {MagicMissile, ShokingGrasp, Sleep};
 static constexpr struct item_info {
 	struct combat_info {
 		char			speed;
@@ -70,7 +71,7 @@ static constexpr struct item_info {
 {"Молот", 2 * GP, {1, {2, 5}}, {}, {Melee}, WeaponFocusAxes, bludgeon_effect},
 {"Булава", 8 * GP, {1, {1, 7}}, {}, {Melee}, WeaponFocusAxes, bludgeon_effect},
 {"Копье", 8 * SP, {1, {1, 8, Piercing}}, {Versatile}, {Melee}, NoSkill, pierce_effect},
-{"Посох", 1 * SP, {2, {1, 6}}, {TwoHanded}, {Melee}, NoSkill, bludgeon_effect},
+{"Посох", 1 * SP, {2, {1, 6}}, {TwoHanded}, {Melee}, NoSkill, {}, staff_spells, NoItem, 0, 50},
 {"Длинный меч", 15 * GP, {1, {1, 8, Slashing}}, {}, {Melee}, WeaponFocusBlades, swords_effect},
 {"Короткий меч", 10 * GP, {1, {1, 6, Slashing}}, {}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
 {"Двуручный меч", 50 * GP, {0, {2, 12, Slashing}}, {TwoHanded}, {Melee}, WeaponFocusBlades, swords_effect},
@@ -109,9 +110,9 @@ static constexpr struct item_info {
 {"Свиток", 6 * GP, {}, {}, {}, NoSkill, {}, scroll_spells},
 {"Свиток", 7 * GP, {}, {}, {}, NoSkill, {}, scroll_spells},
 //
-{"Палочка", 50 * GP, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 50},
-{"Палочка", 60 * GP, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 60},
-{"Палочка", 70 * GP, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 70},
+{"Палочка", 50 * GP, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 20},
+{"Палочка", 70 * GP, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 30},
+{"Палочка", 90 * GP, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 40},
 //
 {"Книга"},
 //
@@ -152,17 +153,23 @@ item::item(item_s type, int level, int chance_curse) : item(type) {
 	else
 		quality = 3;
 	// Effect can be or not can be
-	if(item_data[type].effects
-		&& (magic == Artifact || (magic != Mundane && d100() < level)))
-		effect = item_data[type].effects.data[rand() % item_data[type].effects.count];
+	if(item_data[type].effects) {
+		if(magic == Artifact
+			|| (magic != Mundane && d100() < level))
+			effect = item_data[type].effects.data[rand() % item_data[type].effects.count];
+	}
 	// Spell be on mostly any scroll or wand
-	if(item_data[type].spells)
-		effect = (magic_s)item_data[type].spells.data[rand() % item_data[type].spells.count];
+	if(item_data[type].spells) {
+		if(magic == Artifact
+			|| (is(Melee) && magic != Mundane && d100() < level)
+			|| (!is(Melee) && d100() < 80))
+			effect = (magic_s)item_data[type].spells.data[rand() % item_data[type].spells.count];
+	}
 	// Set maximum item count in set
-	if(item_data[type].count)
+	if(iscountable())
 		setcount(item_data[type].count);
 	// Set random charge
-	if(item_data[type].charges)
+	if(ischargeable())
 		setcharges(xrand(item_data[type].charges/2, item_data[type].charges));
 }
 
@@ -258,17 +265,13 @@ bool item::ischargeable() const {
 
 int item::getcharges() const {
 	if(ischargeable())
-		return 0;
-	return count;
+		return count;
+	return 0;
 }
 
 void item::setcharges(int value) {
-	if(ischargeable()) {
-		if(!value)
-			clear();
-		else
-			count = value;
-	}
+	if(ischargeable())
+		count = value;
 }
 
 int item::getweight() const {

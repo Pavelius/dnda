@@ -130,7 +130,7 @@ enum img_s : unsigned char {
 enum target_s : unsigned char {
 	NoTarget,
 	TargetSelf, TargetCreature, TargetNotHostileCreature, TargetFriendlyCreature, TargetHostileCreature,
-	TargetItem, TargetItemUnidentified, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetInvertory,
+	TargetItem, TargetItemUnidentified, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
 	TargetDoor, TargetDoorSealed,
 	TargetTrap,
 };
@@ -315,7 +315,8 @@ struct creature {
 	operator bool() const { return hp > 0; }
 	void* operator new(unsigned size);
 	//
-	void			act(const char* format, ...) const;
+	void			act(const char* format, ...) const { actv(format, xva_start(format)); }
+	void			actv(const char* format, const char* param) const;
 	void			addexp(unsigned count);
 	bool			askyn(creature* opponent, const char* format, ...);
 	bool			canhear(short unsigned index) const;
@@ -342,7 +343,7 @@ struct creature {
 	int				getdiscount(creature* customer) const;
 	char*			getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
 	int				gethits() const { return hp; }
-	int				getitems(item** result, unsigned maximum_count, target_s target) const;
+	unsigned		getitems(aref<item*> result, target_s target) const;
 	creature*		getleader() const;
 	int				getlos() const;
 	int				getmana() const { return mp; }
@@ -393,7 +394,7 @@ struct creature {
 	void			update();
 	void			use(skill_s value);
 	bool			use(spell_s value);
-	bool			use(spell_s value, int level, const char* text);
+	bool			use(spell_s value, int level, const char* format, ...);
 	void			use(item& it);
 	bool			use(short unsigned index);
 	void			wait(int segments = 0);
@@ -506,7 +507,7 @@ bool				chooseyn();
 void				focusing(short unsigned index);
 bool				getcreature(const creature& e, creature** result, target_s target, int range);
 bool				getindex(const creature& e, short unsigned& result, target_s target, int range);
-bool				getitem(const creature& e, item** result, target_s target);
+bool				getitem(const creature& e, item** result, target_s target, const char* title = 0);
 void				initialize();
 int					input();
 void				minimap(creature& e);

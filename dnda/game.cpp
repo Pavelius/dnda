@@ -641,15 +641,16 @@ bool logs::getindex(const creature& e, short unsigned& result, target_s target, 
 	return true;
 }
 
-bool logs::getitem(const creature& e, item** result, target_s target) {
+bool logs::getitem(const creature& e, item** result, target_s target, const char* title) {
 	item* source[64];
-	auto count = e.getitems(source, sizeof(source) / sizeof(source[0]), target);
+	auto count = e.getitems(source, target);
 	if(!count) {
-		if(e.isplayer())
-			logs::add("У вас нет предметов нужного вида.");
+		e.hint("У вас нет предметов нужного вида.");
 		return false;
 	}
-	auto pn = logs::choose(e, source, count, "Выбирайте предмет");
+	if(!title)
+		title = "Выбирайте предмет";
+	auto pn = logs::choose(e, source, count, title);
 	if(!pn)
 		return false;
 	*result = pn;
