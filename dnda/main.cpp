@@ -10,6 +10,7 @@ int main(int argc, char* argv[]) {
 	auto p2 = add(get(8, 5), Dwarf, Male, Fighter, true);
 	auto p3 = add(get(2, 2), Elf, Male, Theif, true);
 	p3->equip(BowLong);
+	p3->equip(Identify);
 	p3->equip({Arrow, 2, 10});
 	p3->equip({SwordLong, Artifact, OfStrenght, 2});
 	p2->equip({Shield, Mundane, NoEffect, 3});

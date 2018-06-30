@@ -1,42 +1,40 @@
 #include "main.h"
 
 void effectparam::apply() {
-	if(effect.number)
-		count = effect.number.roll();
-	if(effect.proc) {
-		switch(effect.type.target) {
+	if(text) {
+		if(cre)
+			cre->act(text);
+	}
+	if(proc) {
+		switch(type.target) {
 		case TargetInvertory:
 			for(auto& e : player.wears) {
 				itm = &e;
-				effect.proc(*this);
+				proc(*this);
 			}
 			for(auto& e : player.backpack) {
 				itm = &e;
-				effect.proc(*this);
+				proc(*this);
 			}
 			break;
 		default:
-			effect.proc(*this);
+			proc(*this);
 			break;
 		}
 	}
-	if(effect.experience)
-		player.addexp(effect.experience);
-	if(effect.text) {
-		if(cre)
-			cre->act(effect.text);
-	}
+	if(experience)
+		player.addexp(experience);
 }
 
 bool effectparam::saving() const {
-	if(cre && effect.save.type != NoSave) {
+	if(cre && save.type != NoSave) {
 		auto chance_save = 0;
-		switch(effect.save.type) {
+		switch(save.type) {
 		case SaveAbility:
-			chance_save = cre->get(effect.save.ability) * 4;
+			chance_save = cre->get(save.ability) * 4;
 			break;
 		case SaveSkill:
-			chance_save = cre->get(effect.save.skill);
+			chance_save = cre->get(save.skill);
 			break;
 		}
 		if(chance_save) {

@@ -408,8 +408,8 @@ void creature::trapeffect() {
 			return;
 		}
 	}
-	auto ai = ::getattackinfo(trap);
-	damage(ai.damage.roll());
+	auto ai = game::getattackinfo(trap);
+	damage(ai.damage);
 }
 
 bool creature::move(short unsigned i) {
@@ -642,30 +642,50 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 	}
 	bool critical_hit = s >= (20 - ai.critical);
 	attacker->act(critical_hit ? "%герой критически попал%а." : "%герой попал%а.");
-	auto damage = ai.damage.roll();
+	auto damage = ai.damage;
 	if(critical_hit) {
+		auto step = imax(damage.max, damage.min) - damage.min;
+		if(step < 2)
+			step = 2;
+		if(step > 10)
+			step = 10;
 		for(auto i = ai.multiplier; i > 0; i--)
-			damage += ai.damage.roll();
+			damage.max += step;
 	}
 	defender->damage(damage);
 }
 
 void creature::damage(damageinfo dice, bool interactive) {
+	auto ignore_armor = false;
 	switch(dice.type) {
 	case Poison:
 		if(roll(ResistPoison))
+			dice.max = dice.min;
+		ignore_armor = true;
+		break;
+	case Fire:
+		if(roll(ResistFire))
+			dice.max = dice.min;
+		break;
+	case Cold:
+		if(roll(ResistCold))
+			dice.max = dice.min;
+		break;
+	case Electricity:
+		if(roll(ResistElectricity))
 			dice.max = dice.min;
 		break;
 	default:
 		break;
 	}
 	auto value = dice.roll();
-	damage(value, interactive);
+	damage(value, ignore_armor, interactive);
 }
 
-void creature::damage(int value, bool interactive) {
+void creature::damage(int value, bool ignore_armor, bool interactive) {
 	if(value >= 0) {
-		value -= getarmor();
+		if(!ignore_armor)
+			value -= getarmor();
 		if(value < 0)
 			value = 0;
 		hp -= value;

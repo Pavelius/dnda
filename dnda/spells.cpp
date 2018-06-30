@@ -2,8 +2,8 @@
 
 void setstate(effectparam& e) {
 	// Set state and increase duration by level
-	for(auto s : e.effect.state)
-		e.cre->set(s, e.effect.duration * e.level);
+	for(auto s : e.state)
+		e.cre->set(s, e.duration * e.level);
 }
 
 static void setcharmer(effectparam& e) {
@@ -13,12 +13,21 @@ static void setcharmer(effectparam& e) {
 
 static void setdamage(effectparam& e) {
 	// Apply damage to level
-	e.cre->damage(e.count + e.level);
+	auto damage = e.damage;
+	if(e.level > 1) {
+		auto level = e.level - 1;
+		damage.min += level;
+		if(damage.max > 10)
+			damage.max += level * 2;
+		else
+			damage.max += level;
+	}
+	e.cre->damage(damage);
 }
 
 void healdamage(effectparam& e) {
 	// Heal damage according level
-	e.cre->damage(-(e.count + e.level));
+	e.cre->damage(-(e.damage.roll() + (e.level-1)), true, true);
 }
 
 static void detect_evil(effectparam& e) {
@@ -27,7 +36,7 @@ static void detect_evil(effectparam& e) {
 	if(e.param >= e.level)
 		return;
 	if(e.itm->getidentify() < KnowMagic && e.itm->iscursed()) {
-		e.player.act(e.effect.text, e.itm->getname(temp, zendof(temp)));
+		e.player.act(e.text, e.itm->getname(temp, zendof(temp)));
 		e.itm->set(KnowMagic);
 		e.param++;
 	}
@@ -35,7 +44,7 @@ static void detect_evil(effectparam& e) {
 
 static void identify(effectparam& e) {
 	char temp[260];
-	e.player.act(e.effect.text, e.itm->getname(temp, zendof(temp)));
+	e.player.act(e.text, e.itm->getname(temp, zendof(temp)));
 	e.itm->set(KnowEffect);
 }
 
@@ -44,15 +53,16 @@ static struct spell_info {
 	short unsigned		cost;
 	short unsigned		cost_reduce_by_level;
 	effectinfo			effect;
-} spell_data[] = {{"Нет заклинания"},
-{"Благословение", 8, 0, {{TargetNotHostileCreature, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
-{"Очаровать персону", 13, 0, {{TargetCreature, 4}, {SaveAbility, Wisdow}, setcharmer, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}},
-{"Определить зло", 12, 0, {{TargetInvertory}, {}, detect_evil, Instant, {}, "%1 осветился красным светом."}},
-{"Исцеление", 7, 0, {{TargetNotHostileCreature, 1}, {}, healdamage, Instant, {}, "%1 озарился белым светом.", {2, 6, Magic}}},
-{"Опознать предмет", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
-{"Невидимость", 8, 0, {{TargetFriendlyCreature, 1}, {}, setstate, Hour, {Hiding}, "Внезапно %1 исчез%ла из виду."}},
-{"Волшебный снаряд", 4, 0, {{TargetHostileCreature}, {}, setdamage, Instant, {}, "Несколько зеленых шариков поразили %героя.", {2, 8, Magic}}},
-{"Усыпление", 5, 0, {{TargetHostileCreature}, {SaveAbility, Wisdow}, setstate, Minute, {Sleeped}, "Внезапно %герой заснул%а.", {}}},
+} spell_data[] = {{"пустоты"},
+{"благословения", 8, 0, {{TargetNotHostileCreature, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
+{"шарма", 13, 0, {{TargetCreature, 4}, {SaveAbility, Wisdow}, setcharmer, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}},
+{"определения зла", 12, 0, {{TargetInvertory}, {}, detect_evil, Instant, {}, "%1 осветился красным светом."}},
+{"исцеления", 7, 0, {{TargetNotHostileCreature, 1}, {}, healdamage, Instant, {}, "%1 озарился белым светом.", {2, 6, Magic}}},
+{"опознания", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
+{"невидимости", 8, 0, {{TargetFriendlyCreature, 1}, {}, setstate, Hour, {Hiding}, "Внезапно %1 исчез%ла из виду."}},
+{"волшебной стрелы", 3, 0, {{TargetHostileCreature}, {}, setdamage, Instant, {}, "Волшебная стрела поразила %героя.", {1, 8, Piercing}}},
+{"шокирующей хватки", 4, 0, {{TargetHostileCreature, 3}, {}, setdamage, Instant, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
+{"сна", 5, 0, {{TargetHostileCreature}, {SaveAbility, Wisdow}, setstate, Minute, {Sleeped}, "Внезапно %герой заснул%а.", {}}},
 };
 assert_enum(spell, LastSpell);
 getstr_enum(spell);

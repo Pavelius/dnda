@@ -69,6 +69,9 @@ static struct skillinfo {
 {"Владение топором", {Strenght, Constitution}},
 {"Сражение двумя оружиями", {Strenght, Dexterity}},
 //
+{"Сопротивление холоду", {Constitution, Strenght}},
+{"Сопротивление электричеству", {Dexterity, Dexterity}},
+{"Сопротивление огню", {Constitution, Dexterity}},
 {"Сопротивление яду", {Constitution, Constitution}},
 };
 assert_enum(skill, ResistPoison);
@@ -80,7 +83,8 @@ static const char* talk_location[] = {"библиотеку", "ратушу", "магазин", "таверн
 static const char* talk_games[] = {"кубики", "карты", "наперстки"};
 
 void creature::raise(skill_s value) {
-	skills[value] += xrand(3, 9);
+	if(value<=LastSkill)
+		skills[value] += xrand(3, 9);
 }
 
 int creature::get(skill_s value) const {
@@ -108,7 +112,7 @@ bool creature::use(skill_s value) {
 			logs::add("Навык %1 не используется подобным образом", getstr(value));
 		return false;
 	} else {
-		if(!gettarget(ep, ep.effect.type))
+		if(!gettarget(ep, ep.type))
 			return false;
 	}
 	auto r = d100();

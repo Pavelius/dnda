@@ -43,6 +43,7 @@ static magic_s swords_effect[] = {OfDefence, OfDexterity, OfSpeed, OfPrecision, 
 static magic_s axe_effect[] = {OfStrenght, OfDestruction, OfSharping, OfSmashing};
 static magic_s bludgeon_effect[] = {OfStrenght, OfDestruction, OfSmashing, OfConstitution};
 static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
+static spell_s scroll_spells[] = {Identify};
 static constexpr struct item_info {
 	struct combat_info {
 		char			speed;
@@ -102,15 +103,15 @@ static constexpr struct item_info {
 {"Колбаса", 8 * SP},
 {"Мясо", 5 * SP},
 //
-{"Свиток", 5 * GP},
-{"Свиток", 6 * GP},
-{"Свиток", 7 * GP},
+{"Свиток", 5 * GP, {}, {}, {}, NoSkill, {}, scroll_spells},
+{"Свиток", 6 * GP, {}, {}, {}, NoSkill, {}, scroll_spells},
+{"Свиток", 7 * GP, {}, {}, {}, NoSkill, {}, scroll_spells},
 //
 {"Книга"},
 //
-{"Зелье", 20 * GP, {}, {}, {}, NoSkill},
-{"Зелье", 25 * GP, {}, {}, {}, NoSkill},
-{"Зелье", 30 * GP, {}, {}, {}, NoSkill},
+{"Зелье", 20 * GP},
+{"Зелье", 25 * GP},
+{"Зелье", 30 * GP},
 //
 {"Ключ"},
 {"Монета", 1, {}, {}, {}, NoSkill, {}, {}, NoItem, 50},
@@ -324,9 +325,14 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 	stringcreator sc;
 	auto bonus = getquality();
 	auto effect = geteffect();
+	auto spell = getspell();
 	sc.prints(result, result_maximum, item_data[type].name);
-	if(getidentify() >= KnowEffect && effect != NoEffect)
-		sc.prints(zend(result), result_maximum, " %1%+2i", getstr((magic_s)effect), bonus);
+	if(getidentify() >= KnowEffect) {
+		if(effect)
+			sc.prints(zend(result), result_maximum, " %1%+2i", getstr(effect), bonus);
+		else if(spell)
+			sc.prints(zend(result), result_maximum, " %1", getstr(spell));
+	}
 	if(show_info) {
 		auto p = zend(result);
 		if(getidentify() >= KnowQuality) {

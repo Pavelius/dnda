@@ -78,7 +78,8 @@ enum skill_s : unsigned char {
 	Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival,
 	WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting,
 	LastSkill = TwoWeaponFighting,
-	ResistPoison,
+	ResistCold, ResistElectricity, ResistFire, ResistPoison,
+	LastResist = ResistPoison,
 };
 enum state_s : unsigned char {
 	Anger, Blessed, Charmed, Hiding, Goodwill, Lighted,
@@ -134,7 +135,8 @@ enum target_s : unsigned char {
 };
 enum spell_s : unsigned char {
 	NoSpell,
-	Bless, CharmPerson, DetectEvil, HealingSpell, Identify, Invisibility, MagicMissile, Sleep,
+	Bless, CharmPerson, DetectEvil, HealingSpell, Identify, Invisibility, MagicMissile,
+	ShokingGrasp, Sleep,
 	FirstSpell = Bless, LastSpell = Sleep
 };
 enum map_flag_s : unsigned char {
@@ -165,7 +167,7 @@ enum save_s : char {
 };
 struct attackinfo;
 struct creature;
-struct effectinfo;
+struct effectparam;
 struct location;
 struct targetdesc;
 class item;
@@ -186,18 +188,6 @@ struct damageinfo {
 	explicit operator bool() const { return max != 0; }
 	int				roll() const;
 };
-struct effectparam : targetinfo {
-	const effectinfo& effect;
-	creature&		player;
-	bool			interactive;
-	int				param;
-	int				level;
-	int				count;
-	constexpr effectparam(const effectinfo& effect_param, creature& player, bool interactive) :
-		effect(effect_param), player(player), interactive(interactive), param(0), level(1), count(0) {}
-	void			apply();
-	bool			saving() const;
-};
 struct effectinfo {
 	struct savec {
 		save_s		type;
@@ -210,8 +200,18 @@ struct effectinfo {
 	unsigned		duration;
 	cflags<state_s>	state;
 	const char*		text;
-	damageinfo		number;
+	damageinfo		damage;
 	unsigned		experience;
+};
+struct effectparam : targetinfo, effectinfo {
+	creature&		player;
+	bool			interactive;
+	int				param;
+	int				level;
+	constexpr effectparam(const effectinfo& effect_param, creature& player, bool interactive) :
+		effectinfo(effect_param), player(player), interactive(interactive), param(0), level(1) {}
+	void			apply();
+	bool			saving() const;
 };
 class item {
 	item_s			type;
@@ -228,6 +228,8 @@ class item {
 public:
 	constexpr item(item_s type = NoItem) : type(type), effect(NoEffect), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
 	constexpr item(item_s type, item_type_s magic, magic_s effect, unsigned char quality, identify_s identify = Unknown) : type(type), effect(effect), count(0), magic(magic), quality(quality), identify(identify), forsale(0), damaged(0) {}
+	constexpr item(spell_s spell, unsigned char quality_param) : type(ScrollRed), effect((magic_s)spell), count(0), magic(), quality(quality_param), identify(KnowEffect), forsale(0), damaged(0) {}
+	constexpr item(spell_s spell) : item(spell, 0) {}
 	item(item_s type, int level, int chance_curse = 10);
 	operator bool() const { return type != NoItem; }
 	void			clear();
@@ -315,7 +317,7 @@ struct creature {
 	void			choosebestability();
 	void			clear();
 	void			clear(state_s value) { states[value] = 0; }
-	void			damage(int count, bool interactive = true);
+	void			damage(int count, bool ignore_armor, bool interactive);
 	void			damage(damageinfo dice, bool interactive = true);
 	bool			dropdown(item& value);
 	bool			equip(item value);
