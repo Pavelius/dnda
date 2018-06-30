@@ -42,6 +42,7 @@ enum magic_s : unsigned char {
 	OfDefence, OfDestruction, OfDexterity,
 	OfIntellegence,
 	OfPrecision,
+	OfRegeneration,
 	OfSharping, OfSmashing, OfSpeed, OfStrenght,
 	OfWisdow,
 };
@@ -74,9 +75,13 @@ enum skill_s : unsigned char {
 	Acrobatics, Alertness, Athletics, DisarmTraps, HearNoises, HideInShadow, Lockpicking, PickPockets,
 	Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival,
 	WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting,
+	LastSkill = TwoWeaponFighting,
+	ResistPoison,
 };
 enum state_s : unsigned char {
-	Anger, Blessed, Charmed, Hiding, Goodwill, Lighted, Shielded, Scared, Sleeped,
+	Anger, Blessed, Charmed, Hiding, Goodwill, Lighted,
+	PoisonedWeak, Poisoned, PoisonedStrong,
+	Shielded, Scared, Sleeped,
 	LastState = Sleeped
 };
 enum tile_s : unsigned char {
@@ -150,7 +155,7 @@ enum item_flag_s : unsigned char {
 };
 enum attack_s : unsigned char {
 	Bludgeon, Slashing, Piercing,
-	Acid, Cold, Electricity, Fire, Magic, WaterAttack
+	Acid, Cold, Electricity, Fire, Magic, Poison, WaterAttack
 };
 enum save_s : char {
 	NoSave, SaveAbility, SaveSkill,
@@ -306,7 +311,8 @@ struct creature {
 	void			choosebestability();
 	void			clear();
 	void			clear(state_s value) { states[value] = 0; }
-	void			damage(int count);
+	void			damage(int count, bool interactive = true);
+	void			damage(damageinfo dice, bool interactive = true);
 	bool			dropdown(item& value);
 	bool			equip(item value);
 	int				get(ability_s value) const;
@@ -381,7 +387,7 @@ private:
 	unsigned char	abilities[Charisma + 1];
 	short			hp, mhp, mp, mmp;
 	unsigned		restore_hits, restore_mana;
-	unsigned char	skills[TwoWeaponFighting + 1];
+	unsigned char	skills[LastSkill + 1];
 	unsigned char	spells[LastSpell + 1];
 	unsigned		states[LastState + 1];
 	friend struct archive;
@@ -413,6 +419,7 @@ int					distance(short unsigned i1, short unsigned i2);
 void				drop(short unsigned i, item object);
 unsigned short		genname(race_s race, gender_s gender);
 inline short unsigned get(int x, int y) { return y * max_map_x + x; }
+const attackinfo&	getattackinfo(trap_s slot);
 creature*			getcreature(short unsigned index);
 direction_s			getdirection(point s, point d);
 short unsigned		getfree(short unsigned i);
@@ -495,7 +502,6 @@ extern adat<location, 128>		locations;
 extern adat<creature*, 512>		creatures;
 extern adat<groundinfo, 2048>	grounditems;
 extern adat<creature*, 6>		players;
-const attackinfo&	getattackinfo(trap_s slot);
 unsigned			getday();
 unsigned			gethour();
 unsigned			getminute();

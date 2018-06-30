@@ -17,6 +17,7 @@ static struct magic_info {
 {"dexterity", "ловкости"},
 {"intellegene", "интеллекта"},
 {"precision", "точности"},
+{"regeneration", "регенерации"},
 {"sharping", "остроты"},
 {"smashing", "раскалывания"},
 {"speed", "скорости"},

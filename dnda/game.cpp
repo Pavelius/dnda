@@ -89,27 +89,27 @@ direction_s game::getdirection(point s, point d) {
 	return orientations_5b5[(ay + (osize / 2))*osize + ax + (osize / 2)];
 }
 
-unsigned getminute() {
+static unsigned getminute() {
 	return (segments / Minute) % 60;
 }
 
-unsigned gethour() {
+static unsigned gethour() {
 	return (segments / Hour) % 24;
 }
 
-unsigned getday() {
+static unsigned getday() {
 	return (segments / Day) % 30;
 }
 
-unsigned getmonth() {
+static unsigned getmonth() {
 	return (segments / (Day * 30)) % 12;
 }
 
-unsigned getyear() {
+static unsigned getyear() {
 	return start_year + (segments / Year);
 }
 
-unsigned getturn() {
+static unsigned getturn() {
 	return segments / Minute;
 }
 

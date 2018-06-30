@@ -180,7 +180,9 @@ int	creature::getbonus(magic_s value) const {
 }
 
 int	creature::getbasic(skill_s value) const {
-	return skills[value];
+	if(value<=LastSkill)
+		return skills[value];
+	return 0;
 }
 
 int creature::getarmor() const {
@@ -649,25 +651,44 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 	defender->damage(damage);
 }
 
-void creature::damage(int value) {
+void creature::damage(damageinfo dice, bool interactive) {
+	switch(dice.type) {
+	case Poison:
+		if(roll(ResistPoison))
+			dice.max = dice.min;
+		break;
+	default:
+		break;
+	}
+	auto value = dice.roll();
+	damage(value, interactive);
+}
+
+void creature::damage(int value, bool interactive) {
 	if(value >= 0) {
 		value -= getarmor();
 		if(value < 0)
 			value = 0;
 		hp -= value;
-		if(value <= 0)
-			act("%герой выдержал%а удар");
-		else
-			act("%герой получил%а %1i урона", value);
-		if(hp <= 0)
-			act(" и упал%а");
-		else {
+		if(value <= 0) {
+			if(interactive)
+				act("%герой выдержал%а удар");
+		} else {
+			if(interactive)
+				act("%герой получил%а %1i урона", value);
+		}
+		if(hp <= 0) {
+			if(interactive)
+				act(" и упал%а");
+		} else {
 			if(is(Sleeped)) {
-				act(" и проснул%ась");
+				if(interactive)
+					act(" и проснул%ась");
 				remove(Sleeped);
 			}
 		}
-		act(".");
+		if(interactive)
+			act(".");
 		if(hp <= 0) {
 			for(auto& e : wears) {
 				if(!e)
@@ -692,7 +713,8 @@ void creature::damage(int value) {
 			value = mhp - hp;
 		if(value > 0) {
 			hp += value;
-			act("%герой восстановил%1i урона.", value);
+			if(interactive)
+				act("%герой восстановил%1i урона.", value);
 		}
 	}
 }
@@ -904,7 +926,7 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 		auto focus = weapon.getfocus();
 		if(focus && getbasic(focus)) {
 			auto fs = get(focus);
-			result.bonus +=  fs/ 30;
+			result.bonus += fs / 30;
 			result.damage.max += fs / 40;
 		}
 	} else
@@ -1085,13 +1107,30 @@ void creature::passturn(unsigned minutes) {
 }
 
 void creature::update() {
+	// RULE: poison effects
+	if((segments % (Minute * 4)) == 0) {
+		static damageinfo poison_effect[PoisonedStrong - PoisonedWeak + 1] = {{0, 3, Poison},
+		{1, 8, Poison},
+		{2, 16, Poison},
+		};
+		static state_s states[] = {PoisonedWeak, Poisoned, PoisonedStrong};
+		auto damage_hits = 0;
+		for(auto state : states) {
+			if(!is(state))
+				continue;
+			damage(poison_effect[state - PoisonedWeak]);
+		}
+	}
 	// RULE: В среднем восстанавливаем 1 хит за 30 минут
 	if(segments >= restore_hits) {
-		if(hp < getmaxhits())
-			hp++;
+		if(hp < getmaxhits()) {
+			// RULE: cursed ring of regeneration disable hit point natural healing
+			hp += imax(0, 1 + getbonus(OfRegeneration));
+		}
 		if(!restore_hits)
 			restore_hits = segments;
-		restore_hits += imax(5, 40 - get(Constitution))*Minute;
+		// RULE: ring of regeneration increase regeneration time
+		restore_hits += imax(5, 40 - (get(Constitution) + getbonus(OfRegeneration) * 2))*Minute;
 	}
 	// RULE: В среднем восстанавливаем 1 манну за 10 минут
 	if(segments >= restore_mana) {

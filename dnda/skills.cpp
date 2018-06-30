@@ -68,8 +68,10 @@ static struct skillinfo {
 {"Владение мечом", {Strenght, Dexterity}},
 {"Владение топором", {Strenght, Constitution}},
 {"Сражение двумя оружиями", {Strenght, Dexterity}},
+//
+{"Сопротивление яду", {Constitution, Constitution}},
 };
-assert_enum(skill, TwoWeaponFighting);
+assert_enum(skill, ResistPoison);
 getstr_enum(skill);
 
 static const char* talk_subjects[] = {"гномов", "хоббитов", "эльфов", "рыцарей"};
@@ -84,6 +86,12 @@ void creature::raise(skill_s value) {
 int creature::get(skill_s value) const {
 	auto result = getbasic(value);
 	result += get(skill_data[value].ability[0]) + get(skill_data[value].ability[1]);
+	switch(value) {
+	case ResistPoison:
+		if(race == Dwarf)
+			result += 30;
+		break;
+	}
 	return result;
 }
 

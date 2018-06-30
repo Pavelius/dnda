@@ -22,6 +22,6 @@ static struct trap_i {
 assert_enum(trap, TrapWater);
 getstr_enum(trap);
 
-const attackinfo& getattackinfo(trap_s value) {
+const attackinfo& game::getattackinfo(trap_s value) {
 	return trap_data[value].attack;
 }

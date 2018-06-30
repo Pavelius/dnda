@@ -691,8 +691,19 @@ static void view_info(const creature& e) {
 	y = y1 + draw::texth() * 2;
 	// Draw status
 	for(auto i = Anger; i <= LastState; i = (state_s)(i + 1)) {
-		if(!e.is(i))
+		switch(i) {
+		case Poisoned:
+		case PoisonedStrong:
 			continue;
+		case PoisonedWeak:
+			if(!e.is(PoisonedWeak) && !e.is(Poisoned) && !e.is(PoisonedStrong))
+				continue;
+			break;
+		default:
+			if(!e.is(i))
+				continue;
+			break;
+		}
 		const char* pt = getstr(i);
 		draw::text(x, y, pt);
 		x += draw::textw(pt) + 4;
