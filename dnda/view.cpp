@@ -146,13 +146,21 @@ static int textl(int x, int y, int width, const char* value) {
 static int textl(int x, int y, int width, item& value) {
 	char temp[260]; value.getname(temp, zendof(temp));
 	draw::state push;
-	if(value.getidentify() >= KnowMagic) {
+	switch(value.getidentify()) {
+	case KnowEffect:
 		switch(value.getmagic()) {
 		case Artifact: draw::fore = colors::yellow; break;
 		case Cursed: draw::fore = colors::red; break;
-		case Magical: draw::fore = colors::green; break;
-		default: break;
+		case Magical: draw::fore = colors::text.mix(colors::blue, 128); break;
+		default: draw::fore = colors::text; break;
 		}
+		break;
+	case Unknown:
+		draw::fore = colors::gray;
+		break;
+	default:
+		draw::fore = colors::text;
+		break;
 	}
 	draw::text(x, y, temp);
 	return x + width;

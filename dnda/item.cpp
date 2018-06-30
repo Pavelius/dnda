@@ -134,6 +134,7 @@ item::item(item_s type, int level, int chance_curse) : item(type) {
 		magic = Cursed;
 	else
 		magic = Mundane;
+	// Scrolls and magical wands mostly be magical
 	if(magic == Mundane) {
 		switch(type) {
 		case ScrollBlue:
