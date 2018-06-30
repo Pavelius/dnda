@@ -84,10 +84,14 @@ enum skill_s : unsigned char {
 	LastResist = ResistPoison,
 };
 enum state_s : unsigned char {
-	Anger, Armored, Blessed, Charmed, Hiding, Goodwill, Lighted,
+	NoState,
+	Anger, Armored, Blessed, Charismatic, Charmed, Dexterious,
+	Healthy, Hiding, Goodwill,
+	Intellegenced, Lighted,
 	PoisonedWeak, Poisoned, PoisonedStrong,
-	Shielded, Scared, Sleeped,
-	LastState = Sleeped
+	Shielded, Scared, Sleeped, Strenghted,
+	Wisdowed,
+	LastState = Wisdowed
 };
 enum tile_s : unsigned char {
 	NoTile,
@@ -251,10 +255,12 @@ public:
 	identify_s		getidentify() const { return identify; }
 	static unsigned	getitems(item_s* result, slot_s* slots, unsigned slots_count);
 	item_type_s		getmagic() const { return magic; }
+	static const char* getname(state_s value);
 	char*			getname(char* result, const char* result_maximum, bool show_info = true) const;
 	int				getquality() const;
 	int				getsalecost() const;
 	spell_s			getspell() const;
+	state_s			getstate() const;
 	item_s			gettype() const { return type; }
 	int				getweight() const;
 	int				getweightsingle() const;
@@ -265,6 +271,7 @@ public:
 	bool			ischargeable() const;
 	bool			iscountable() const;
 	bool			iscursed() const { return magic == Cursed; }
+	bool			isdrinkable() const;
 	bool			isedible() const;
 	bool			isforsale() const { return forsale != 0; }
 	bool			isreadable() const;
@@ -327,6 +334,7 @@ struct creature {
 	void			clear(state_s value) { states[value] = 0; }
 	void			damage(int count, bool ignore_armor, bool interactive);
 	void			damage(damageinfo dice, bool interactive = true);
+	void			drink(item& it, bool interactive);
 	bool			dropdown(item& value);
 	bool			equip(item value);
 	int				get(ability_s value) const;

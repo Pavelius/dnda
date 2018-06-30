@@ -942,9 +942,19 @@ void creature::setlos() {
 	}
 }
 
+static magic_s ability_effects[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma};
+static state_s ability_states[] = {Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic};
+
 int creature::get(ability_s value) const {
-	static magic_s effects[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma};
-	return abilities[value] + getbonus(effects[value]);
+	auto result = abilities[value];
+	if(is(ability_states[value])) {
+		if(result < 16)
+			result = 16;
+		else
+			result++;
+	}
+	result += getbonus(ability_effects[value]);
+	return result;
 }
 
 attackinfo creature::getattackinfo(slot_s slot) const {
@@ -1221,7 +1231,9 @@ void creature::actv(const char* format, const char* param) const {
 
 void creature::use(item& it) {
 	char temp[260]; it.getname(temp, zendof(temp), false);
-	if(it.ischargeable()) {
+	if(it.isdrinkable())
+		drink(it, true);
+	else if(it.ischargeable()) {
 		it.set(KnowEffect);
 		auto spell = it.getspell();
 		if(!spell)

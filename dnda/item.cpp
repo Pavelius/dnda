@@ -47,6 +47,7 @@ static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
 static spell_s scroll_spells[] = {Identify, Armor, ShieldSpell};
 static spell_s wand_spells[] = {MagicMissile, HealingSpell, ShokingGrasp};
 static spell_s staff_spells[] = {MagicMissile, ShokingGrasp, Sleep};
+static state_s potion_states[] = {Anger, Poisoned, PoisonedWeak};
 static constexpr struct item_info {
 	struct combat_info {
 		char			speed;
@@ -65,6 +66,7 @@ static constexpr struct item_info {
 	item_s				ammunition;
 	unsigned char		count;
 	unsigned char		charges;
+	aref<state_s>		states;
 } item_data[] = {{"Пусто"},
 {"Боевой топор", 5 * GP, {1, {1, 8, Slashing}}, {Versatile}, {Melee}, WeaponFocusAxes, axe_effect},
 {"Дубина", 5 * CP, {2, {1, 6}}, {}, {Melee}, NoSkill, bludgeon_effect},
@@ -117,9 +119,9 @@ static constexpr struct item_info {
 //
 {"Книга"},
 //
-{"Зелье", 20 * GP},
-{"Зелье", 25 * GP},
-{"Зелье", 30 * GP},
+{"Зелье", 20 * GP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_states},
+{"Зелье", 25 * GP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_states},
+{"Зелье", 30 * GP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_states},
 //
 {"Ключ"},
 {"Монета", 1, {}, {}, {}, NoSkill, {}, {}, NoItem, 50},
@@ -171,7 +173,7 @@ item::item(item_s type, int level, int chance_curse) : item(type) {
 		setcount(item_data[type].count);
 	// Set random charge
 	if(ischargeable())
-		setcharges(xrand(item_data[type].charges/2, item_data[type].charges));
+		setcharges(xrand(item_data[type].charges / 2, item_data[type].charges));
 }
 
 void item::clear() {
@@ -221,6 +223,12 @@ spell_s item::getspell() const {
 	if(item_data[type].spells.count)
 		return (spell_s)effect;
 	return NoSpell;
+}
+
+state_s item::getstate() const {
+	if(item_data[type].states.count)
+		return (state_s)effect;
+	return NoState;
 }
 
 magic_s item::geteffect() const {
@@ -287,6 +295,10 @@ bool item::is(item_flag_s value) const {
 
 bool item::istwohanded() const {
 	return item_data[type].flags.is(TwoHanded);
+}
+
+bool item::isdrinkable() const {
+	return item_data[type].states.count != 0;
 }
 
 bool item::isreadable() const {
@@ -359,12 +371,15 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 	auto bonus = getquality();
 	auto effect = geteffect();
 	auto spell = getspell();
+	auto state = getstate();
 	sc.prints(result, result_maximum, item_data[type].name);
 	if(getidentify() >= KnowEffect) {
 		if(effect)
 			sc.prints(zend(result), result_maximum, " %1%+2i", getstr(effect), bonus);
 		else if(spell)
 			sc.prints(zend(result), result_maximum, " '%1'", getstr(spell));
+		else if(state)
+			sc.prints(zend(result), result_maximum, " %1", getstr(state));
 	}
 	if(show_info) {
 		auto p = zend(result);
