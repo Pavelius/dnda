@@ -1224,6 +1224,21 @@ void creature::use(item& it) {
 		}
 		use(spell, 1 + it.getquality(), "%герой прочитал%а свиток.");
 		break;
+	case WandRed:
+	case WandGreen:
+	case WandBlue:
+		spell = it.getspell();
+		if(!spell) {
+			hint("Эта палочка не работает.");
+			return;
+		}
+		if(!it.getcharges()) {
+			hint("Эта палочка раряжена.");
+			return;
+		}
+		use(spell, 1 + it.getquality(), "%герой выставил%а палочку.");
+		it.setcharges(it.getcharges() - 1);
+		break;
 	}
 	if(consume)
 		it.clear();

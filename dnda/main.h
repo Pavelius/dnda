@@ -24,6 +24,7 @@ enum item_s : unsigned char {
 	Shield, Helmet, Bracers,
 	Ration, Apple, BreadHalflings, BreadEvlen, BreadDwarven, Cake, Sausage, Meat,
 	ScrollRed, ScrollGreen, ScrollBlue,
+	WandRed, WandGreen, WandBlue,
 	Book,
 	PotionRed, PotionGreen, PotionBlue,
 	DoorKey, Coin,
@@ -239,6 +240,7 @@ public:
 	item_s			getammo() const;
 	int				getarmor() const;
 	int				getbonus(magic_s type) const;
+	int				getcharges() const;
 	unsigned		getcost() const { return getcostsingle()*getcount(); }
 	unsigned		getcostsingle() const;
 	int				getcount() const;
@@ -259,6 +261,7 @@ public:
 	bool			is(item_flag_s value) const;
 	bool			isarmor() const { return type >= LeatherArmour && type <= Bracers; }
 	bool			isartifact() const { return magic == Artifact; }
+	bool			ischargeable() const;
 	bool			iscountable() const;
 	bool			iscursed() const { return magic == Cursed; }
 	bool			isedible() const;
@@ -266,6 +269,7 @@ public:
 	bool			isreadable() const;
 	bool			istwohanded() const;
 	void			loot();
+	void			setcharges(int count);
 	void			setcount(int count);
 	void			set(identify_s value);
 	void			set(item_type_s value) { magic = value; }

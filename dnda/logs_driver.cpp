@@ -15,6 +15,8 @@ void logs::driver::parseidentifier(char* result, const char* result_max, const c
 		zcpy(result, name);
 	else if(strcmp(identifier, "героя") == 0)
 		grammar::of(result, name);
+	else if(strcmp(identifier, "героем") == 0)
+		grammar::of(result, name);
 	else if(strcmp(identifier, "оружием") == 0) {
 		if(weapon)
 			grammar::by(result, weapon);

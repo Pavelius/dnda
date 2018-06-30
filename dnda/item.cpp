@@ -44,6 +44,7 @@ static magic_s axe_effect[] = {OfStrenght, OfDestruction, OfSharping, OfSmashing
 static magic_s bludgeon_effect[] = {OfStrenght, OfDestruction, OfSmashing, OfConstitution};
 static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
 static spell_s scroll_spells[] = {Identify, Armor, ShieldSpell};
+static spell_s wand_spells[] = {MagicMissile, HealingSpell, ShokingGrasp};
 static constexpr struct item_info {
 	struct combat_info {
 		char			speed;
@@ -61,6 +62,7 @@ static constexpr struct item_info {
 	aref<spell_s>		spells;
 	item_s				ammunition;
 	unsigned char		count;
+	unsigned char		charges;
 } item_data[] = {{"Пусто"},
 {"Боевой топор", 5 * GP, {1, {1, 8, Slashing}}, {Versatile}, {Melee}, WeaponFocusAxes, axe_effect},
 {"Дубина", 5 * CP, {2, {1, 6}}, {}, {Melee}, NoSkill, bludgeon_effect},
@@ -107,6 +109,10 @@ static constexpr struct item_info {
 {"Свиток", 6 * GP, {}, {}, {}, NoSkill, {}, scroll_spells},
 {"Свиток", 7 * GP, {}, {}, {}, NoSkill, {}, scroll_spells},
 //
+{"Палочка", 50 * GP, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 50},
+{"Палочка", 60 * GP, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 60},
+{"Палочка", 70 * GP, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 70},
+//
 {"Книга"},
 //
 {"Зелье", 20 * GP},
@@ -134,17 +140,6 @@ item::item(item_s type, int level, int chance_curse) : item(type) {
 		magic = Cursed;
 	else
 		magic = Mundane;
-	// Scrolls and magical wands mostly be magical
-	if(magic == Mundane) {
-		switch(type) {
-		case ScrollBlue:
-		case ScrollGreen:
-		case ScrollRed:
-			if(d100()<70)
-				magic = Magical;
-			break;
-		}
-	}
 	// Quality depend on level
 	auto m = imax(20, 70 - level * 2);
 	auto r = d100();
@@ -160,9 +155,15 @@ item::item(item_s type, int level, int chance_curse) : item(type) {
 	if(item_data[type].effects
 		&& (magic == Artifact || (magic != Mundane && d100() < level)))
 		effect = item_data[type].effects.data[rand() % item_data[type].effects.count];
+	// Spell be on mostly any scroll or wand
+	if(item_data[type].spells)
+		effect = (magic_s)item_data[type].spells.data[rand() % item_data[type].spells.count];
 	// Set maximum item count in set
 	if(item_data[type].count)
-		count = item_data[type].count - 1;
+		setcount(item_data[type].count);
+	// Set random charge
+	if(item_data[type].charges)
+		setcharges(xrand(item_data[type].charges/2, item_data[type].charges));
 }
 
 void item::clear() {
@@ -249,6 +250,25 @@ void item::setcount(int count) {
 	}
 	if(iscountable())
 		this->count = count - 1;
+}
+
+bool item::ischargeable() const {
+	return item_data[type].charges != 0;
+}
+
+int item::getcharges() const {
+	if(ischargeable())
+		return 0;
+	return count;
+}
+
+void item::setcharges(int value) {
+	if(ischargeable()) {
+		if(!value)
+			clear();
+		else
+			count = value;
+	}
 }
 
 int item::getweight() const {
