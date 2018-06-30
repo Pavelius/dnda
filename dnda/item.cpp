@@ -77,7 +77,7 @@ static constexpr struct item_info {
 {"Длинный лук", 60 * GP, {1, {1, 8, Piercing}}, {}, {Ranged}, WeaponFocusBows, pierce_effect, {}, Arrow},
 {"Лук", 30 * GP, {2, {1, 6, Piercing}}, {}, {Ranged}, WeaponFocusBows, pierce_effect, {}, Arrow},
 {"Дротик", 1 * SP, {3, {1, 3, Piercing}}, {}, {Ranged}},
-{"Пращя", 1 * SP, {2, {1, 4}}, {}, {Ranged}, NoSkill, {}, {}, Rock},
+{"Пращя", 1 * SP, {2, {1, 4}}, {}, {Ranged}, NoSkill, pierce_effect, {}, Rock},
 //
 {"Камень", 0, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
 {"Стрела", 2 * CP, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},

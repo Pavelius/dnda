@@ -272,11 +272,11 @@ public:
 	void			setsold() { forsale = 0; }
 };
 struct attackinfo {
+	char			speed;
+	damageinfo		damage;
 	char			bonus;
 	char			critical;
-	damageinfo		damage;
 	char			multiplier;
-	char			speed;
 };
 struct creature {
 	race_s			race;
