@@ -24,6 +24,8 @@ static void pickpockets(effectparam& e) {
 static void dance(effectparam& e) {}
 
 static void literacy(effectparam& e) {
+	if(e.itm)
+		e.player.use(*e.itm);
 }
 
 static void gamble(effectparam& e) {
@@ -33,6 +35,23 @@ static void gamble(effectparam& e) {
 		e.player.act("%герой выиграл%а [+%1i] монет.", e.param);
 	if(e.cre->isplayer())
 		e.cre->act("%герой проиграл%а [-%1i] монет.", e.param);
+}
+
+static void failskill(effectparam& e) {
+	if(d100() < 40) {
+		e.player.hint("Попытка не удалась и тебя охватила злость.");
+		e.player.set(Anger, Minute * xrand(2, 5));
+	} else
+		e.player.hint("Попытка не удалась.");
+}
+
+static void failgamble(effectparam& e) {
+	e.player.money -= e.param;
+	e.cre->money += e.param;
+	if(e.player.isplayer())
+		logs::add("Ты проиграл [-%1i] монет.", e.param);
+	if(e.cre->isplayer())
+		logs::add("Ты выиграл [+%1i] монет.", e.param);
 }
 
 static struct skillinfo {
@@ -56,10 +75,10 @@ static struct skillinfo {
 {"Алхимия", {Intellegence, Intellegence}},
 {"Танцы", {Dexterity, Charisma}, {{TargetSelf}, {}, dance, Instant, {}, "%герой станевал%а отличный танец.", 10}},
 {"Инженерное дело", {Intellegence, Intellegence}},
-{"Азартные игры", {Charisma, Dexterity}, {{TargetCreature, 1}, {}, gamble, Instant, {}, 0, 25}, {0, 2}},
+{"Азартные игры", {Charisma, Dexterity}, {{TargetCreature, 1}, {}, gamble, Instant, {}, 0, {}, 25, failgamble}, {0, 2}},
 {"История", {Intellegence, Intellegence}},
 {"Лечение", {Wisdow, Intellegence}, {{TargetCreature, 1}, {}, healdamage, Instant, {}, "%герой перевязал%а раны.", 5}},
-{"Грамотность", {Intellegence, Intellegence}, {{TargetItemReadable}, {}, literacy}},
+{"Грамотность", {Intellegence, Intellegence}, {{TargetItemReadable}, {}, literacy, Minute / 2, {}, 0, {}, 25, literacy}},
 {"Шахтерское дело", {Strenght, Intellegence}},
 {"Кузнечное дело", {Strenght, Intellegence}},
 {"Выживание", {Wisdow, Constitution}},
@@ -83,7 +102,7 @@ static const char* talk_location[] = {"библиотеку", "ратушу", "магазин", "таверн
 static const char* talk_games[] = {"кубики", "карты", "наперстки"};
 
 void creature::raise(skill_s value) {
-	if(value<=LastSkill)
+	if(value <= LastSkill)
 		skills[value] += xrand(3, 9);
 }
 
@@ -99,21 +118,21 @@ int creature::get(skill_s value) const {
 	return result;
 }
 
-bool creature::use(skill_s value) {
+void creature::use(skill_s value) {
 	if(is(Anger)) {
 		if(isplayer())
 			logs::add("Вам надо немного прийти в себя и успокоится.");
-		return false;
+		return;
 	}
 	auto& e = skill_data[value];
 	effectparam ep(e.effect, *this, true);
 	if(e.effect.type.target == NoTarget) {
 		if(isplayer())
 			logs::add("Навык %1 не используется подобным образом", getstr(value));
-		return false;
+		return;
 	} else {
 		if(!gettarget(ep, ep.type))
-			return false;
+			return;
 	}
 	auto r = d100();
 	auto v = get(value);
@@ -143,36 +162,19 @@ bool creature::use(skill_s value) {
 		if((int)money < ep.param) {
 			if(isplayer())
 				logs::add("У тебя нет достаточного количества денег.");
-			return false;
+			return;
 		}
 		say("Давай сыграем в %1?", maprnd(talk_games));
 		if((int)ep.cre->money < ep.param) {
 			ep.cre->say("Нет. Я на мели. В другой раз.");
-			return false;
+			return;
 		}
 		break;
 	}
-	if(r >= v) {
-		if(d100() < 40) {
-			if(isplayer())
-				logs::add("Попытка не удалась и тебя охватила злость.");
-			set(Anger, Minute * xrand(2, 5));
-		} else {
-			if(isplayer())
-				logs::add("Попытка не удалась.");
-		}
-		switch(value) {
-		case Gambling:
-			money -= ep.param;
-			ep.cre->money += ep.param;
-			if(isplayer())
-				logs::add("Ты проиграл [-%1i] монет.", ep.param);
-			if(ep.cre->isplayer())
-				logs::add("Ты выиграл [+%1i] монет.", ep.param);
-			break;
-		}
-		return false;
-	}
-	ep.apply();
-	return true;
+	if(!ep.fail)
+		ep.fail = failskill;
+	if(r >= v)
+		ep.apply(ep.fail);
+	else
+		ep.apply();
 }

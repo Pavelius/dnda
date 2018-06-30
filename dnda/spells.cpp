@@ -53,16 +53,18 @@ static struct spell_info {
 	short unsigned		cost;
 	short unsigned		cost_reduce_by_level;
 	effectinfo			effect;
-} spell_data[] = {{"пустоты"},
-{"благословения", 8, 0, {{TargetNotHostileCreature, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
-{"шарма", 13, 0, {{TargetCreature, 4}, {SaveAbility, Wisdow}, setcharmer, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}},
-{"определения зла", 12, 0, {{TargetInvertory}, {}, detect_evil, Instant, {}, "%1 осветился красным светом."}},
-{"исцеления", 7, 0, {{TargetNotHostileCreature, 1}, {}, healdamage, Instant, {}, "%1 озарился белым светом.", {2, 6, Magic}}},
-{"опознания", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
-{"невидимости", 8, 0, {{TargetFriendlyCreature, 1}, {}, setstate, Hour, {Hiding}, "Внезапно %1 исчез%ла из виду."}},
-{"волшебной стрелы", 3, 0, {{TargetHostileCreature}, {}, setdamage, Instant, {}, "Волшебная стрела поразила %героя.", {1, 8, Piercing}}},
-{"шокирующей хватки", 4, 0, {{TargetHostileCreature, 3}, {}, setdamage, Instant, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
-{"сна", 5, 0, {{TargetHostileCreature}, {SaveAbility, Wisdow}, setstate, Minute, {Sleeped}, "Внезапно %герой заснул%а.", {}}},
+} spell_data[] = {{"Не заклинания"},
+{"Броня", 10, 0, {{TargetSelf}, {}, setstate, 4*Hour, {Armored}, "%герой озарил%ась синим светом."}},
+{"Блаословение", 8, 0, {{TargetNotHostileCreature, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
+{"Очаровать персону", 13, 0, {{TargetCreature, 4}, {SaveAbility, Wisdow}, setcharmer, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}},
+{"Определить зло", 12, 0, {{TargetInvertory}, {}, detect_evil, Instant, {}, "%1 осветился красным светом."}},
+{"Лечение", 7, 0, {{TargetNotHostileCreature, 1}, {}, healdamage, Instant, {}, "%1 озарился белым светом.", {2, 6, Magic}}},
+{"Опознать предмет", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
+{"Невидимость", 8, 0, {{TargetFriendlyCreature, 1}, {}, setstate, Hour, {Hiding}, "Внезапно %1 исчез%ла из виду."}},
+{"Волшебный снаряд", 3, 0, {{TargetHostileCreature}, {}, setdamage, Instant, {}, "Несколько светящихся шариков поразили %героя.", {2, 8, Magic}}},
+{"Щит", 6, 0, {{TargetSelf}, {}, setstate, Hour / 2, {Shielded}, "Перед %героем появился полупрозрачный барьер."}},
+{"Шокирующая схватка", 4, 0, {{TargetHostileCreature, 3}, {}, setdamage, Instant, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
+{"Усыпление", 5, 0, {{TargetHostileCreature}, {SaveAbility, Wisdow}, setstate, Minute, {Sleeped}, "Внезапно %герой заснул%а.", {}}},
 };
 assert_enum(spell, LastSpell);
 getstr_enum(spell);
@@ -81,12 +83,17 @@ bool creature::use(spell_s value) {
 	auto cost = getcost(value);
 	if(getmana() < cost)
 		return false;
-	auto& e = spell_data[value];
-	effectparam ep(e.effect, *this, true);
-	if(e.effect.type.target && !gettarget(ep, e.effect.type))
-		return false;
-	act("%герой прокричал%а мистическую формулу.");
+	auto result = use(value, 1, "%герой прокричал%а мистическую формулу.");
 	mp -= cost;
+	return result;
+}
+
+bool creature::use(spell_s value, int level, const char* text) {
+	effectparam ep(spell_data[value].effect, *this, true);
+	ep.level = level;
+	if(ep.type.target && !gettarget(ep, ep.type))
+		return false;
+	act(text);
 	if(ep.saving())
 		return true;
 	ep.apply();

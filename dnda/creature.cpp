@@ -87,6 +87,13 @@ static void start_equipment(creature& e) {
 	}
 }
 
+void creature::hint(const char* format, ...) const {
+	if(!isplayer())
+		return;
+	logs::driver driver(getname(), gender, 0);
+	logs::addv(driver, format, xva_start(format));
+}
+
 void creature::choosebestability() {
 	auto a = class_data[type].ability;
 	auto b = Strenght;
@@ -194,6 +201,8 @@ int creature::getarmor() const {
 	result += wears[OffHand].getarmor();
 	result += wears[LeftFinger].getarmor();
 	result += wears[RightFinger].getarmor();
+	if(is(Armored))
+		result += 1;
 	return result;
 }
 
@@ -209,7 +218,9 @@ int creature::getdefence() const {
 	result += wears[RightFinger].getbonus(OfDefence);
 	result += get(Acrobatics) / 30; // RULE: Acrobatics raise armor class by +1 for every 30%.
 	if(is(Shielded))
-		result += 4;
+		result += 6;
+	if(is(Armored))
+		result += 2;
 	return result;
 }
 
@@ -1197,4 +1208,23 @@ void creature::act(const char* format, ...) const {
 	if(wears[Melee])
 		driver.weapon = getstr(wears[Melee].gettype());
 	logs::addv(driver, format, xva_start(format));
+}
+
+void creature::use(item& it) {
+	bool consume = true;
+	spell_s spell = NoSpell;
+	switch(it.gettype()) {
+	case ScrollRed:
+	case ScrollGreen:
+	case ScrollBlue:
+		spell = it.getspell();
+		if(!spell) {
+			hint("Этот свиток пустой. Его нельзя прочитать.");
+			return;
+		}
+		use(spell, 1 + it.getquality(), "%герой прочитал%а свиток.");
+		break;
+	}
+	if(consume)
+		it.clear();
 }

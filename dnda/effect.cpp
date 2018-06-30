@@ -1,27 +1,31 @@
 #include "main.h"
 
+void effectparam::apply(void(*proc)(effectparam& e)) {
+	if(!proc)
+		return;
+	switch(type.target) {
+	case TargetInvertory:
+		for(auto& e : player.wears) {
+			itm = &e;
+			proc(*this);
+		}
+		for(auto& e : player.backpack) {
+			itm = &e;
+			proc(*this);
+		}
+		break;
+	default:
+		proc(*this);
+		break;
+	}
+}
+
 void effectparam::apply() {
 	if(text) {
 		if(cre)
 			cre->act(text);
 	}
-	if(proc) {
-		switch(type.target) {
-		case TargetInvertory:
-			for(auto& e : player.wears) {
-				itm = &e;
-				proc(*this);
-			}
-			for(auto& e : player.backpack) {
-				itm = &e;
-				proc(*this);
-			}
-			break;
-		default:
-			proc(*this);
-			break;
-		}
-	}
+	apply(success);
 	if(experience)
 		player.addexp(experience);
 }

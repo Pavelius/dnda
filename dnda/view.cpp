@@ -1119,7 +1119,7 @@ bool logs::choose(creature& e, spell_s& result, spell_s* source, unsigned count)
 			if(e.get(i) <= 0)
 				continue;
 			auto x1 = shortcut(x, y, 32, Alpha + 'A' + (index++));
-			x1 = textl(x1, y, 308, szprints(temp, zendof(temp), "Заклинание %1", getstr(i)));
+			x1 = textl(x1, y, 308, szprints(temp, zendof(temp), getstr(i)));
 			x1 = textl(x1, y, 60, szprints(temp, zendof(temp), "%1i", e.getcost(i)));
 			y += dy;
 		}

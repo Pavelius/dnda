@@ -82,7 +82,7 @@ enum skill_s : unsigned char {
 	LastResist = ResistPoison,
 };
 enum state_s : unsigned char {
-	Anger, Blessed, Charmed, Hiding, Goodwill, Lighted,
+	Anger, Armored, Blessed, Charmed, Hiding, Goodwill, Lighted,
 	PoisonedWeak, Poisoned, PoisonedStrong,
 	Shielded, Scared, Sleeped,
 	LastState = Sleeped
@@ -135,9 +135,9 @@ enum target_s : unsigned char {
 };
 enum spell_s : unsigned char {
 	NoSpell,
-	Bless, CharmPerson, DetectEvil, HealingSpell, Identify, Invisibility, MagicMissile,
-	ShokingGrasp, Sleep,
-	FirstSpell = Bless, LastSpell = Sleep
+	Armor, Bless, CharmPerson, DetectEvil, HealingSpell, Identify, Invisibility, MagicMissile,
+	ShieldSpell, ShokingGrasp, Sleep,
+	FirstSpell = Armor, LastSpell = Sleep
 };
 enum map_flag_s : unsigned char {
 	Visible, Hidden, Opened, Sealed, Explored, Experience,
@@ -196,12 +196,13 @@ struct effectinfo {
 	};
 	targetdesc		type;
 	savec			save;
-	void(*proc)(effectparam& e);
+	void(*success)(effectparam& e);
 	unsigned		duration;
 	cflags<state_s>	state;
 	const char*		text;
 	damageinfo		damage;
 	unsigned		experience;
+	void(*fail)(effectparam& e);
 };
 struct effectparam : targetinfo, effectinfo {
 	creature&		player;
@@ -211,6 +212,7 @@ struct effectparam : targetinfo, effectinfo {
 	constexpr effectparam(const effectinfo& effect_param, creature& player, bool interactive) :
 		effectinfo(effect_param), player(player), interactive(interactive), param(0), level(1) {}
 	void			apply();
+	void			apply(void(*proc)(effectparam& e));
 	bool			saving() const;
 };
 class item {
@@ -351,6 +353,7 @@ struct creature {
 	short unsigned	getposition() const { return position; }
 	bool			gettarget(targetinfo& result, const targetdesc td) const;
 	int				getweight() const;
+	void			hint(const char* format, ...) const;
 	bool			interact(short unsigned index);
 	bool			is(state_s value) const;
 	bool			isagressive() const;
@@ -384,8 +387,10 @@ struct creature {
 	void			setplayer();
 	void			trapeffect();
 	void			update();
-	bool			use(skill_s value);
+	void			use(skill_s value);
 	bool			use(spell_s value);
+	bool			use(spell_s value, int level, const char* text);
+	void			use(item& it);
 	bool			use(short unsigned index);
 	void			wait(int segments = 0);
 	bool			walkaround();

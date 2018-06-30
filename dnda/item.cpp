@@ -43,7 +43,7 @@ static magic_s swords_effect[] = {OfDefence, OfDexterity, OfSpeed, OfPrecision, 
 static magic_s axe_effect[] = {OfStrenght, OfDestruction, OfSharping, OfSmashing};
 static magic_s bludgeon_effect[] = {OfStrenght, OfDestruction, OfSmashing, OfConstitution};
 static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
-static spell_s scroll_spells[] = {Identify};
+static spell_s scroll_spells[] = {Identify, Armor, ShieldSpell};
 static constexpr struct item_info {
 	struct combat_info {
 		char			speed;
@@ -134,6 +134,16 @@ item::item(item_s type, int level, int chance_curse) : item(type) {
 		magic = Cursed;
 	else
 		magic = Mundane;
+	if(magic == Mundane) {
+		switch(type) {
+		case ScrollBlue:
+		case ScrollGreen:
+		case ScrollRed:
+			if(d100()<70)
+				magic = Magical;
+			break;
+		}
+	}
 	// Quality depend on level
 	auto m = imax(20, 70 - level * 2);
 	auto r = d100();
@@ -331,7 +341,7 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 		if(effect)
 			sc.prints(zend(result), result_maximum, " %1%+2i", getstr(effect), bonus);
 		else if(spell)
-			sc.prints(zend(result), result_maximum, " %1", getstr(spell));
+			sc.prints(zend(result), result_maximum, " '%1'", getstr(spell));
 	}
 	if(show_info) {
 		auto p = zend(result);
