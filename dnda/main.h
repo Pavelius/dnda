@@ -249,6 +249,7 @@ public:
 	bool			iscountable() const;
 	bool			iscursed() const { return magic == Cursed; }
 	bool			isforsale() const { return forsale != 0; }
+	bool			isreadable() const;
 	bool			istwohanded() const;
 	void			loot();
 	void			setcount(int count);

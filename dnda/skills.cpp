@@ -3,7 +3,9 @@
 void setstate(effectparam& e);
 void healdamage(effectparam& e);
 
-static void removetrap(effectparam& e) {}
+static void removetrap(effectparam& e) {
+	game::set(e.pos, NoTileObject);
+}
 
 static void removelock(effectparam& e) {
 	game::set(e.pos, Sealed, false);
@@ -16,10 +18,13 @@ static void pickpockets(effectparam& e) {
 	e.cre->money -= count;
 	e.player.money += count;
 	if(e.player.isplayer())
-		e.player.act("%герой украл%а %1i монет.", count);
+		e.player.act("%герой украл%а [%1i] монет.", count);
 }
 
 static void dance(effectparam& e) {}
+
+static void literacy(effectparam& e) {
+}
 
 static void gamble(effectparam& e) {
 	e.player.money += e.param;
@@ -54,7 +59,7 @@ static struct skillinfo {
 {"Азартные игры", {Charisma, Dexterity}, {{TargetCreature, 1}, {}, gamble, Instant, {}, 0, 25}, {0, 2}},
 {"История", {Intellegence, Intellegence}},
 {"Лечение", {Wisdow, Intellegence}, {{TargetCreature, 1}, {}, healdamage, Instant, {}, "%герой перевязал%а раны.", 5}},
-{"Грамотность", {Intellegence, Intellegence}},
+{"Грамотность", {Intellegence, Intellegence}, {{TargetItemReadable}, {}, literacy}},
 {"Шахтерское дело", {Strenght, Intellegence}},
 {"Кузнечное дело", {Strenght, Intellegence}},
 {"Выживание", {Wisdow, Constitution}},
@@ -123,13 +128,13 @@ bool creature::use(skill_s value) {
 		break;
 	case Gambling:
 		ep.param = 20 * (1 + get(Gambling) / 20);
-		if(money < ep.param) {
+		if((int)money < ep.param) {
 			if(isplayer())
 				logs::add("У тебя нет достаточного количества денег.");
 			return false;
 		}
 		say("Давай сыграем в %1?", maprnd(talk_games));
-		if(ep.cre->money < ep.param) {
+		if((int)ep.cre->money < ep.param) {
 			ep.cre->say("Нет. Я на мели. В другой раз.");
 			return false;
 		}
