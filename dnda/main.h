@@ -44,6 +44,7 @@ enum magic_s : unsigned char {
 	OfCharisma, OfConstitution,
 	OfDefence, OfDestruction, OfDexterity,
 	OfIntellegence,
+	OfMana,
 	OfPrecision,
 	OfRegeneration,
 	OfSharping, OfSmashing, OfSpeed, OfStrenght,
@@ -75,7 +76,7 @@ enum ability_s : unsigned char {
 enum skill_s : unsigned char {
 	NoSkill,
 	Bargaining, Bluff, Diplomacy,
-	Acrobatics, Alertness, Athletics, DisarmTraps, HearNoises, HideInShadow, Lockpicking, PickPockets,
+	Acrobatics, Alertness, Athletics, Concetration, DisarmTraps, HearNoises, HideInShadow, Lockpicking, PickPockets,
 	Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival,
 	WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting,
 	LastSkill = TwoWeaponFighting,

@@ -67,6 +67,7 @@ static struct skillinfo {
 {"Акробатика", {Dexterity, Dexterity}},
 {"Внимательность", {Wisdow, Dexterity}},
 {"Атлетика", {Strenght, Dexterity}},
+{"Концентрация", {Wisdow, Constitution}},
 {"Обезвредить ловушки", {Dexterity, Intellegence}, {{TargetTrap, 1}, {}, removetrap, Instant, {}, "%герой обезвредил%а ловушку."}},
 {"Слышать звуки", {Wisdow, Intellegence}},
 {"Прятаться в тени", {Dexterity, Dexterity}, {{TargetSelf}, {}, setstate, Turn / 2, {Hiding}, "%герой внезапно изчез%ла из поля зрения."}},

@@ -16,6 +16,7 @@ static struct magic_info {
 {"destruction", "разрушения"},
 {"dexterity", "ловкости"},
 {"intellegene", "интеллекта"},
+{"mana", "маны"},
 {"precision", "точности"},
 {"regeneration", "регенерации"},
 {"sharping", "остроты"},
@@ -250,13 +251,11 @@ int item::getcount() const {
 	return 1;
 }
 
-void item::setcount(int count) {
-	if(!count) {
+void item::setcount(int value) {
+	if(!value)
 		clear();
-		return;
-	}
-	if(iscountable())
-		this->count = count - 1;
+	else if(iscountable())
+		count = value - 1;
 }
 
 bool item::ischargeable() const {

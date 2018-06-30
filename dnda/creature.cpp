@@ -59,9 +59,9 @@ static struct class_info {
 	cflags<skill_s>		skills;
 	cflags<spell_s>		spells;
 	item_s				equipment[8];
-} class_data[] = {{"Клерик", 8, 8, 2, Wisdow, {Diplomacy, Healing}, {Bless, HealingSpell}, {Mace}},
+} class_data[] = {{"Клерик", 8, 8, 2, Wisdow, {Diplomacy, History, Healing}, {Bless, HealingSpell}, {Mace}},
 {"Воин", 10, 4, 1, Strenght, {Survival, WeaponFocusBlades, WeaponFocusAxes}, {}, {SwordLong, LeatherArmour, Shield}},
-{"Маг", 4, 10, 4, Intellegence, {Alchemy, Literacy, History}, {Identify, MagicMissile, Sleep}, {Staff}},
+{"Маг", 4, 10, 4, Intellegence, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}, {Staff}},
 {"Паладин", 10, 4, 1, Strenght, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}, {SwordLong, ScaleMail}},
 {"Следопыт", 10, 6, 2, Strenght, {Survival, WeaponFocusBows}, {}, {SwordLong, SwordShort, LeatherArmour}},
 {"Вор", 6, 4, 3, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff}, {}, {SwordShort, LeatherArmour}},
@@ -186,7 +186,7 @@ int	creature::getbonus(magic_s value) const {
 }
 
 int	creature::getbasic(skill_s value) const {
-	if(value<=LastSkill)
+	if(value <= LastSkill)
 		return skills[value];
 	return 0;
 }
@@ -272,7 +272,10 @@ int	creature::getmaxhits() const {
 }
 
 int	creature::getmaxmana() const {
-	return mmp + (get(Wisdow) + get(Intellegence)) / 2;
+	auto result = mmp;
+	result += (get(Wisdow) + get(Intellegence)) / 2;
+	result += getbasic(Concetration) / 5;
+	return result;
 }
 
 int	creature::getmoverecoil() const {
@@ -888,7 +891,7 @@ int creature::getcreatures(creature** result, unsigned count, target_s target, i
 			continue;
 		switch(target) {
 		case TargetFriendlyCreature:
-			if(!isfriend(e))
+			if(e!=this && !isfriend(e))
 				continue;
 			break;
 		case TargetNotHostileCreature:
@@ -1158,7 +1161,7 @@ void creature::update() {
 	// RULE: В среднем восстанавливаем 1 хит за 30 минут
 	if(segments >= restore_hits) {
 		if(hp < getmaxhits()) {
-			// RULE: cursed ring of regeneration disable hit point natural healing
+			// RULE: cursed ring of regeneration disable hit point natural recovering
 			hp += imax(0, 1 + getbonus(OfRegeneration));
 		}
 		if(!restore_hits)
@@ -1168,8 +1171,10 @@ void creature::update() {
 	}
 	// RULE: В среднем восстанавливаем 1 манну за 10 минут
 	if(segments >= restore_mana) {
-		if(mp < getmaxmana())
-			mp++;
+		if(mp < getmaxmana()) {
+			// RULE: cursed ring of mana disable mana points natural recovering
+			mp += imax(0, 1 + getbonus(OfMana) + get(Concetration) / 30);
+		}
 		if(!restore_mana)
 			restore_mana = segments;
 		restore_mana += imax(5, 50 - get(Intellegence) * 2)*Minute / 3;

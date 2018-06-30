@@ -61,9 +61,9 @@ static struct spell_info {
 {"Лечение", 7, 0, {{TargetNotHostileCreature, 1}, {}, healdamage, Instant, {}, "%1 озарился белым светом.", {2, 6, Magic}}},
 {"Опознать предмет", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
 {"Невидимость", 8, 0, {{TargetFriendlyCreature, 1}, {}, setstate, Hour, {Hiding}, "Внезапно %1 исчез%ла из виду."}},
-{"Волшебный снаряд", 3, 0, {{TargetHostileCreature}, {}, setdamage, Instant, {}, "Несколько светящихся шариков поразили %героя.", {2, 8, Magic}}},
+{"Волшебный снаряд", 3, 0, {{TargetHostileCreature, 6}, {}, setdamage, Instant, {}, "Несколько светящихся шариков поразили %героя.", {2, 8, Magic}}},
 {"Щит", 6, 0, {{TargetSelf}, {}, setstate, Hour / 2, {Shielded}, "Перед %героем появился полупрозрачный барьер."}},
-{"Шокирующая схватка", 4, 0, {{TargetHostileCreature, 3}, {}, setdamage, Instant, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
+{"Шокирующая хватка", 4, 0, {{TargetHostileCreature, 1}, {}, setdamage, Instant, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
 {"Усыпление", 5, 0, {{TargetHostileCreature}, {SaveAbility, Wisdow}, setstate, Minute, {Sleeped}, "Внезапно %герой заснул%а.", {}}},
 };
 assert_enum(spell, LastSpell);
