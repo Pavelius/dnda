@@ -47,7 +47,7 @@ static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
 static spell_s scroll_spells[] = {Identify, Armor, ShieldSpell};
 static spell_s wand_spells[] = {MagicMissile, HealingSpell, ShokingGrasp};
 static spell_s staff_spells[] = {MagicMissile, ShokingGrasp, Sleep};
-static state_s potion_states[] = {Anger, Poisoned, PoisonedWeak};
+static state_s potion_states[] = {Anger, Poisoned, PoisonedWeak, Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic};
 static constexpr struct item_info {
 	struct combat_info {
 		char			speed;
@@ -168,6 +168,9 @@ item::item(item_s type, int level, int chance_curse) : item(type) {
 			|| (!is(Melee) && d100() < 80))
 			effect = (magic_s)item_data[type].spells.data[rand() % item_data[type].spells.count];
 	}
+	// Spell be on mostly any scroll or wand
+	if(item_data[type].states)
+		effect = (magic_s)item_data[type].states.data[rand() % item_data[type].states.count];
 	// Set maximum item count in set
 	if(iscountable())
 		setcount(item_data[type].count);

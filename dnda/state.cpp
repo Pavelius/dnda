@@ -45,17 +45,20 @@ ability_s get_state_ability(state_s id) {
 }
 
 void creature::drink(item& it, bool interactive) {
+	char temp[260]; it.getname(temp, zendof(temp), false); szlower(temp);
 	auto itp = it.gettype();
-	act("%герой выпила%а %1", getstr(itp));
-	if(it.isartifact())
-		hint(" и почувствовал%а себя намного %1.", state_data[itp].namehow);
-	else if(it.iscursed() && state_data[itp].cursed)
-		hint(" и почувствовал%а себя %1.", state_data[itp].cursed);
-	else if(state_data[itp].namehow)
-		hint(" и почувствовал%а себя %1.", state_data[itp].namehow);
-	act(".");
 	auto state = it.getstate();
-	auto duration = Hour;
+	act("%герой выпил%а %1", temp);
+	if(it.isartifact())
+		hint(" и почувствовал%а себя намного %1", state_data[state].namehow);
+	else if(it.iscursed() && state_data[state].cursed)
+		hint(" и почувствовал%а себя %1", state_data[state].cursed);
+	else if(state_data[state].namehow)
+		hint(" и почувствовал%а себя %1", state_data[state].namehow);
+	act(".");
+	int duration = Hour;
+	if(!it.iscursed())
+		duration += duration * it.getquality();
 	switch(state) {
 	case Strenghted:
 	case Dexterious:
@@ -66,10 +69,11 @@ void creature::drink(item& it, bool interactive) {
 		if(true) {
 			auto ability = get_state_ability(state);
 			if(it.iscursed()) {
-				if(abilities[ability])
-					abilities[ability]--;
+				abilities[ability] -= 1 + it.getqualityraw();
+				if(abilities[ability] < 1)
+					abilities[ability] = 1;
 			} else if(it.isartifact())
-				abilities[ability]++;
+				abilities[ability] += 1 + it.getqualityraw();
 			else
 				set(state, duration + duration / 2);
 		}

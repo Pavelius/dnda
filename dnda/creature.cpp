@@ -1089,6 +1089,10 @@ static item** select_items(item** pb, item** pe, const item* source, unsigned co
 			if(!source[i].isreadable())
 				continue;
 			break;
+		case TargetItemDrinkable:
+			if(!source[i].isdrinkable())
+				continue;
+			break;
 		case TargetItemEdible:
 			if(!source[i].isedible())
 				continue;

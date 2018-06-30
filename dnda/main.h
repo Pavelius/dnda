@@ -258,6 +258,7 @@ public:
 	static const char* getname(state_s value);
 	char*			getname(char* result, const char* result_maximum, bool show_info = true) const;
 	int				getquality() const;
+	int				getqualityraw() const { return quality; }
 	int				getsalecost() const;
 	spell_s			getspell() const;
 	state_s			getstate() const;
@@ -409,7 +410,7 @@ struct creature {
 	void			wait(int segments = 0);
 	bool			walkaround();
 private:
-	unsigned char	abilities[Charisma + 1];
+	char			abilities[Charisma + 1];
 	short			hp, mhp, mp, mmp;
 	unsigned		restore_hits, restore_mana;
 	unsigned char	skills[LastSkill + 1];

@@ -1368,6 +1368,14 @@ static void character_wand(creature& e) {
 		e.use(*result);
 }
 
+static void character_drink(creature& e) {
+	item* result = 0;
+	if(!logs::getitem(e, &result, TargetItemDrinkable, "Что хотите выпить?"))
+		return;
+	if(result)
+		e.use(*result);
+}
+
 static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {KeyHome, "Двигаться вверх и влево"},
 {KeyEnd, "Двигаться вниз и влево"},
@@ -1397,6 +1405,7 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {KeySpace, "Подождать 10 минут", character_passturn},
 {Alpha + 'G', "Спрятать/Показать информацию", ui_show_hide_panel},
 {Alpha + 'Z', "Использовать палочку", character_wand},
+{Ctrl + Alpha + 'D', "Выпить что-то", character_drink},
 };
 
 int compare_hotkey(const void* p1, const void* p2) {

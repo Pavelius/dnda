@@ -13,6 +13,7 @@ int main(int argc, char* argv[]) {
 	p3->equip(Identify);
 	p3->equip(item(ScrollBlue, 10));
 	p3->equip(item(WandBlue, 10));
+	p3->equip(item(PotionBlue, 10));
 	p3->equip({Arrow, 2, 10});
 	p3->equip({SwordLong, Artifact, OfStrenght, 2});
 	p2->equip({Shield, Mundane, NoEffect, 3});
@@ -24,6 +25,6 @@ int main(int argc, char* argv[]) {
 
 int __stdcall WinMain(void* ci, void* pi, char* cmd, int sw) {
 	unsigned c = clock();
-	srand(c);
+	srand(100);
 	return main(0, 0);
 }
