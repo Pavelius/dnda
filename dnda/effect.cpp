@@ -9,10 +9,6 @@ void effectparam::apply(void(*proc)(effectparam& e)) {
 			itm = &e;
 			proc(*this);
 		}
-		for(auto& e : player.backpack) {
-			itm = &e;
-			proc(*this);
-		}
 		break;
 	default:
 		proc(*this);

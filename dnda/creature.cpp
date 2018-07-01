@@ -1,9 +1,10 @@
+#include "archive.h"
 #include "main.h"
 
 using namespace game;
 
-adat<creature*, 6>	players;
-static creature*	current_player;
+static creature*			current_player;
+static adat<creature, 1024>	creature_data;
 static unsigned	experience_level[] = {0,
 1000, 2000, 4000, 8000, 16000, 32000, 64000
 };
@@ -35,6 +36,8 @@ static char	int_checks[] = {2,
 4, 4, 5, 5, 6, 6, 6, 7, 7, 7,
 8, 8, 9, 9, 9
 };
+static magic_s ability_effects[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma};
+static state_s ability_states[] = {Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic};
 const int chance_loot = 40;
 
 static struct equipment_info {
@@ -67,6 +70,8 @@ static struct class_info {
 assert_enum(class, Theif);
 getstr_enum(class);
 
+int mget(int ox, int oy, int mx, int my);
+
 static int roll3d6() {
 	return (rand() % 6) + (rand() % 6) + (rand() % 6) + 3;
 }
@@ -90,6 +95,87 @@ static void start_equipment(creature& e) {
 	}
 	e.equip(random(Ration));
 	e.money += xrand(3, 18);
+}
+
+void creature::initialize() {
+	creature_data.clear();
+}
+
+void* creature::operator new(unsigned size) {
+	for(auto& e : creature_data) {
+		if(!e)
+			return &e;
+	}
+	return creature_data.add();
+}
+
+void creature::turnbegin() {
+	// Set fog of war
+	auto max_count = max_map_x * max_map_y;
+	for(auto i = 0; i < max_count; i++)
+		game::set(i, Visible, false);
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		// Remove fog of war from party
+		if(e.isparty(current_player))
+			e.setlos();
+	}
+}
+
+void creature::playturn() {
+	turnbegin();
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		e.update();
+		if(e.recoil > segments)
+			continue;
+		e.makemove();
+		if(e.recoil <= segments)
+			e.recoil = segments + 1;
+	}
+}
+
+creature* creature::gethenchmen(int index) {
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		if(e.party == this) {
+			if(index-- == 0)
+				return &e;
+		}
+	}
+	return 0;
+}
+
+void creature::select(creature** result, rect rc) {
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		auto i = mget(rc.x1, rc.y1, game::getx(e.position), game::gety(e.position));
+		if(i == -1)
+			continue;
+		if(!game::isvisible(e.position))
+			continue;
+		result[i] = &e;
+	}
+}
+
+creature* creature::getcreature(short unsigned index) {
+	if(index == Blocked)
+		return 0;
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		if(e.position == index)
+			return &e;
+	}
+	return 0;
+}
+
+bool creature::isbooming() {
+	return creature_data.count >= sizeof(creature_data.data) / sizeof(creature_data.data[0]);
 }
 
 void creature::hint(const char* format, ...) const {
@@ -176,6 +262,26 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 	start_equipment(*this);
 }
 
+void creature::join(creature* value) {
+	party = value;
+}
+
+void creature::release(unsigned exeperience_cost) const {
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		if(e.enemy == this) {
+			// RULE: when killed get experience to creature, who want enemy this player
+			e.addexp(exeperience_cost);
+			e.enemy = 0;
+		}
+		if(e.horror == this)
+			e.horror = 0;
+		if(e.charmer == this)
+			e.charmer = 0;
+	}
+}
+
 void creature::clear() {
 	memset(this, 0, sizeof(creature));
 	position = Blocked;
@@ -229,10 +335,10 @@ int creature::getdefence() const {
 	return result;
 }
 
-creature* creature::getleader() const {
-	if(charmer)
+creature* creature::getparty() const {
+	if(charmer && is(Charmed))
 		return charmer;
-	return leader;
+	return party;
 }
 
 bool creature::is(state_s value) const {
@@ -336,10 +442,10 @@ bool creature::pickup(item value) {
 		money += value.getcount();
 		return true;
 	}
-	for(auto& e : backpack) {
-		if(e)
+	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
+		if(wears[slot])
 			continue;
-		e = value;
+		wears[slot] = value;
 		act("%герой подн€л%а %1.", value.getname(temp, zendof(temp)));
 		return true;
 	}
@@ -374,19 +480,14 @@ bool creature::dropdown(item& value) {
 bool creature::equip(item value) {
 	if(!value)
 		return true;
-	for(auto i = Head; i <= Amunitions; i = (slot_s)(i + 1)) {
+	for(auto i = Head; i <= LastBackpack; i = (slot_s)(i + 1)) {
 		if(wears[i])
 			continue;
-		if(!value.is(i))
+		if(i<FirstBackpack && !value.is(i))
 			continue;
 		wears[i] = value;
-		wears[i].set(KnowQuality);
-		return true;
-	}
-	for(auto& e : backpack) {
-		if(e)
-			continue;
-		e = value;
+		if(i<FirstBackpack)
+			wears[i].set(KnowQuality);
 		return true;
 	}
 	return false;
@@ -395,8 +496,6 @@ bool creature::equip(item value) {
 int	creature::getweight() const {
 	auto result = 0;
 	for(auto& e : wears)
-		result += e.getweight();
-	for(auto& e : backpack)
 		result += e.getweight();
 	return result;
 }
@@ -418,12 +517,11 @@ void creature::trapeffect() {
 	auto trap = gettrap(position);
 	if(!trap)
 		return;
-	if(isparty())
+	if(isparty(current_player))
 		game::set(position, Hidden, false);
 	if(get(Alertness)) {
 		if(roll(Alertness)) {
-			if(isparty())
-				act("%герой успешно обош%ла ловушку.");
+			hint("%герой успешно обош%ла ловушку.");
 			return;
 		}
 	}
@@ -486,6 +584,8 @@ bool creature::moveaway(short unsigned index) {
 }
 
 void creature::makemove() {
+	if(charmer && !(*charmer))
+		charmer = 0;
 	if(enemy && !(*enemy))
 		enemy = 0;
 	if(horror && !(*horror))
@@ -498,54 +598,67 @@ void creature::makemove() {
 		return;
 	}
 	if(!enemy)
-		enemy = getnearest(TargetHostileCreature);
-	// —делаем ход в зависимости от условий
+		enemy = getnearest({TargetHostileCreature});
+	// Make move depends on conditions
 	if(enemy)
 		moveto(enemy->position);
 	else if(horror)
 		moveaway(horror->position);
 	else if(guard != Blocked)
 		moveto(guard);
-	else if(leader) {
-		if(distance(leader->position, position) <= 3)
+	else if(charmer) {
+		if(distance(charmer->position, position) <= 2)
 			walkaround();
 		else
-			moveto(leader->position);
+			moveto(charmer->position);
+	} else if(party && !isleader()) {
+		if(distance(party->position, position) <= 3)
+			walkaround();
+		else
+			moveto(party->position);
 	} else
 		walkaround();
 }
 
-void creature::setplayer() {
-	if(!joinparty())
+void creature::lead() {
+	if(isleader())
 		return;
-	current_player = this;
-	for(auto p : players) {
-		if(!p)
-			continue;
-		if(p != current_player)
-			p->leader = current_player;
-		else
-			p->leader = 0;
+	auto old_party = party;
+	if(old_party) {
+		for(auto& e : creature_data) {
+			if(!e)
+				continue;
+			if(e.party == old_party)
+				e.party = this;
+		}
 	}
+	party = this;
 }
 
 creature* creature::getplayer() {
 	return current_player;
 }
 
-bool creature::joinparty() {
-	if(players.indexof(this) != -1)
-		return true;
-	if(players.count >= sizeof(players.data) / sizeof(players.data[0]))
-		return false;
-	players.add(this);
-	return true;
+void creature::setplayer() {
+	lead();
+	current_player = this;
 }
 
-bool creature::isfriend(const creature* target) const {
-	if(!target)
+bool creature::isplayer() const {
+	return this == current_player;
+}
+
+bool creature::isparty(const creature* value) const {
+	return party == value;
+}
+
+bool creature::isfriend(const creature* value) const {
+	if(!value)
 		return false;
-	return (getleader() == target || target->getleader() == this);
+	return party == value
+		|| charmer == value
+		|| value->party == this
+		|| value->charmer == this;
 }
 
 static bool isenemystate(const creature* p1, const creature* p2) {
@@ -562,14 +675,6 @@ bool creature::isenemy(const creature* target) const {
 	if(!target || target == this)
 		return false;
 	return isenemystate(this, target) || isenemystate(target, this);
-}
-
-bool creature::isplayer() const {
-	return this == getplayer();
-}
-
-bool creature::isparty() const {
-	return players.indexof((creature*)this) != -1;
 }
 
 bool creature::manipulate(short unsigned index) {
@@ -731,18 +836,13 @@ void creature::damage(int value, bool ignore_armor, bool interactive) {
 			for(auto& e : wears) {
 				if(!e)
 					continue;
-				if(isparty() || (d100() < chance_loot)) {
+				if(party==current_player || (d100() < chance_loot)) {
 					e.loot();
 					drop(position, e);
 				}
 			}
-			for(auto& e : backpack) {
-				if(!e)
-					continue;
-				e.loot();
-				drop(position, e);
-			}
-			game::release(this, getcostexp());
+			release(getcostexp());
+			clear();
 		}
 	} else {
 		auto mhp = getmaxhits();
@@ -771,7 +871,7 @@ void creature::rangeattack() {
 			}
 		}
 	}
-	auto enemy = getnearest(TargetHostileCreature);
+	auto enemy = getnearest({TargetHostileCreature});
 	if(!enemy) {
 		if(isplayer())
 			logs::add("¬округ нет подход€щей цели", getstr(ammo));
@@ -801,22 +901,22 @@ void creature::meleeattack(creature* enemy) {
 	wait(getattacktime(Melee));
 }
 
-int creature::getobjects(short unsigned* result, unsigned count, target_s target, int range) const {
+unsigned creature::getobjects(aref<short unsigned> result, targetdesc ti) const {
 	int x1 = game::getx(position);
 	int y1 = game::gety(position);
-	auto pb = result;
-	auto pe = result + count;
-	for(auto y = y1 - range; y <= y1 + range; y++) {
+	auto pb = result.data;
+	auto pe = pb + result.count;
+	for(auto y = y1 - ti.range; y <= y1 + ti.range; y++) {
 		if(y < 0 || y >= max_map_y)
 			continue;
-		for(auto x = x1 - range; x <= x1 + range; x++) {
+		for(auto x = x1 - ti.range; x <= x1 + ti.range; x++) {
 			if(x < 0 || x >= max_map_x)
 				continue;
 			auto index = game::get(x, y);
 			auto type = game::getobject(index);
 			if(type == NoTileObject)
 				continue;
-			switch(target) {
+			switch(ti.target) {
 			case TargetDoor:
 				if(type != Door)
 					continue;
@@ -832,7 +932,7 @@ int creature::getobjects(short unsigned* result, unsigned count, target_s target
 				*pb++ = index;
 		}
 	}
-	return pb - result;
+	return pb - result.data;
 }
 
 static bool linelossv(int x0, int y0, int x1, int y1) {
@@ -884,44 +984,43 @@ static bool linelos(int x0, int y0, int x1, int y1) {
 	}
 }
 
-int creature::getcreatures(creature** result, unsigned count, target_s target, int range) const {
-	auto pb = result;
-	auto pe = pb + count - 1;
-	if(range == -1)
-		range = getlos();
+unsigned creature::getcreatures(aref<creature*> result, targetdesc ti) const {
+	auto pb = result.data;
+	auto pe = pb + result.count;
+	if(!ti.range)
+		ti.range = getlos();
 	auto x = game::getx(position);
 	auto y = game::gety(position);
-	for(auto e : creatures) {
-		if(e == this)
+	for(auto& e : creature_data) {
+		if(&e == this)
 			continue;
-		switch(target) {
+		switch(ti.target) {
 		case TargetFriendlyCreature:
-			if(e != this && !isfriend(e))
+			if(&e != this && !e.isfriend(this))
 				continue;
 			break;
 		case TargetNotHostileCreature:
-			if(isenemy(e))
+			if(e.isenemy(this))
 				continue;
 			break;
 		case TargetHostileCreature:
-			if(!isenemy(e))
-				continue;
-			if(!linelos(x, y, game::getx(e->position), game::gety(e->position)))
+			if(!e.isenemy(this))
 				continue;
 			break;
 		}
-		if(range && game::distance(position, e->position) > range)
+		if(game::distance(position, e.position) > ti.range)
+			continue;
+		if(linelos(x, y, game::getx(e.position), game::gety(e.position)))
 			continue;
 		if(pb < pe)
-			*pb++ = e;
+			*pb++ = &e;
 	}
-	*pb = 0;
-	return pb - result;
+	return pb - result.data;
 }
 
-creature* creature::getnearest(target_s target) const {
-	creature* source[64];
-	auto count = getcreatures(source, sizeof(source) / sizeof(source[0]), target);
+creature* creature::getnearest(targetdesc ti) const {
+	creature* source[128];
+	auto count = getcreatures(source, ti);
 	if(!count)
 		return 0;
 	return game::getnearest(source, count, position);
@@ -946,9 +1045,6 @@ void creature::setlos() {
 		linelossv(x0, y0, x0 + r, y);
 	}
 }
-
-static magic_s ability_effects[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma};
-static state_s ability_states[] = {Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic};
 
 int creature::get(ability_s value) const {
 	auto result = abilities[value];
@@ -1047,20 +1143,21 @@ void creature::set(state_s value, unsigned segments_count) {
 		states[value] = stop;
 }
 
-bool creature::gettarget(targetinfo& result, const targetdesc td) const {
-	if(td.target >= TargetCreature && td.target <= TargetHostileCreature) {
-		if(!logs::getcreature(*this, &result.cre, td.target, td.range))
+bool creature::gettarget(targetinfo& result, const targetdesc ti) const {
+	if(ti.target >= TargetCreature && ti.target <= TargetHostileCreature) {
+		if(!logs::getcreature(*this, &result.cre, ti))
 			return false;
-	} else if(td.target >= TargetItem && td.target <= TargetItemWeapon) {
-		if(!logs::getitem(*this, &result.itm, td.target))
+	} else if(ti.target >= TargetItem && ti.target <= TargetItemChargeable) {
+		if(!logs::getitem(*this, &result.itm, ti))
 			return false;
 	} else {
-		switch(td.target) {
+		switch(ti.target) {
 		case TargetSelf:
 			result.cre = (creature*)this;
 			break;
 		case TargetDoor:
-			if(!logs::getindex(*this, result.pos, td.target, td.range))
+		case TargetDoorSealed:
+			if(!logs::getindex(*this, result.pos, ti))
 				return false;
 			break;
 		case TargetInvertory:
@@ -1074,46 +1171,44 @@ bool creature::gettarget(targetinfo& result, const targetdesc td) const {
 }
 
 static item** select_items(item** pb, item** pe, const item* source, unsigned count, target_s target) {
-	for(unsigned i = 0; i < count; i++) {
-		if(!source[i])
+	return pb;
+}
+
+unsigned creature::getitems(aref<item*> result, targetdesc ti) const {
+	auto pb = result.data;
+	auto pe = result.data + result.count;
+	for(auto& it : wears) {
+		if(!it)
 			continue;
-		switch(target) {
+		switch(ti.target) {
 		case TargetItemUnidentified:
-			if(source[i].getidentify() >= KnowEffect)
+			if(it.getidentify() >= KnowEffect)
 				continue;
 			break;
 		case TargetItemWeapon:
-			if(!(source[i].is(Melee) || source[i].is(Ranged)))
+			if(!(it.is(Melee) || it.is(Ranged)))
 				continue;
 			break;
 		case TargetItemChargeable:
-			if(!source[i].ischargeable())
+			if(!it.ischargeable())
 				continue;
 			break;
 		case TargetItemReadable:
-			if(!source[i].isreadable())
+			if(!it.isreadable())
 				continue;
 			break;
 		case TargetItemDrinkable:
-			if(!source[i].isdrinkable())
+			if(!it.isdrinkable())
 				continue;
 			break;
 		case TargetItemEdible:
-			if(!source[i].isedible())
+			if(!it.isedible())
 				continue;
 			break;
 		}
 		if(pb < pe)
-			*pb++ = (item*)&source[i];
+			*pb++ = (item*)&it;
 	}
-	return pb;
-}
-
-unsigned creature::getitems(aref<item*> result, target_s target) const {
-	auto pb = result.data;
-	auto pe = result.data + result.count;
-	pb = select_items(pb, pe, wears, sizeof(wears) / sizeof(wears[0]), target);
-	pb = select_items(pb, pe, backpack, sizeof(backpack) / sizeof(backpack[0]), target);
 	return pb - result.data;
 }
 
@@ -1157,7 +1252,7 @@ void creature::set(spell_s value, int level) {
 void creature::passturn(unsigned minutes) {
 	wait(minutes*Minute);
 	while(recoil > segments) {
-		game::turn();
+		playturn();
 		segments += Minute;
 	}
 }
@@ -1314,4 +1409,43 @@ void creature::use(item& it) {
 			wait(Minute / 2);
 		}
 	}
+}
+
+template<> void archive::set<creature>(creature& e) {
+	set(e.race);
+	set(e.type);
+	set(e.gender);
+	set(e.role);
+	set(e.direction);
+	set(e.abilities);
+	set(e.abilities_raise);
+	set(e.skills);
+	set(e.spells);
+	set(e.name);
+	set(e.level);
+	set(e.hp);
+	set(e.mhp);
+	set(e.mp);
+	set(e.mmp);
+	set(e.recoil);
+	set(e.restore_hits);
+	set(e.restore_mana);
+	set(e.experience);
+	set(e.money);
+	set(e.position);
+	set(e.guard);
+	set(e.states);
+	set(e.wears);
+	set(e.charmer);
+	set(e.enemy);
+	set(e.horror);
+	set(e.party);
+}
+
+archive::dataset creature_dataset() {
+	return creature_data;
+};
+
+void creature_serialize(archive& e) {
+	e.set(creature_data);
 }

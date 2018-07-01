@@ -36,7 +36,8 @@ enum diety_s : unsigned char {
 	GodBane, GodBhaal, GodGruumsh, GodHelm, GodMistra, GodTempus, GodTyr
 };
 enum slot_s : unsigned char {
-	Head, Neck, Melee, OffHand, TorsoBack, Torso, RightFinger, LeftFinger, Elbows, Legs, Ranged, Amunitions
+	Head, Neck, Melee, OffHand, TorsoBack, Torso, RightFinger, LeftFinger, Elbows, Legs, Ranged, Amunitions,
+	FirstBackpack, LastBackpack = FirstBackpack + 20,
 };
 enum magic_s : unsigned char {
 	NoEffect,
@@ -318,21 +319,19 @@ struct creature {
 	creature*		charmer;
 	creature*		enemy;
 	creature*		horror;
-	creature*		leader;
 	unsigned short	position, guard;
-	item			wears[Amunitions + 1];
-	item			backpack[16];
+	item			wears[LastBackpack + 1];
 	//
 	constexpr creature() : race(NoRace), type(Cleric), gender(NoGender), role(Character), direction(Left),
 		abilities(), abilities_raise(), skills(), spells(), name(), level(),
-		wears(), backpack(), states(),
+		wears(), states(),
 		hp(), mhp(), mp(), mmp(),
 		recoil(), restore_hits(), restore_mana(), experience(), money(),
-		charmer(0), enemy(0), horror(), leader(),
+		charmer(0), enemy(0), horror(), party(),
 		position(), guard() {}
 	creature(role_s value);
 	creature(race_s race, gender_s gender, class_s type);
-	operator bool() const { return hp > 0; }
+	explicit operator bool() const { return hp > 0; }
 	void* operator new(unsigned size);
 	//
 	void			act(const char* format, ...) const { actv(format, xva_start(format)); }
@@ -358,15 +357,16 @@ struct creature {
 	int				getattacktime(slot_s slot) const;
 	int				getbasic(skill_s value) const;
 	int				getbonus(magic_s value) const;
-	int				getcreatures(creature** result, unsigned count, target_s target, int range = -1) const;
 	int				getcost(spell_s value) const;
 	unsigned		getcostexp() const;
+	static creature* getcreature(short unsigned index);
+	unsigned		getcreatures(aref<creature*> result, targetdesc ti) const;
 	int				getdefence() const;
 	int				getdiscount(creature* customer) const;
 	char*			getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
+	creature*		gethenchmen(int index);
 	int				gethits() const { return hp; }
-	unsigned		getitems(aref<item*> result, target_s target) const;
-	creature*		getleader() const;
+	unsigned		getitems(aref<item*> result, targetdesc ti) const;
 	int				getlos() const;
 	int				getmana() const { return mp; }
 	int				getmaxhits() const;
@@ -375,23 +375,28 @@ struct creature {
 	int				getmoverecoil() const;
 	const char*		getname() const; // Name used predefined names array
 	static const char* getname(state_s id, bool cursed);
-	creature*		getnearest(target_s target) const;
-	int				getobjects(short unsigned* result, unsigned count, target_s target, int range) const;
+	creature*		getnearest(targetdesc ti) const;
+	unsigned		getobjects(aref<short unsigned> result, targetdesc ti) const;
+	creature*		getparty() const;
 	static creature* getplayer();
 	short unsigned	getposition() const { return position; }
 	bool			gettarget(targetinfo& result, const targetdesc td) const;
 	int				getweight() const;
 	void			hint(const char* format, ...) const;
+	static void		initialize();
 	bool			interact(short unsigned index);
 	bool			is(state_s value) const;
 	bool			isagressive() const;
+	static bool		isbooming();
 	bool			ischaracter() const { return role == Character; }
 	bool			isenemy(const creature* target) const;
 	bool			isfriend(const creature* target) const;
 	bool			isguard() const { return guard != 0xFFFF; }
-	bool			isparty() const;
+	bool			isleader() const { return party == this; }
+	bool			isparty(const creature* target) const;
 	bool			isplayer() const;
-	bool			joinparty();
+	void			join(creature* party);
+	void			lead();
 	void			levelup();
 	void			lookfloor();
 	void			makemove();
@@ -401,19 +406,23 @@ struct creature {
 	bool			moveto(short unsigned index);
 	bool			moveaway(short unsigned index);
 	void			passturn(unsigned minutes);
+	static void		playturn();
 	bool			pickup(item value);
 	void			raise(skill_s value);
 	void			raiseskills(int number);
 	void			rangeattack();
+	void			release(unsigned exeperience_cost) const;
 	void			remove(state_s value);
 	bool			roll(skill_s skill, int bonus = 0);
 	void			say(const char* format, ...);
 	bool			sayv(const char* format, const char* param);
+	static void		select(creature** result, rect rc);
 	void			set(state_s value, unsigned segments);
 	void			set(spell_s value, int level);
-	void			setlos();
 	void			setplayer();
+	void			setlos();
 	void			trapeffect();
+	static void		turnbegin();
 	void			update();
 	void			use(skill_s value);
 	bool			use(spell_s value);
@@ -430,6 +439,7 @@ private:
 	unsigned char	skills[LastSkill + 1];
 	unsigned char	spells[LastSpell + 1];
 	unsigned		states[LastState + 1];
+	creature*		party;
 	friend struct archive;
 };
 struct location : rect {
@@ -452,15 +462,12 @@ struct areainfo {
 };
 namespace game {
 creature*			add(short unsigned index, creature* element);
-creature*			add(short unsigned index, role_s type);
-creature*			add(short unsigned index, race_s race, gender_s gender, class_s type, bool is_player = false);
 void				create(tile_s type, short unsigned index, int level, bool explored = false, bool visualize = false);
 int					distance(short unsigned i1, short unsigned i2);
 void				drop(short unsigned i, item object);
 unsigned short		genname(race_s race, gender_s gender);
 inline short unsigned get(int x, int y) { return y * max_map_x + x; }
 const attackinfo&	getattackinfo(trap_s slot);
-creature*			getcreature(short unsigned index);
 direction_s			getdirection(point s, point d);
 short unsigned		getfree(short unsigned i);
 int					getindex(short unsigned i, tile_s value);
@@ -482,7 +489,6 @@ map_object_s		getobject(short unsigned i);
 inline unsigned char getx(short unsigned i) { return i % max_map_x; }
 inline unsigned char gety(short unsigned i) { return i / max_map_x; }
 void				initialize();
-bool				isbooming();
 bool				isdungeon();
 bool				isexplore(short unsigned i);
 bool				isexperience(short unsigned i);
@@ -497,7 +503,6 @@ void				looktarget(short unsigned index);
 void				lookhere(short unsigned index);
 void				makewave(short unsigned index, bool(*proc)(short unsigned) = ispassabledoor);
 void				play();
-void				release(const creature* target, unsigned experience_cost);
 bool				serialize(bool writemode);
 void				set(short unsigned i, tile_s value);
 void				set(short unsigned i, tile_s value, int w, int h);
@@ -506,7 +511,6 @@ void				set(short unsigned i, map_flag_s type, bool value);
 void				set(short unsigned i, unsigned char value);
 extern areainfo		statistic;
 short unsigned		to(short unsigned index, int id);
-void				turn();
 direction_s			turn(direction_s from, direction_s side);
 };
 namespace logs {
@@ -529,9 +533,9 @@ bool				choose(creature& e, spell_s& result, spell_s* source, unsigned count);
 bool				choose(creature& e, spell_s& result);
 bool				chooseyn();
 void				focusing(short unsigned index);
-bool				getcreature(const creature& e, creature** result, target_s target, int range);
-bool				getindex(const creature& e, short unsigned& result, target_s target, int range);
-bool				getitem(const creature& e, item** result, target_s target, const char* title = 0);
+bool				getcreature(const creature& e, creature** result, targetdesc ti);
+bool				getindex(const creature& e, short unsigned& result, targetdesc ti);
+bool				getitem(const creature& e, item** result, targetdesc ti, const char* title = 0);
 void				initialize();
 int					input();
 void				minimap(creature& e);
@@ -539,9 +543,7 @@ void				next();
 void				turn(creature& e);
 }
 extern adat<location, 128>		locations;
-extern adat<creature*, 512>		creatures;
 extern adat<groundinfo, 2048>	grounditems;
-extern adat<creature*, 6>		players;
 unsigned			getday();
 unsigned			gethour();
 unsigned			getminute();

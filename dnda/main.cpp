@@ -6,9 +6,13 @@ int main(int argc, char* argv[]) {
 	//return 0;
 	logs::initialize();
 	create(City, get(10, 10), 1, false, false);
-	auto p1 = add(get(8, 5), Human, Female, Mage, true);
-	auto p2 = add(get(8, 5), Dwarf, Male, Fighter, true);
-	auto p3 = add(get(2, 2), Elf, Male, Theif, true);
+	auto p1 = add(get(8, 5), new creature(Human, Female, Mage));
+	auto p2 = add(get(8, 5), new creature(Dwarf, Male, Fighter));
+	auto p3 = add(get(2, 2), new creature(Elf, Male, Theif));
+	p1->join(p1);
+	p2->join(p1);
+	p3->join(p1);
+	p1->setplayer();
 	p3->equip(BowLong);
 	p3->equip(Identify);
 	p3->equip(item(ScrollBlue, 10));

@@ -10,9 +10,7 @@ int						isqrt(int num);
 static unsigned			start_year;
 unsigned				segments = 7 * Hour;
 static unsigned			exit_index;
-static creature			creature_data[1024];
 adat<location, 128>		locations;
-adat<creature*, 512>	creatures;
 adat<groundinfo, 2048>	grounditems;
 tile_s					location_type;
 static tile_s			mptil[max_map_x*max_map_y];
@@ -30,20 +28,8 @@ static const direction_s orientations_5b5[25] = {
 	LeftDown, Down, Down, RightDown, RightDown
 };
 
-void* creature::operator new(unsigned size) {
-	for(auto& e : creature_data) {
-		if(!e)
-			return &e;
-	}
-	return creature_data;
-}
-
 void areainfo::clear() {
 	memset(this, 0, sizeof(*this));
-}
-
-bool game::isbooming() {
-	return creatures.count >= sizeof(creatures.data) / sizeof(creatures.data[0]);
 }
 
 bool game::isvisible(short unsigned i) {
@@ -133,11 +119,9 @@ void game::initialize() {
 	memset(mprnd, 0, sizeof(mprnd));
 	for(auto& e : mptil)
 		e = Plain;
-	creatures.clear();
 	locations.clear();
 	grounditems.clear();
-	for(auto& e : creature_data)
-		e.clear();
+	creature::initialize();
 	statistic.clear();
 }
 
@@ -230,7 +214,7 @@ short unsigned game::getfree(short unsigned i) {
 				auto i1 = get(x, y);
 				if(!ispassable(i1))
 					continue;
-				if(getcreature(i1))
+				if(creature::getcreature(i1))
 					continue;
 				return i1;
 			}
@@ -399,53 +383,6 @@ short unsigned game::to(short unsigned index, int id) {
 	}
 }
 
-static void update_players() {
-	auto pb = players.data;
-	for(auto p : players) {
-		if(!p || !(*p))
-			continue;
-		*pb++ = p;
-	}
-	players.count = pb - players.data;
-}
-
-static void update_links() {
-	for(auto p : creatures) {
-		if(!p || !(*p))
-			continue;
-		if(p->enemy && !(*p->enemy))
-			p->enemy = 0;
-		if(p->charmer && !(*p->charmer))
-			p->charmer = 0;
-		if(p->horror && !(*p->horror))
-			p->horror = 0;
-		if(p->leader && !(*p->leader)) {
-			if(p->leader->isplayer() && players.count)
-				players.data[0]->setplayer();
-			else
-				p->leader = 0;
-		}
-	}
-}
-
-static void update_creatures() {
-	auto pb = creatures.data;
-	for(auto p : creatures) {
-		if(!p || !(*p))
-			continue;
-		*pb++ = p;
-	}
-	creatures.count = pb - creatures.data;
-}
-
-static void update_visibllity() {
-	auto max_count = max_map_x * max_map_y;
-	for(auto i = 0; i < max_count; i++)
-		game::set(i, Visible, false);
-	for(auto e : players)
-		e->setlos();
-}
-
 void game::drop(short unsigned i, item object) {
 	if(!object)
 		return;
@@ -458,37 +395,18 @@ creature* game::add(short unsigned index, creature* element) {
 	if(!element)
 		return 0;
 	index = getfree(index);
-	if(index == 0xFFFF)
+	if(index == Blocked)
 		return 0;
-	creatures.add(element);
 	element->move(index);
 	return element;
-}
-
-creature* game::add(short unsigned index, race_s race, gender_s gender, class_s type, bool is_player) {
-	auto p = new creature(race, gender, type);
-	add(index, p);
-	if(is_player)
-		p->setplayer();
-	return p;
-}
-
-creature* game::add(short unsigned index, role_s type) {
-	auto p = new creature(type);
-	add(index, p);
-	return p;
-}
-
-static int getpartycount() {
-	return players.count;
 }
 
 void game::play() {
 	while(true) {
 		exit_index = Blocked;
-		turn();
+		creature::playturn();
 		segments++;
-		if(!players.count) {
+		if(!creature::getplayer()) {
 			// Все погибли
 			logs::add("Все ваши персонажи мертвы.");
 			logs::next();
@@ -500,34 +418,6 @@ void game::play() {
 			// Загрузим карту следующего уровня и сохраним состояние этого
 		}
 	}
-}
-
-void game::turn() {
-	update_players();
-	update_links();
-	update_creatures();
-	update_visibllity();
-	for(auto e : creatures) {
-		if(!(*e)) // Если уже убиты, но еще не удалены из списка
-			continue;
-		e->update();
-		if(e->recoil > segments)
-			continue;
-		e->makemove();
-		if(e->recoil <= segments)
-			e->recoil = segments + 1;
-	}
-	update_players();
-	update_links();
-	update_creatures();
-}
-
-creature* game::getcreature(short unsigned index) {
-	for(auto e : creatures) {
-		if(e->position == index)
-			return e;
-	}
-	return 0;
 }
 
 int game::distance(short unsigned i1, short unsigned i2) {
@@ -607,12 +497,11 @@ short unsigned game::getmovement(short unsigned index) {
 	return movements[index];
 }
 
-bool logs::getcreature(const creature& e, creature** result, target_s target, int range) {
+bool logs::getcreature(const creature& e, creature** result, targetdesc ti) {
 	creature* source[64];
-	auto count = e.getcreatures(source, sizeof(source) / sizeof(source[0]), target, range);
+	auto count = e.getcreatures(source, ti);
 	if(!count) {
-		if(e.isplayer())
-			logs::add("Вокруг никого нет.");
+		e.hint("Вокруг никого нет.");
 		return false;
 	}
 	short unsigned source_index[64];
@@ -626,12 +515,11 @@ bool logs::getcreature(const creature& e, creature** result, target_s target, in
 	return true;
 }
 
-bool logs::getindex(const creature& e, short unsigned& result, target_s target, int range) {
+bool logs::getindex(const creature& e, short unsigned& result, targetdesc ti) {
 	short unsigned source[7 * 7];
-	auto count = e.getobjects(source, sizeof(source) / sizeof(source[0]), target, range);
+	auto count = e.getobjects(source, ti);
 	if(!count) {
-		if(e.isplayer())
-			logs::add("Вокруг нет подходящих объектов.");
+		e.hint("Вокруг нет подходящих объектов.");
 		return false;
 	}
 	auto r = logs::choose(e, source, count);
@@ -641,9 +529,9 @@ bool logs::getindex(const creature& e, short unsigned& result, target_s target, 
 	return true;
 }
 
-bool logs::getitem(const creature& e, item** result, target_s target, const char* title) {
+bool logs::getitem(const creature& e, item** result, targetdesc ti, const char* title) {
 	item* source[64];
-	auto count = e.getitems(source, target);
+	auto count = e.getitems(source, ti);
 	if(!count) {
 		e.hint("У вас нет предметов нужного вида.");
 		return false;
@@ -659,7 +547,7 @@ bool logs::getitem(const creature& e, item** result, target_s target, const char
 
 void game::looktarget(short unsigned index) {
 	logs::add("Цель: ");
-	auto p = game::getcreature(index);
+	auto p = creature::getcreature(index);
 	if(p) {
 		logs::add(p->getname());
 		return;
@@ -698,7 +586,7 @@ void game::lookhere(short unsigned index) {
 			logs::add("Здесь находится %1.", getstr(gettrap(index)));
 		break;
 	}
-	auto pc = getcreature(index);
+	auto pc = creature::getcreature(index);
 	if(pc)
 		logs::add("%1 стоит здесь.", pc->getname());
 	auto item_count = getitems(source, sizeof(source) / sizeof(source[0]), index);
@@ -748,24 +636,6 @@ location* game::getlocation(short unsigned i) {
 	return 0;
 }
 
-void game::release(const creature* player, unsigned exeperience_cost) {
-	// Начислим опыт, всем, кто считал его врагом
-	for(auto e : creatures) {
-		if(!*e)
-			continue;
-		if(e->enemy == player) {
-			e->addexp(exeperience_cost);
-			e->enemy = 0;
-		}
-		if(e->horror == player)
-			e->horror = 0;
-		if(e->charmer == player)
-			e->charmer = 0;
-		//if(e->leader == player)
-		//	e->leader = 0;
-	}
-}
-
 char* location::getname(char* result) const {
 	zcpy(result, getstr(type));
 	return result;
@@ -779,37 +649,8 @@ template<> void archive::set<location>(location& e) {
 	set(e.owner);
 }
 
-template<> void archive::set<creature>(creature& e) {
-	set(e.race);
-	set(e.type);
-	set(e.gender);
-	set(e.role);
-	set(e.direction);
-	set(e.abilities);
-	set(e.abilities_raise);
-	set(e.skills);
-	set(e.spells);
-	set(e.name);
-	set(e.level);
-	set(e.hp);
-	set(e.mhp);
-	set(e.mp);
-	set(e.mmp);
-	set(e.recoil);
-	set(e.restore_hits);
-	set(e.restore_mana);
-	set(e.experience);
-	set(e.money);
-	set(e.position);
-	set(e.guard);
-	set(e.states);
-	set(e.wears);
-	set(e.backpack);
-	set(e.charmer);
-	set(e.enemy);
-	set(e.horror);
-	set(e.leader);
-}
+archive::dataset creature_dataset();
+void creature_serialize(archive& e);
 
 bool game::serialize(bool writemode) {
 	return false;
@@ -821,7 +662,7 @@ bool game::serialize(bool writemode) {
 	io::file file(temp, writemode ? StreamWrite : StreamRead);
 	if(!file)
 		return false;
-	archive::dataset pointers[] = {creature_data};
+	archive::dataset pointers[] = {creature_dataset()};
 	archive a(file, writemode, pointers);
 	if(!a.signature("SAV"))
 		return false;
@@ -833,8 +674,7 @@ bool game::serialize(bool writemode) {
 	a.setr(mptil);
 	a.setr(mpobj);
 	a.setr(mprnd);
-	a.set(creature_data);
+	creature_serialize(a);
 	a.set(locations);
-	a.set(creatures);
 	return true;
 }

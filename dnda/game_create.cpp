@@ -186,35 +186,35 @@ static void create_location(int x, int y, int w, int h) {
 static void create_commoner(short unsigned index) {}
 
 static creature* create_shopkeeper(location& e, short unsigned index) {
-	e.owner = game::add(index, Shopkeeper);
+	e.owner = game::add(index, new creature(Shopkeeper));
 	return e.owner;
 }
 
 static creature* create_adventurer(short unsigned index) {
-	return game::add(index, Human,
+	return game::add(index, new creature(Human,
 		(gender_s)xrand(Male, Female),
-		(class_s)xrand(Fighter, Mage));
+		(class_s)xrand(Fighter, Mage)));
 }
 
 static creature* create_bartender(location& e, short unsigned index) {
-	e.owner = game::add(index, Shopkeeper);
+	e.owner = game::add(index, new creature(Shopkeeper));
 	return e.owner;
 }
 
 static creature* create_monster(short unsigned index) {
-	if(game::isbooming())
+	if(creature::isbooming())
 		return 0;
-	return game::add(index, (role_s)xrand(0, GiantRat));
+	return game::add(index, new creature((role_s)xrand(0, GiantRat)));
 }
 
 static creature* create_priest(location& e, short unsigned index) {
 	e.diety = (diety_s)xrand(GodBane, GodTyr);
 	switch(e.diety) {
 	case GodGruumsh:
-		e.owner = game::add(index, Dwarf, Male, Cleric);
+		e.owner = game::add(index, new creature(Dwarf, Male, Cleric));
 		break;
 	default:
-		e.owner = game::add(index, Human, Male, Cleric);
+		e.owner = game::add(index, new creature(Human, Male, Cleric));
 		break;
 	}
 	return e.owner;

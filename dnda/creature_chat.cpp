@@ -61,7 +61,7 @@ void creature::chat(creature* e) {
 		NoBossCommand,
 		GuardPlace, FollowMe,
 	};
-	if(isfriend(e) && e->leader == this && e->role == Character) {
+	if(isfriend(e) && e->getparty() == this && e->role == Character) {
 		chat_boss(e, this);
 		if(e->isguard())
 			logs::add(FollowMe, "Пошли со мной.");
@@ -74,7 +74,7 @@ void creature::chat(creature* e) {
 			break;
 		case FollowMe:
 			e->guard = 0xFFFF;
-			e->leader = this;
+			e->party = this;
 			break;
 		}
 		return;

@@ -242,7 +242,7 @@ inline bool wget(short unsigned i, direction_s direction, tile_s value, bool def
 	return game::gettile(i1) == value;
 }
 
-inline int mget(int ox, int oy, int mx, int my) {
+int mget(int ox, int oy, int mx, int my) {
 	int x = mx - ox;
 	int y = my - oy;
 	if(x < 0 || y < 0 || x >= scrx || y >= scry)
@@ -360,14 +360,7 @@ static void view_board(point camera, bool show_fow = true, fxeffect* effects = 0
 	int y0 = 0;
 	// Инициализируем видимые юниты
 	memset(units, 0, sizeof(units));
-	for(auto p : creatures) {
-		auto i = mget(rc.x1, rc.y1, game::getx(p->position), game::gety(p->position));
-		if(i == -1)
-			continue;
-		if(!game::isvisible(p->position))
-			continue;
-		units[i] = p;
-	}
+	creature::select(units, rc);
 	// Инициализируем видимые предметы
 	memset(stuff, 0, sizeof(stuff));
 	for(auto& e : grounditems) {
@@ -895,12 +888,12 @@ static void character_pickup(creature& e) {
 
 static void character_dropdown(creature& e) {
 	char temp[260]; szprints(temp, zendof(temp), "Положить предметы");
-	item* source[48];
+	item* source[LastBackpack + 1];
 	auto p = source;
-	for(auto& s : e.backpack) {
-		if(!s)
+	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
+		if(!e.wears[slot])
 			continue;
-		*p++ = &s;
+		*p++ = &e.wears[slot];
 	}
 	item* result = logs::choose(e, source, p - source, temp);
 	if(!result)
@@ -912,22 +905,22 @@ static void character_dropdown(creature& e) {
 static void character_stuff(creature& e) {
 	item* source[48];
 	auto p = source;
-	for(auto& s : e.backpack) {
-		if(!s)
+	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
+		if(!e.wears[slot])
 			continue;
-		*p++ = &s;
+		*p++ = &e.wears[slot];
 	}
 	logs::choose(e, source, p - source, "Рюкзак");
 }
 
 static item* choose_item(creature& e, point camera, slot_s slot) {
 	char temp[260]; szprints(temp, zendof(temp), "Что одеть на %1?", getstr(slot));
-	item* source[sizeof(e.backpack) / sizeof(e.backpack[0])];
+	item* source[LastBackpack + 1];
 	auto p = source;
-	for(auto& s : e.backpack) {
-		if(!s || !s.is(slot))
+	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
+		if(!e.wears[slot] || !e.wears[slot].is(slot))
 			continue;
-		*p++ = &s;
+		*p++ = &e.wears[slot];
 	}
 	return logs::choose(e, source, p - source, temp);
 }
@@ -1151,9 +1144,9 @@ bool logs::choose(creature& e, spell_s& result, spell_s* source, unsigned count)
 }
 
 static void setplayer(creature& e, int index) {
-	if(!players[index])
-		return;
-	players[index]->setplayer();
+	auto p = e.gethenchmen(index);
+	if(p)
+		p->setplayer();
 }
 
 static void character_setplayer1(creature& e) {
@@ -1245,14 +1238,14 @@ void logs::minimap(creature& e) {
 
 static void character_chat(creature& e) {
 	creature* opponent = 0;
-	if(!logs::getcreature(e, &opponent, TargetNotHostileCreature, 1))
+	if(!logs::getcreature(e, &opponent, {TargetNotHostileCreature, 1}))
 		return;
 	e.chat(opponent);
 }
 
 static void character_use(creature& e) {
 	short unsigned source[3 * 3 + 1];
-	auto count = e.getobjects(source, sizeof(source) / sizeof(source[0]), NoTarget, 1);
+	auto count = e.getobjects(source, {NoTarget, 1});
 	if(!count) {
 		logs::add("Вокруг вас нету ничего, что можно было бы использовать.");
 		return;
@@ -1360,20 +1353,24 @@ static void character_ranged_attack(creature& e) {
 	e.rangeattack();
 }
 
-static void character_wand(creature& e) {
+static void character_use(creature& e, targetdesc ti, const char* title) {
 	item* result = 0;
-	if(!logs::getitem(e, &result, TargetItemChargeable, "С какого предмета?"))
+	if(!logs::getitem(e, &result, ti, title))
 		return;
 	if(result)
 		e.use(*result);
 }
 
+static void character_wand(creature& e) {
+	character_use(e, {TargetItemChargeable}, "С какого предмета?");
+}
+
 static void character_drink(creature& e) {
-	item* result = 0;
-	if(!logs::getitem(e, &result, TargetItemDrinkable, "Что хотите выпить?"))
-		return;
-	if(result)
-		e.use(*result);
+	character_use(e, {TargetItemDrinkable}, "Что хотите выпить?");
+}
+
+static void character_eat(creature& e) {
+	character_use(e, {TargetItemEdible}, "Что хотите съесть?");
 }
 
 static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
@@ -1406,6 +1403,7 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {Alpha + 'G', "Спрятать/Показать информацию", ui_show_hide_panel},
 {Alpha + 'Z', "Использовать палочку", character_wand},
 {Ctrl + Alpha + 'D', "Выпить что-то", character_drink},
+{Alpha + 'E', "Съесть что-то", character_eat},
 };
 
 int compare_hotkey(const void* p1, const void* p2) {
