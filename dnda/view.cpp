@@ -1238,7 +1238,7 @@ void logs::minimap(creature& e) {
 
 static void character_chat(creature& e) {
 	creature* opponent = 0;
-	if(!logs::getcreature(e, &opponent, {TargetNotHostileCreature, 1}))
+	if(!logs::getcreature(e, &opponent, {TargetNotHostileCreatureNoSelf, 1}))
 		return;
 	e.chat(opponent);
 }

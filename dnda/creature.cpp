@@ -992,7 +992,7 @@ unsigned creature::getcreatures(aref<creature*> result, targetdesc ti) const {
 	auto x = game::getx(position);
 	auto y = game::gety(position);
 	for(auto& e : creature_data) {
-		if(&e == this)
+		if(!e)
 			continue;
 		switch(ti.target) {
 		case TargetFriendlyCreature:
@@ -1003,6 +1003,12 @@ unsigned creature::getcreatures(aref<creature*> result, targetdesc ti) const {
 			if(e.isenemy(this))
 				continue;
 			break;
+		case TargetNotHostileCreatureNoSelf:
+			if(&e == this)
+				continue;
+			if(e.isenemy(this))
+				continue;
+			break;
 		case TargetHostileCreature:
 			if(!e.isenemy(this))
 				continue;
@@ -1010,10 +1016,13 @@ unsigned creature::getcreatures(aref<creature*> result, targetdesc ti) const {
 		}
 		if(game::distance(position, e.position) > ti.range)
 			continue;
-		if(linelos(x, y, game::getx(e.position), game::gety(e.position)))
+		if(!linelos(x, y, game::getx(e.position), game::gety(e.position)))
 			continue;
-		if(pb < pe)
+		if(pb < pe) {
 			*pb++ = &e;
+			if(pb >= pe)
+				break;
+		}
 	}
 	return pb - result.data;
 }

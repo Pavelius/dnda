@@ -135,7 +135,7 @@ enum img_s : unsigned char {
 };
 enum target_s : unsigned char {
 	NoTarget,
-	TargetSelf, TargetCreature, TargetNotHostileCreature, TargetFriendlyCreature, TargetHostileCreature,
+	TargetSelf, TargetCreature, TargetNotHostileCreature, TargetNotHostileCreatureNoSelf, TargetFriendlyCreature, TargetHostileCreature,
 	TargetItem, TargetItemUnidentified, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
 	TargetDoor, TargetDoorSealed,
 	TargetTrap,
@@ -187,6 +187,7 @@ struct targetinfo {
 struct targetdesc {
 	target_s		target;
 	short			range;
+	bool			los;
 };
 struct damageinfo {
 	char			min;

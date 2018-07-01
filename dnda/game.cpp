@@ -505,7 +505,7 @@ bool logs::getcreature(const creature& e, creature** result, targetdesc ti) {
 		return false;
 	}
 	short unsigned source_index[64];
-	for(int i = 0; source[i] && i < sizeof(source) / sizeof(source[0]); i++)
+	for(unsigned i = 0; i < count; i++)
 		source_index[i] = source[i]->position;
 	auto pn = logs::choose(e, source_index, count);
 	auto pi = zfind(source_index, pn);
