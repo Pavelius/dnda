@@ -50,24 +50,29 @@ static void identify(effectparam& e) {
 
 static struct spell_info {
 	const char*			name;
+	const char*			nameof;
 	short unsigned		cost;
 	short unsigned		cost_reduce_by_level;
 	effectinfo			effect;
-} spell_data[] = {{"Не заклинания"},
-{"Броня", 10, 0, {{TargetSelf}, {}, setstate, 4*Hour, {Armored}, "%герой озарил%ась синим светом."}},
-{"Блаословение", 8, 0, {{TargetNotHostileCreature, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
-{"Очаровать персону", 13, 0, {{TargetCreature, 4}, {SaveAbility, Wisdow}, setcharmer, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}},
-{"Определить зло", 12, 0, {{TargetInvertory}, {}, detect_evil, Instant, {}, "%1 осветился красным светом."}},
-{"Лечение", 7, 0, {{TargetNotHostileCreature, 1}, {}, healdamage, Instant, {}, "%1 озарился белым светом.", {2, 6, Magic}}},
-{"Опознать предмет", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
-{"Невидимость", 8, 0, {{TargetFriendlyCreature, 1}, {}, setstate, Hour, {Hiding}, "Внезапно %1 исчез%ла из виду."}},
-{"Волшебный снаряд", 3, 0, {{TargetHostileCreature, 6}, {}, setdamage, Instant, {}, "Несколько светящихся шариков поразили %героя.", {2, 8, Magic}}},
-{"Щит", 6, 0, {{TargetSelf}, {}, setstate, Hour / 2, {Shielded}, "Перед %героем появился полупрозрачный барьер."}},
-{"Шокирующая хватка", 4, 0, {{TargetHostileCreature, 1}, {}, setdamage, Instant, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
-{"Усыпление", 5, 0, {{TargetHostileCreature}, {SaveAbility, Wisdow}, setstate, Minute, {Sleeped}, "Внезапно %герой заснул%а.", {}}},
+} spell_data[] = {{"Не заклинания", ""},
+{"Броня", "брони", 10, 0, {{TargetSelf}, {}, setstate, 4*Hour, {Armored}, "%герой озарил%ась синим светом."}},
+{"Блаословение", "благословения", 8, 0, {{TargetNotHostileCreature, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
+{"Очаровать персону", "шарма", 13, 0, {{TargetCreature, 4}, {SaveAbility, Wisdow}, setcharmer, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}},
+{"Определить зло", "определения зла", 12, 0, {{TargetInvertory}, {}, detect_evil, Instant, {}, "%1 осветился красным светом."}},
+{"Лечение", "исцеления", 7, 0, {{TargetNotHostileCreature, 1}, {}, healdamage, Instant, {}, "%1 озарился белым светом.", {2, 6, Magic}}},
+{"Опознать предмет", "опознания", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
+{"Невидимость", "невидимости", 8, 0, {{TargetFriendlyCreature, 1}, {}, setstate, Hour, {Hiding}, "Внезапно %1 исчез%ла из виду."}},
+{"Волшебный снаряд", "колдовства", 3, 0, {{TargetHostileCreature, 6}, {}, setdamage, Instant, {}, "Несколько светящихся шариков поразили %героя.", {2, 8, Magic}}},
+{"Щит", "щита", 6, 0, {{TargetSelf}, {}, setstate, Hour / 2, {Shielded}, "Перед %героем появился полупрозрачный барьер."}},
+{"Шокирующая хватка", "электричества", 4, 0, {{TargetHostileCreature, 1}, {}, setdamage, Instant, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
+{"Усыпление", "усыпления", 5, 0, {{TargetHostileCreature}, {SaveAbility, Wisdow}, setstate, Minute, {Sleeped}, "Внезапно %герой заснул%а.", {}}},
 };
 assert_enum(spell, LastSpell);
 getstr_enum(spell);
+
+const char* item::getname(spell_s value) {
+	return spell_data[value].nameof;
+}
 
 int creature::getcost(spell_s value) const {
 	auto level = get(value);

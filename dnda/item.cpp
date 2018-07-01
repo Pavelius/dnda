@@ -45,7 +45,7 @@ static magic_s axe_effect[] = {OfStrenght, OfDestruction, OfSharping, OfSmashing
 static magic_s bludgeon_effect[] = {OfStrenght, OfDestruction, OfSmashing, OfConstitution};
 static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
 static spell_s scroll_spells[] = {Identify, Armor, ShieldSpell};
-static spell_s wand_spells[] = {MagicMissile, HealingSpell, ShokingGrasp};
+static spell_s wand_spells[] = {MagicMissile, HealingSpell, ShokingGrasp, Sleep};
 static spell_s staff_spells[] = {MagicMissile, ShokingGrasp, Sleep};
 static state_s potion_states[] = {Anger, Poisoned, PoisonedWeak, Blessed, Goodwill, Hiding, Sleeped,
 Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic};
@@ -68,6 +68,7 @@ static constexpr struct item_info {
 	unsigned char		count;
 	unsigned char		charges;
 	aref<state_s>		states;
+	foodinfo			food;
 } item_data[] = {{"Пусто"},
 {"Боевой топор", 5 * GP, {1, {1, 8, Slashing}}, {Versatile}, {Melee}, WeaponFocusAxes, axe_effect},
 {"Дубина", 5 * CP, {2, {1, 6}}, {}, {Melee}, NoSkill, bludgeon_effect},
@@ -101,14 +102,14 @@ static constexpr struct item_info {
 {"Шлем", 5 * GP, {0, {}, {}, {1}}, {}, {Head}},
 {"Наручи", 3 * GP, {0, {}, {}, {1}}, {}, {Elbows}},
 //
-{"Сухпаек", 3 * SP},
-{"Яблоко", 1 * SP},
-{"Хлеб хоббитов", 5 * SP},
-{"Хлеб эльфов", 10 * SP},
-{"Хлеб гномов", 2 * SP},
-{"Печенье", 1 * SP},
-{"Колбаса", 8 * SP},
-{"Мясо", 5 * SP},
+{"Сухпаек", 3 * SP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {5, 0, {1, 0, 1, 0, 0, 0}}},
+{"Яблоко", 1 * SP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {1, 0, {2, 0, 0, 0, 0, 0}}},
+{"Хлеб хоббитов", 5 * SP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {3, 0, {0, 3, 2, 0, 0, 0}, 10}},
+{"Хлеб эльфов", 10 * SP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {4, 0, {0, 4, 0, 1, 0, 0}, 20}},
+{"Хлеб гномов", 2 * SP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {2, 0, {1, 0, 4, 0, 0, 0}}},
+{"Печенье", 1 * SP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {1, 0, {0, 0, 0, 1, 0, 1}}},
+{"Колбаса", 8 * SP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {4, 0, {1, 1, 1, 0, 0, 0}}},
+{"Мясо", 5 * SP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {2, 0, {2, 0, 0, 0, 0, 0}}},
 //
 {"Свиток", 5 * GP, {}, {}, {}, NoSkill, {}, scroll_spells},
 {"Свиток", 6 * GP, {}, {}, {}, NoSkill, {}, scroll_spells},
@@ -166,7 +167,7 @@ item::item(item_s type, int level, int chance_curse) : item(type) {
 	if(item_data[type].spells) {
 		if(magic == Artifact
 			|| (is(Melee) && magic != Mundane && d100() < level)
-			|| (!is(Melee) && d100() < 80))
+			|| !is(Melee))
 			effect = (magic_s)item_data[type].spells.data[rand() % item_data[type].spells.count];
 	}
 	// Spell be on mostly any scroll or wand
@@ -317,20 +318,12 @@ bool item::isreadable() const {
 	}
 }
 
+const foodinfo& item::getfood() const {
+	return item_data[type].food;
+}
+
 bool item::isedible() const {
-	switch(type) {
-	case Meat:
-	case BreadEvlen:
-	case BreadDwarven:
-	case BreadHalflings:
-	case Ration:
-	case Apple:
-	case Cake:
-	case Sausage:
-		return true;
-	default:
-		return false;
-	}
+	return item_data[type].food.hits!=0;
 }
 
 int item::getarmor() const {
@@ -376,18 +369,17 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 	auto effect = geteffect();
 	auto spell = getspell();
 	auto state = getstate();
+	auto identify = getidentify();
 	sc.prints(result, result_maximum, item_data[type].name);
-	if(getidentify() >= KnowEffect) {
-		if(effect)
-			sc.prints(zend(result), result_maximum, " %1%+2i", getstr(effect), bonus);
-		else if(spell)
-			sc.prints(zend(result), result_maximum, " '%1'", getstr(spell));
-		else if(state)
-			sc.prints(zend(result), result_maximum, " %1", getstr(state));
-	}
+	if(effect && identify>=KnowEffect)
+		sc.prints(zend(result), result_maximum, " %1%+2i", getstr(effect), bonus);
+	else if(spell && identify >= KnowQuality)
+		sc.prints(zend(result), result_maximum, " %1", getname(spell));
+	else if(state && identify >= KnowQuality)
+		sc.prints(zend(result), result_maximum, " %1", getname(state));
 	if(show_info) {
 		auto p = zend(result);
-		if(getidentify() >= KnowQuality) {
+		if(identify >= KnowQuality) {
 			if(is(Melee) || is(Ranged)) {
 				attackinfo e = {0}; get(e);
 				szblock(sc, p, result_maximum, "урон %2i-%3i", e.bonus, e.damage.min, e.damage.max);

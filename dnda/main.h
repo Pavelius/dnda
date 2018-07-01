@@ -89,8 +89,8 @@ enum state_s : unsigned char {
 	Healthy, Hiding, Goodwill,
 	Intellegenced, Lighted,
 	PoisonedWeak, Poisoned, PoisonedStrong,
-	Shielded, Scared, Sleeped, Strenghted,
-	Wisdowed,
+	Shielded, Sick, Scared, Sleeped, Strenghted,
+	Weaken, Wisdowed,
 	LastState = Wisdowed
 };
 enum tile_s : unsigned char {
@@ -194,6 +194,15 @@ struct damageinfo {
 	explicit operator bool() const { return max != 0; }
 	int				roll() const;
 };
+struct foodinfo {
+	char			hits;
+	char			mana;
+	char			abilities[Charisma + 1];
+	char			sickness;
+	char			poision;
+	explicit operator bool() const { return hits != 0; }
+	int				get(int value) const { return value * 50; }
+};
 struct effectinfo {
 	struct savec {
 		save_s		type;
@@ -252,9 +261,11 @@ public:
 	int				getdefence() const;
 	magic_s			geteffect() const;
 	skill_s			getfocus() const;
+	const foodinfo& getfood() const;
 	identify_s		getidentify() const { return identify; }
 	static unsigned	getitems(item_s* result, slot_s* slots, unsigned slots_count);
 	item_type_s		getmagic() const { return magic; }
+	static const char* getname(spell_s value);
 	static const char* getname(state_s value);
 	char*			getname(char* result, const char* result_maximum, bool show_info = true) const;
 	int				getquality() const;
@@ -313,7 +324,7 @@ struct creature {
 	item			backpack[16];
 	//
 	constexpr creature() : race(NoRace), type(Cleric), gender(NoGender), role(Character), direction(Left),
-		abilities(), skills(), spells(), name(), level(),
+		abilities(), abilities_raise(), skills(), spells(), name(), level(),
 		wears(), backpack(), states(),
 		hp(), mhp(), mp(), mmp(),
 		recoil(), restore_hits(), restore_mana(), experience(), money(),
@@ -333,6 +344,7 @@ struct creature {
 	void			choosebestability();
 	void			clear();
 	void			clear(state_s value) { states[value] = 0; }
+	void			consume(int value, bool interactive);
 	void			damage(int count, bool ignore_armor, bool interactive);
 	void			damage(damageinfo dice, bool interactive = true);
 	void			drink(item& it, bool interactive);
@@ -362,6 +374,7 @@ struct creature {
 	const char*		getmonstername() const;
 	int				getmoverecoil() const;
 	const char*		getname() const; // Name used predefined names array
+	static const char* getname(state_s id, bool cursed);
 	creature*		getnearest(target_s target) const;
 	int				getobjects(short unsigned* result, unsigned count, target_s target, int range) const;
 	static creature* getplayer();
@@ -411,6 +424,7 @@ struct creature {
 	bool			walkaround();
 private:
 	char			abilities[Charisma + 1];
+	short			abilities_raise[Charisma + 1];
 	short			hp, mhp, mp, mmp;
 	unsigned		restore_hits, restore_mana;
 	unsigned char	skills[LastSkill + 1];

@@ -19,12 +19,11 @@ int main(int argc, char* argv[]) {
 	p2->equip({Shield, Mundane, NoEffect, 3});
 	for(int i=0; i<6; i++)
 		add(get(14, 14), new creature(GoblinWarrior));
-	serialize(true);
 	play();
 }
 
 int __stdcall WinMain(void* ci, void* pi, char* cmd, int sw) {
 	unsigned c = clock();
-	srand(100);
+	srand(c);
 	return main(0, 0);
 }

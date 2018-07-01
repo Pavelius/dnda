@@ -786,6 +786,7 @@ template<> void archive::set<creature>(creature& e) {
 	set(e.role);
 	set(e.direction);
 	set(e.abilities);
+	set(e.abilities_raise);
 	set(e.skills);
 	set(e.spells);
 	set(e.name);
@@ -811,6 +812,7 @@ template<> void archive::set<creature>(creature& e) {
 }
 
 bool game::serialize(bool writemode) {
+	return false;
 	char temp[260];
 	zcpy(temp, "maps/D");
 	sznum(zend(temp), statistic.level, 2, "XX");

@@ -41,14 +41,13 @@ static struct equipment_info {
 	race_s				race;
 	class_s				type;
 	item_s				equipment[8];
-	skill_s				skill;
-} equipment_data[] = {{Dwarf, Fighter, {AxeBattle, ScaleMail, Shield, Ration}},
-{NoRace, Cleric, {Mace, Ration}},
-{NoRace, Fighter, {SwordLong, LeatherArmour, Shield, Ration}},
+} equipment_data[] = {{Dwarf, Fighter, {AxeBattle, ScaleMail, Shield, BreadDwarven}},
+{NoRace, Cleric, {Mace}},
+{NoRace, Fighter, {SwordLong, LeatherArmour, Shield}},
 {NoRace, Paladin, {SwordLong, ScaleMail}},
 {NoRace, Ranger, {SwordLong, SwordShort, LeatherArmour}},
 {NoRace, Theif, {SwordShort, LeatherArmour}},
-{NoRace, Mage, {Staff}},
+{NoRace, Mage, {Staff, WandGreen, ScrollRed, ScrollGreen, ScrollBlue, PotionBlue}},
 };
 
 static struct class_info {
@@ -58,13 +57,12 @@ static struct class_info {
 	ability_s			ability;
 	cflags<skill_s>		skills;
 	cflags<spell_s>		spells;
-	item_s				equipment[8];
-} class_data[] = {{"Клерик", 8, 8, 2, Wisdow, {Diplomacy, History, Healing}, {Bless, HealingSpell}, {Mace}},
-{"Воин", 10, 4, 1, Strenght, {Survival, WeaponFocusBlades, WeaponFocusAxes}, {}, {SwordLong, LeatherArmour, Shield}},
-{"Маг", 4, 10, 4, Intellegence, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}, {Staff}},
-{"Паладин", 10, 4, 1, Strenght, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}, {SwordLong, ScaleMail}},
-{"Следопыт", 10, 6, 2, Strenght, {Survival, WeaponFocusBows}, {}, {SwordLong, SwordShort, LeatherArmour}},
-{"Вор", 6, 4, 3, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff}, {}, {SwordShort, LeatherArmour}},
+} class_data[] = {{"Клерик", 8, 8, 2, Wisdow, {Diplomacy, History, Healing}, {Bless, HealingSpell}},
+{"Воин", 10, 4, 1, Strenght, {Survival, WeaponFocusBlades, WeaponFocusAxes}},
+{"Маг", 4, 10, 4, Intellegence, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
+{"Паладин", 10, 4, 1, Strenght, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}},
+{"Следопыт", 10, 6, 2, Strenght, {Survival, WeaponFocusBows}, {}},
+{"Вор", 6, 4, 3, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff}},
 };
 assert_enum(class, Theif);
 getstr_enum(class);
@@ -73,18 +71,25 @@ static int roll3d6() {
 	return (rand() % 6) + (rand() % 6) + (rand() % 6) + 3;
 }
 
+static item random(item_s i) {
+	item it(i, 5, 0);
+	it.set(KnowEffect);
+	return it;
+}
+
 static void start_equipment(creature& e) {
 	for(auto& ei : equipment_data) {
 		if((ei.race == e.race || ei.race == NoRace) && ei.type == e.type) {
 			for(auto i : ei.equipment) {
 				if(!i)
 					break;
-				e.equip(i);
+				e.equip(random(i));
 			}
-			e.money += xrand(3, 18);
-			return;
+			break;
 		}
 	}
+	e.equip(random(Ration));
+	e.money += xrand(3, 18);
 }
 
 void creature::hint(const char* format, ...) const {
@@ -891,7 +896,7 @@ int creature::getcreatures(creature** result, unsigned count, target_s target, i
 			continue;
 		switch(target) {
 		case TargetFriendlyCreature:
-			if(e!=this && !isfriend(e))
+			if(e != this && !isfriend(e))
 				continue;
 			break;
 		case TargetNotHostileCreature:
@@ -1233,11 +1238,59 @@ void creature::actv(const char* format, const char* param) const {
 	logs::addv(driver, format, param);
 }
 
+void creature::consume(int value, bool interactive) {
+	auto mmp = getmaxmana();
+	mp -= value;
+	if(mp > mmp)
+		mp = mmp;
+	if(mp < 0)
+		mp = 0;
+}
+
+static state_s get_ability_state(ability_s id) {
+	switch(id) {
+	case Dexterity: return Dexterious;
+	case Constitution: return Healthy;
+	case Intellegence: return Intellegenced;
+	case Wisdow: return Wisdowed;
+	case Charisma: return Charismatic;
+	default: return Strenghted;
+	}
+}
+
 void creature::use(item& it) {
-	char temp[260]; it.getname(temp, zendof(temp), false);
-	if(it.isdrinkable())
+	if(it.isedible()) {
+		char temp[260]; grammar::of(temp, getstr(it.gettype())); szlower(temp);
+		act("%герой съел%а %1.", temp);
+		auto& e = it.getfood();
+		auto q = it.getquality();
+		damage(-e.hits, true, false);
+		consume(-e.mana, false);
+		if(d100() < e.sickness) {
+			remove(Sick);
+			remove(Weaken);
+		}
+		if(d100() < e.poision) {
+			remove(PoisonedWeak);
+			remove(Poisoned);
+			remove(PoisonedStrong);
+		}
+		for(auto i = 0; i <= Charisma; i++)
+			abilities_raise[i] += e.abilities[i];
+		for(auto i = Strenght; i <= Charisma; i = (ability_s)(i + 1)) {
+			auto m = e.get(abilities[i]);
+			if(abilities_raise[i] >= m) {
+				abilities[i]++;
+				abilities_raise[i] -= m;
+				hint("Вы почувствовали себя %1", getname(get_ability_state(i), false));
+			}
+		}
+		it.clear();
+		wait(Minute);
+	} else if(it.isdrinkable())
 		drink(it, true);
 	else if(it.ischargeable()) {
+		char temp[260]; it.getname(temp, zendof(temp), false);
 		it.set(KnowEffect);
 		auto spell = it.getspell();
 		if(!spell)
