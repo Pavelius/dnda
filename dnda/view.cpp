@@ -174,14 +174,33 @@ static int shortcutnb(int x, int y, int w, int key) {
 	return x + w;
 }
 
-static int shortcut(int x, int y, int w, int key) {
+static int shortcut(int x, int y, int w, int index) {
 	draw::state push;
 	char temp[32];
 	char temx[32];
 	draw::fore = colors::green;
-	szprints(temx, zendof(temx), "%1)", key2str(temp, key));
+	temp[0] = temp[1] = 0;
+	if(index < 9)
+		temp[0] = '1' + index;
+	else if(index==9)
+		temp[0] = '0';
+	else
+		temp[0] = 'A' + (index-10);
+	szprints(temx, zendof(temx), "%1)", temp);
 	draw::text(x, y, temx);
 	return x + w;
+}
+
+static bool getkey(int& id) {
+	if(id >= (Alpha + '1') && id <= (Alpha + '9'))
+		id = id - (Alpha + '1');
+	else if(id == '0')
+		id = 9;
+	else if(id >= (Alpha + 'A') && id <= (Alpha + 'Z'))
+		id = id - (Alpha + 'A') + 10;
+	else
+		return false;
+	return true;
 }
 
 static int field(int x, int y, int w, const char* name, int value) {
@@ -840,7 +859,7 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 		y += view_dialog({x, y, x + width, y + height}, title);
 		for(unsigned i = 0; i < count; i++) {
 			char temp[260];
-			auto x1 = shortcut(x, y, 32, Alpha + 'A' + i);
+			auto x1 = shortcut(x, y, 32, i);
 			x1 = textl(x1, y, 408, *source[i]);
 			x1 = textr(x1, y, 60, szweight(temp, source[i]->getweight()));
 			y += dy;
@@ -852,11 +871,10 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 		case KeyEscape:
 			return 0;
 		default:
-			if(id >= Alpha + 'A' && id <= Alpha + 'Z') {
+			if(getkey(id)) {
 				auto count = zlen(source);
-				auto pos = id - (Alpha + 'A');
-				if(pos < count)
-					return source[pos];
+				if(id < count)
+					return source[id];
 			}
 			break;
 		}
@@ -939,7 +957,7 @@ static void character_invertory(creature& e) {
 		auto p = source;
 		for(auto i = Head; i <= Amunitions; i = (slot_s)(i + 1)) {
 			char temp[260];
-			auto x1 = shortcut(x, y, 32, Alpha + 'A' + i);
+			auto x1 = shortcut(x, y, 32, i);
 			x1 = textl(x1, y, 108, szprints(temp, zendof(temp), "%1:", getstr(i)));
 			if(e.wears[i]) {
 				x1 = textl(x1, y, 300, e.wears[i]);
@@ -957,8 +975,8 @@ static void character_invertory(creature& e) {
 		case KeyEscape:
 			return;
 		default:
-			if(id >= Alpha + 'A' && id <= Alpha + 'A' + Amunitions) {
-				auto slot = (slot_s)(id - (Alpha + 'A'));
+			if(getkey(id)) {
+				auto slot = (slot_s)id;
 				if(e.wears[slot]) {
 					if(!e.pickup(e.wears[slot]))
 						game::drop(e.position, e.wears[slot]);
@@ -979,7 +997,7 @@ static void character_invertory(creature& e) {
 
 short unsigned logs::choose(const creature& e, short unsigned* source, int count) {
 	if(!count)
-		return 0xFFFF;
+		return Blocked;
 	else if(count == 1)
 		return source[0];
 	int current = 0;
@@ -1065,7 +1083,7 @@ bool logs::choose(creature& e, skill_s& result, skill_s* source, unsigned count,
 			auto i = source[in];
 			if(e.getbasic(i) <= 0)
 				continue;
-			auto x1 = shortcut(x, y, 32, Alpha + 'A' + (index++));
+			auto x1 = shortcut(x, y, 32, index++);
 			x1 = textl(x1, y, 308, getstr(i));
 			x1 = textl(x1, y, 60, szpercent(temp, zendof(temp), e.get(i)));
 			y += dy;
@@ -1079,10 +1097,9 @@ bool logs::choose(creature& e, skill_s& result, skill_s* source, unsigned count,
 				return false;
 			break;
 		default:
-			if(id >= Alpha + 'A' && id <= Alpha + 'Z') {
-				auto pos = (unsigned)(id - (Alpha + 'A'));
-				if(pos < count) {
-					result = source[pos];
+			if(getkey(id)) {
+				if(id < (int)count) {
+					result = source[id];
 					return true;
 				}
 			}
@@ -1119,7 +1136,7 @@ bool logs::choose(creature& e, spell_s& result, spell_s* source, unsigned count)
 			auto i = source[in];
 			if(e.get(i) <= 0)
 				continue;
-			auto x1 = shortcut(x, y, 32, Alpha + 'A' + (index++));
+			auto x1 = shortcut(x, y, 32, index++);
 			x1 = textl(x1, y, 308, szprints(temp, zendof(temp), getstr(i)));
 			x1 = textl(x1, y, 60, szprints(temp, zendof(temp), "%1i", e.getcost(i)));
 			y += dy;
@@ -1131,10 +1148,9 @@ bool logs::choose(creature& e, spell_s& result, spell_s* source, unsigned count)
 		case KeyEscape:
 			return false;
 		default:
-			if(id >= Alpha + 'A' && id <= Alpha + 'Z') {
-				auto pos = (unsigned)(id - (Alpha + 'A'));
-				if(pos < count) {
-					result = source[pos];
+			if(getkey(id)) {
+				if(id < (int)count) {
+					result = source[id];
 					return true;
 				}
 			}
