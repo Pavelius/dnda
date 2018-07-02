@@ -44,11 +44,13 @@ static magic_s swords_effect[] = {OfDefence, OfDexterity, OfSpeed, OfPrecision, 
 static magic_s axe_effect[] = {OfStrenght, OfDestruction, OfSharping, OfSmashing};
 static magic_s bludgeon_effect[] = {OfStrenght, OfDestruction, OfSmashing, OfConstitution};
 static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
-static spell_s scroll_spells[] = {Identify, Armor, ShieldSpell};
-static spell_s wand_spells[] = {MagicMissile, HealingSpell, ShokingGrasp, Sleep};
-static spell_s staff_spells[] = {MagicMissile, ShokingGrasp, Sleep};
-static state_s potion_states[] = {Anger, Poisoned, PoisonedWeak, Blessed, Goodwill, Hiding, Sleeped,
-Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic};
+static spell_s scroll_spells[] = {CharmPerson, Identify, Armor, ShieldSpell};
+static spell_s wand_spells[] = {Fear, MagicMissile, HealingSpell, ShokingGrasp, Sleep};
+static spell_s staff_spells[] = {Fear, MagicMissile, ShokingGrasp, Sleep};
+static state_s potion_red[] = {Anger, Blessed, Goodwill, Dexterious, Healthy, Intellegenced, Charismatic};
+static state_s potion_blue[] = {Blessed, Goodwill, Hiding, Sleeped, HealState, RemovePoison, RemoveSick, Healthy, Wisdowed};
+static state_s potion_green[] = {Poisoned, PoisonedWeak, PoisonedStrong, Sleeped, Sick,
+RemovePoison, RemoveSick, Strenghted, Healthy};
 static constexpr struct item_info {
 	struct combat_info {
 		char			speed;
@@ -121,9 +123,9 @@ static constexpr struct item_info {
 //
 {"Книга"},
 //
-{"Зелье", 20 * GP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_states},
-{"Зелье", 25 * GP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_states},
-{"Зелье", 30 * GP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_states},
+{"Зелье", 20 * GP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_red},
+{"Зелье", 25 * GP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_green},
+{"Зелье", 30 * GP, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_blue},
 //
 {"Ключ"},
 {"Монета", 1, {}, {}, {}, NoSkill, {}, {}, NoItem, 50},

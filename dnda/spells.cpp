@@ -68,17 +68,18 @@ static struct spell_info {
 	effectinfo			effect;
 } spell_data[] = {{"", ""},
 {"Броня", "брони", 10, 0, {{TargetSelf}, {}, setstate, 4 * Hour, {Armored}, "%герой озарил%ась синим светом."}},
-{"Благословение", "благословения", 8, 0, {{TargetNotHostileCreature, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
-{"Очаровать персону", "шарма", 13, 0, {{TargetNotHostileCreatureNoSelf, 4}, {SaveAbility, Wisdow}, setstate, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}},
+{"Благословение", "благословения", 8, 0, {{TargetNoHostile, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
+{"Очаровать персону", "шарма", 13, 0, {{TargetNoHostileNoSelf, 4}, {SaveAbility, Wisdow}, setstate, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}},
 {"Определить зло", "определения зла", 12, 0, {{TargetInvertory}, {}, detect_evil, Instant, {}, "%1 осветился красным светом."}},
-{"Страх", "страха", 5, 0, {{TargetHostileCreature, 5, 2}, {SaveAbility, Wisdow}, setstate, 5 * Minute, {Scared}, "%герой запаниковал%а и начал%а бежать.", {}}},
-{"Лечение", "исцеления", 7, 0, {{TargetNotHostileCreature, 1}, {}, healdamage, Instant, {}, "%1 озарился белым светом.", {2, 6, Magic}}},
+{"Страх", "страха", 5, 0, {{TargetHostile, 5, 2}, {SaveAbility, Wisdow}, setstate, 5 * Minute, {Scared}, "%герой запаниковал%а и начал%а бежать.", {}}},
+{"Лечение", "исцеления", 7, 0, {{TargetNoHostile, 1}, {}, healdamage, Instant, {}, "%герой озарился белым светом.", {2, 6, Magic}}},
 {"Опознать предмет", "опознания", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
-{"Невидимость", "невидимости", 8, 0, {{TargetNotHostileCreature, 1}, {}, setstate, Hour, {Hiding}, "Внезапно %1 исчез%ла из виду."}},
-{"Волшебный снаряд", "колдовства", 3, 0, {{TargetHostileCreature, 6}, {}, setdamage, Instant, {}, "Несколько светящихся шариков поразили %героя.", {2, 8, Magic}}},
+{"Невидимость", "невидимости", 8, 0, {{TargetNoHostile, 1}, {}, setstate, Hour, {Hiding}, "%герой исчез%ла из виду."}},
+{"Свет", "света", 1, 0, {{TargetNoHostile, 1}, {}, setstate, Hour, {Lighted}, "Вокруг %героя появилось несколько светящихся шариков."}},
+{"Волшебный снаряд", "колдовства", 3, 0, {{TargetHostile, 6}, {}, setdamage, Instant, {}, "Несколько светящихся шариков поразили %героя.", {2, 8, Magic}}},
 {"Щит", "щита", 6, 0, {{TargetSelf}, {}, setstate, Hour / 2, {Shielded}, "Перед %героем появился полупрозрачный барьер."}},
-{"Шокирующая хватка", "электричества", 4, 0, {{TargetHostileCreature, 1}, {}, setdamage, Instant, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
-{"Усыпление", "усыпления", 5, 0, {{TargetHostileCreature}, {SaveAbility, Wisdow}, setstate, Minute, {Sleeped}, "Внезапно %герой заснул%а.", {}}},
+{"Шокирующая хватка", "электричества", 4, 0, {{TargetHostile, 1}, {}, setdamage, Instant, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
+{"Усыпление", "усыпления", 5, 0, {{TargetHostile, 4}, {SaveAbility, Wisdow}, setstate, Minute, {Sleeped}, "Внезапно %герой заснул%а.", {}}},
 };
 assert_enum(spell, LastSpell);
 getstr_enum(spell);

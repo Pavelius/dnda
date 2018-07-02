@@ -497,10 +497,10 @@ bool creature::equip(item value) {
 	for(auto i = Head; i <= LastBackpack; i = (slot_s)(i + 1)) {
 		if(wears[i])
 			continue;
-		if(i<FirstBackpack && !value.is(i))
+		if(i < FirstBackpack && !value.is(i))
 			continue;
 		wears[i] = value;
-		if(i<FirstBackpack)
+		if(i < FirstBackpack)
 			wears[i].set(KnowQuality);
 		return true;
 	}
@@ -606,7 +606,7 @@ void creature::makemove() {
 		return;
 	}
 	if(!enemy)
-		enemy = getnearest({TargetHostileCreature});
+		enemy = getnearest({TargetHostile});
 	// Make move depends on conditions
 	if(horror)
 		moveaway(horror->position);
@@ -844,7 +844,7 @@ void creature::damage(int value, bool ignore_armor, bool interactive) {
 			for(auto& e : wears) {
 				if(!e)
 					continue;
-				if(party==current_player || (d100() < chance_loot)) {
+				if(party == current_player || (d100() < chance_loot)) {
 					e.loot();
 					drop(position, e);
 				}
@@ -879,7 +879,7 @@ void creature::rangeattack() {
 			}
 		}
 	}
-	auto enemy = getnearest({TargetHostileCreature});
+	auto enemy = getnearest({TargetHostile});
 	if(!enemy) {
 		if(isplayer())
 			logs::add("Вокруг нет подходящей цели", getstr(ammo));
@@ -1007,15 +1007,15 @@ unsigned creature::getcreatures(aref<creature*> result, targetdesc ti, short uns
 			if(!e.isfriend(player))
 				continue;
 			break;
-		case TargetNotHostileCreature:
+		case TargetNoHostile:
 			if(e.isenemy(player))
 				continue;
 			break;
-		case TargetNotHostileCreatureNoSelf:
+		case TargetNoHostileNoSelf:
 			if(e.isenemy(player))
 				continue;
 			break;
-		case TargetHostileCreature:
+		case TargetHostile:
 			if(!e.isenemy(player))
 				continue;
 			break;
@@ -1038,7 +1038,7 @@ unsigned creature::getcreatures(aref<creature*> result, targetdesc ti) const {
 		ti.range = getlos();
 	const creature* exclude = 0;
 	if(ti.target == TargetFriendlyCreature
-		|| ti.target == TargetNotHostileCreatureNoSelf)
+		|| ti.target == TargetNoHostileNoSelf)
 		exclude = this;
 	return getcreatures(result, ti, position, this, exclude);
 }
@@ -1181,17 +1181,35 @@ bool creature::use(short unsigned index) {
 }
 
 void creature::remove(state_s value) {
-	states[value] = segments;
+	if(value<=LastState)
+		states[value] = segments;
 }
 
 void creature::set(state_s value, unsigned segments_count) {
-	unsigned stop = segments + segments_count;
-	if(states[value] < stop)
-		states[value] = stop;
+	switch(value) {
+	case HealState:
+		damage(-xrand(segments_count, segments_count + segments_count), false, false);
+		break;
+	case RemovePoison:
+		remove(Poisoned);
+		remove(PoisonedWeak);
+		remove(PoisonedStrong);
+		break;
+	case RemoveSick:
+		remove(Sick);
+		break;
+	default:
+		if(value <= LastState) {
+			unsigned stop = segments + segments_count;
+			if(states[value] < stop)
+				states[value] = stop;
+		}
+		break;
+	}
 }
 
 bool creature::gettarget(targetinfo& result, const targetdesc ti) const {
-	if(ti.target >= TargetCreature && ti.target <= TargetHostileCreature) {
+	if(ti.target >= TargetCreature && ti.target <= TargetHostile) {
 		if(!logs::getcreature(*this, &result.cre, ti))
 			return false;
 	} else if(ti.target >= TargetItem && ti.target <= TargetItemChargeable) {

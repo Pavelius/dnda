@@ -92,7 +92,9 @@ enum state_s : unsigned char {
 	PoisonedWeak, Poisoned, PoisonedStrong,
 	Shielded, Sick, Scared, Sleeped, Strenghted,
 	Weaken, Wisdowed,
-	LastState = Wisdowed
+	LastState = Wisdowed,
+	HealState, RemoveSick, RemovePoison,
+	LastEffectState = RemovePoison,
 };
 enum tile_s : unsigned char {
 	NoTile,
@@ -135,14 +137,14 @@ enum img_s : unsigned char {
 };
 enum target_s : unsigned char {
 	NoTarget,
-	TargetSelf, TargetCreature, TargetNotHostileCreature, TargetNotHostileCreatureNoSelf, TargetFriendlyCreature, TargetHostileCreature,
+	TargetSelf, TargetCreature, TargetNoHostile, TargetNoHostileNoSelf, TargetFriendlyCreature, TargetHostile,
 	TargetItem, TargetItemUnidentified, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
 	TargetDoor, TargetDoorSealed,
 	TargetTrap,
 };
 enum spell_s : unsigned char {
 	NoSpell,
-	Armor, Bless, CharmPerson, DetectEvil, Fear, HealingSpell, Identify, Invisibility, MagicMissile,
+	Armor, Bless, CharmPerson, DetectEvil, Fear, HealingSpell, Identify, Invisibility, LightSpell, MagicMissile,
 	ShieldSpell, ShokingGrasp, Sleep,
 	FirstSpell = Armor, LastSpell = Sleep
 };

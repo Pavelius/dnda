@@ -13,17 +13,25 @@ int main(int argc, char* argv[]) {
 	p2->join(p1);
 	p3->join(p1);
 	p1->setplayer();
+
 	p1->equip(Fear);
+	p1->equip(LightSpell);
+
 	p3->equip(BowLong);
+	p3->equip({Arrow, 2, 10});
 	p3->equip(Identify);
 	p3->equip(item(ScrollBlue, 10));
 	p3->equip(item(WandBlue, 10));
 	p3->equip(item(PotionBlue, 10));
-	p3->equip({Arrow, 2, 10});
+	p3->equip(item(PotionRed, 10));
+	p3->equip(item(PotionGreen, 10));
 	p3->equip({SwordLong, Artifact, OfStrenght, 2});
+
 	p2->equip({Shield, Mundane, NoEffect, 3});
+
 	for(int i=0; i<6; i++)
 		add(get(14, 14), new creature(GoblinWarrior));
+
 	play();
 }
 

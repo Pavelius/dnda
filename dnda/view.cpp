@@ -203,7 +203,7 @@ static int fiela(int x, int y, int w, const char* name, int value, int basic_val
 	draw::state push;
 	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
 	if(value < basic_value)
-		draw::fore = colors::text.mix(colors::red, 64);
+		draw::fore = colors::text.mix(colors::red, 96);
 	else if(value > basic_value)
 		draw::fore = colors::text.mix(colors::green, 64);
 	draw::text(x + w, y, szprints(temp, zendof(temp), "%1i", value));
@@ -1256,7 +1256,7 @@ void logs::minimap(creature& e) {
 
 static void character_chat(creature& e) {
 	creature* opponent = 0;
-	if(!logs::getcreature(e, &opponent, {TargetNotHostileCreatureNoSelf, 1}))
+	if(!logs::getcreature(e, &opponent, {TargetNoHostileNoSelf, 1}))
 		return;
 	e.chat(opponent);
 }
