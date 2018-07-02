@@ -291,6 +291,8 @@ void creature::release(unsigned exeperience_cost) const {
 	if(isleader()) {
 		auto new_leader = gethenchmen(0);
 		setleader(party, new_leader);
+		if(current_player == this)
+			current_player = new_leader;
 	}
 }
 
