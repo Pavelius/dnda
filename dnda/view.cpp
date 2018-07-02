@@ -148,18 +148,15 @@ static int textl(int x, int y, int width, item& value) {
 	draw::state push;
 	switch(value.getidentify()) {
 	case KnowMagic:
+	case KnowEffect:
 		switch(value.getmagic()) {
-		case Artifact: draw::fore = colors::text.mix(colors::yellow, 128); break;
-		case Cursed: draw::fore = colors::text.mix(colors::red, 128); break;
-		case Magical: draw::fore = colors::text.mix(colors::blue, 128); break;
-		default: draw::fore = colors::text; break;
+		case Artifact: draw::fore = draw::fore.mix(colors::yellow, 128); break;
+		case Cursed: draw::fore = draw::fore.mix(colors::red, 128); break;
+		case Magical: draw::fore = draw::fore.mix(colors::blue, 128); break;
 		}
 		break;
 	case Unknown:
-		draw::fore = colors::text.mix(colors::black, 192);
-		break;
-	default:
-		draw::fore = colors::text;
+		draw::fore = draw::fore.mix(colors::black, 192);
 		break;
 	}
 	draw::text(x, y, temp);
