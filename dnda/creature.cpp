@@ -600,10 +600,10 @@ void creature::makemove() {
 	if(!enemy)
 		enemy = getnearest({TargetHostileCreature});
 	// Make move depends on conditions
-	if(enemy)
-		moveto(enemy->position);
-	else if(horror)
+	if(horror)
 		moveaway(horror->position);
+	else if(enemy)
+		moveto(enemy->position);
 	else if(guard != Blocked)
 		moveto(guard);
 	else if(charmer) {
@@ -984,33 +984,31 @@ static bool linelos(int x0, int y0, int x1, int y1) {
 	}
 }
 
-unsigned creature::getcreatures(aref<creature*> result, targetdesc ti) const {
+unsigned creature::getcreatures(aref<creature*> result, targetdesc ti, short unsigned position, const creature* player, const creature* exclude) {
 	auto pb = result.data;
 	auto pe = pb + result.count;
-	if(!ti.range)
-		ti.range = getlos();
 	auto x = game::getx(position);
 	auto y = game::gety(position);
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;
+		if(&e == exclude)
+			continue;
 		switch(ti.target) {
 		case TargetFriendlyCreature:
-			if(&e != this && !e.isfriend(this))
+			if(!e.isfriend(player))
 				continue;
 			break;
 		case TargetNotHostileCreature:
-			if(e.isenemy(this))
+			if(e.isenemy(player))
 				continue;
 			break;
 		case TargetNotHostileCreatureNoSelf:
-			if(&e == this)
-				continue;
-			if(e.isenemy(this))
+			if(e.isenemy(player))
 				continue;
 			break;
 		case TargetHostileCreature:
-			if(!e.isenemy(this))
+			if(!e.isenemy(player))
 				continue;
 			break;
 		}
@@ -1025,6 +1023,16 @@ unsigned creature::getcreatures(aref<creature*> result, targetdesc ti) const {
 		}
 	}
 	return pb - result.data;
+}
+
+unsigned creature::getcreatures(aref<creature*> result, targetdesc ti) const {
+	if(!ti.range)
+		ti.range = getlos();
+	const creature* exclude = 0;
+	if(ti.target == TargetFriendlyCreature
+		|| ti.target == TargetNotHostileCreatureNoSelf)
+		exclude = this;
+	return getcreatures(result, ti, position, this, exclude);
 }
 
 creature* creature::getnearest(targetdesc ti) const {

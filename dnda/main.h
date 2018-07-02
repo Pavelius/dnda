@@ -142,7 +142,7 @@ enum target_s : unsigned char {
 };
 enum spell_s : unsigned char {
 	NoSpell,
-	Armor, Bless, CharmPerson, DetectEvil, HealingSpell, Identify, Invisibility, MagicMissile,
+	Armor, Bless, CharmPerson, DetectEvil, Fear, HealingSpell, Identify, Invisibility, MagicMissile,
 	ShieldSpell, ShokingGrasp, Sleep,
 	FirstSpell = Armor, LastSpell = Sleep
 };
@@ -186,8 +186,8 @@ struct targetinfo {
 };
 struct targetdesc {
 	target_s		target;
-	short			range;
-	bool			los;
+	unsigned char	range;
+	unsigned char	area;
 };
 struct damageinfo {
 	char			min;
@@ -362,6 +362,7 @@ struct creature {
 	unsigned		getcostexp() const;
 	static creature* getcreature(short unsigned index);
 	unsigned		getcreatures(aref<creature*> result, targetdesc ti) const;
+	static unsigned	getcreatures(aref<creature*> result, targetdesc ti, short unsigned position, const creature* player, const creature* exclude);
 	int				getdefence() const;
 	int				getdiscount(creature* customer) const;
 	char*			getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;

@@ -13,6 +13,7 @@ int main(int argc, char* argv[]) {
 	p2->join(p1);
 	p3->join(p1);
 	p1->setplayer();
+	p1->equip(Fear);
 	p3->equip(BowLong);
 	p3->equip(Identify);
 	p3->equip(item(ScrollBlue, 10));
