@@ -803,10 +803,13 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 	defender->damage(damage);
 	switch(ai.effect) {
 	case OfFire:
-		defender->damage({1, 6, Fire});
+		defender->damage({1, 6 + ai.quality * 2, Fire});
 		break;
 	case OfCold:
-		defender->damage({1, 4, Cold});
+		defender->damage({1, 6 + ai.quality, Cold});
+		break;
+	case OfVampirism:
+		attacker->damage(-(xrand(1, 4) + ai.quality), false, Magic, true);
 		break;
 	}
 }

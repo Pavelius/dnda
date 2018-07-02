@@ -50,7 +50,7 @@ enum magic_s : unsigned char {
 	OfPrecision,
 	OfRegeneration,
 	OfSharping, OfSmashing, OfSpeed, OfStrenght,
-	OfWisdow,
+	OfVampirism, OfWisdow,
 };
 enum race_s : unsigned char {
 	NoRace,

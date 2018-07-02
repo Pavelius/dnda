@@ -25,6 +25,7 @@ static struct magic_info {
 {"smashing", "раскалывания"},
 {"speed", "скорости"},
 {"strenght", "силы"},
+{"vampirism", "вампиризма"},
 {"wisdow", "мудрости"},
 };
 assert_enum(magic, OfWisdow);
@@ -42,9 +43,9 @@ static const char* key_names[][2] = {{"simple", "простой"},
 {"stone", "каменный"},
 {"crystal", "кристальный"},
 };
-static magic_s swords_effect[] = {OfDefence, OfDexterity, OfSpeed, OfPrecision, OfSharping};
-static magic_s axe_effect[] = {OfStrenght, OfDestruction, OfSharping, OfSmashing};
-static magic_s bludgeon_effect[] = {OfStrenght, OfDestruction, OfSmashing, OfConstitution};
+static magic_s swords_effect[] = {OfCold, OfDefence, OfDexterity, OfFire, OfSpeed, OfPrecision, OfSharping, OfVampirism};
+static magic_s axe_effect[] = {OfStrenght, OfDestruction, OfFire, OfSharping, OfSmashing};
+static magic_s bludgeon_effect[] = {OfConstitution, OfDestruction, OfFire, OfSmashing, OfStrenght};
 static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
 static spell_s scroll_spells[] = {CharmPerson, Identify, Armor, ShieldSpell};
 static spell_s wand_spells[] = {Fear, MagicMissile, HealingSpell, ShokingGrasp, Sleep, RemovePoisonSpell, RemoveSickSpell};
