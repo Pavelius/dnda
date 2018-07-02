@@ -6,6 +6,8 @@ void setstate(effectparam& e) {
 		e.cre->set(s, e.duration * e.level);
 		if(s == Scared)
 			e.cre->horror = &e.player;
+		else if(s == Charmed)
+			e.cre->charmer = &e.player;
 	}
 	if(e.type.area) {
 		creature* result[32];
@@ -19,11 +21,6 @@ void setstate(effectparam& e) {
 				setstate(e1);
 		}
 	}
-}
-
-static void setcharmer(effectparam& e) {
-	setstate(e);
-	e.cre->charmer = &e.player;
 }
 
 static void setdamage(effectparam& e) {
@@ -69,12 +66,12 @@ static struct spell_info {
 	short unsigned		cost;
 	short unsigned		cost_reduce_by_level;
 	effectinfo			effect;
-} spell_data[] = {{"Не заклинания", ""},
+} spell_data[] = {{"", ""},
 {"Броня", "брони", 10, 0, {{TargetSelf}, {}, setstate, 4 * Hour, {Armored}, "%герой озарил%ась синим светом."}},
-{"Блаословение", "благословения", 8, 0, {{TargetNotHostileCreature, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
-{"Очаровать персону", "шарма", 13, 0, {{TargetNotHostileCreatureNoSelf, 4}, {SaveAbility, Wisdow}, setcharmer, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}},
+{"Благословение", "благословения", 8, 0, {{TargetNotHostileCreature, 2}, {}, setstate, Turn, {Blessed}, "%герой озарил%ась желтым светом."}},
+{"Очаровать персону", "шарма", 13, 0, {{TargetNotHostileCreatureNoSelf, 4}, {SaveAbility, Wisdow}, setstate, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}},
 {"Определить зло", "определения зла", 12, 0, {{TargetInvertory}, {}, detect_evil, Instant, {}, "%1 осветился красным светом."}},
-{"Внушение ужаса", "страха", 5, 0, {{TargetHostileCreature, 5, 2}, {SaveAbility, Wisdow}, setstate, 5 * Minute, {Scared}, "%герой запаниковал%а и начал%а бежать.", {}}},
+{"Страх", "страха", 5, 0, {{TargetHostileCreature, 5, 2}, {SaveAbility, Wisdow}, setstate, 5 * Minute, {Scared}, "%герой запаниковал%а и начал%а бежать.", {}}},
 {"Лечение", "исцеления", 7, 0, {{TargetNotHostileCreature, 1}, {}, healdamage, Instant, {}, "%1 озарился белым светом.", {2, 6, Magic}}},
 {"Опознать предмет", "опознания", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
 {"Невидимость", "невидимости", 8, 0, {{TargetNotHostileCreature, 1}, {}, setstate, Hour, {Hiding}, "Внезапно %1 исчез%ла из виду."}},

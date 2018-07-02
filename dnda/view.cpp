@@ -203,6 +203,18 @@ static bool getkey(int& id) {
 	return true;
 }
 
+static int fiela(int x, int y, int w, const char* name, int value, int basic_value) {
+	char temp[128];
+	draw::state push;
+	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
+	if(value < basic_value)
+		draw::fore = colors::text.mix(colors::red, 128);
+	else if(value > basic_value)
+		draw::fore = colors::text.mix(colors::green, 128);
+	draw::text(x + w, y, szprints(temp, zendof(temp), "%1i", value));
+	return draw::texth();
+}
+
 static int field(int x, int y, int w, const char* name, int value) {
 	char temp[128];
 	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
@@ -683,16 +695,16 @@ static void view_info(const creature& e) {
 	y += draw::texth();
 	int y1 = y;
 	int x1 = x;
-	y += field(x, y, tw, "—À", e.get(Strenght));
-	y += field(x, y, tw, "»Õ", e.get(Intellegence));
+	y += fiela(x, y, tw, "—À", e.get(Strenght), e.getbasic(Strenght));
+	y += fiela(x, y, tw, "»Õ", e.get(Intellegence), e.getbasic(Intellegence));
 	x += dx;
 	y = y1;
-	y += field(x, y, tw, "À¬", e.get(Dexterity));
-	y += field(x, y, tw, "Ãƒ", e.get(Wisdow));
+	y += fiela(x, y, tw, "À¬", e.get(Dexterity), e.getbasic(Dexterity));
+	y += fiela(x, y, tw, "Ãƒ", e.get(Wisdow), e.getbasic(Wisdow));
 	x += dx;
 	y = y1;
-	y += field(x, y, tw, "“À", e.get(Constitution));
-	y += field(x, y, tw, "’–", e.get(Charisma));
+	y += fiela(x, y, tw, "“À", e.get(Constitution), e.getbasic(Constitution));
+	y += fiela(x, y, tw, "’–", e.get(Charisma), e.getbasic(Charisma));
 	x += dx + 6;
 	y = y1;
 	y += field(x, y, tw, "¿“", e.getattackinfo(Melee).bonus, e.getattackinfo(Ranged).bonus);

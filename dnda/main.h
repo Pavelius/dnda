@@ -356,6 +356,7 @@ struct creature {
 	int				getarmor() const;
 	attackinfo		getattackinfo(slot_s slot) const;
 	int				getattacktime(slot_s slot) const;
+	int				getbasic(ability_s value) const;
 	int				getbasic(skill_s value) const;
 	int				getbonus(magic_s value) const;
 	int				getcost(spell_s value) const;

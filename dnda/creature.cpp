@@ -1071,6 +1071,10 @@ void creature::setlos() {
 	}
 }
 
+int creature::getbasic(ability_s value) const {
+	return abilities[value];
+}
+
 int creature::get(ability_s value) const {
 	auto result = abilities[value];
 	if(is(ability_states[value])) {
@@ -1080,6 +1084,24 @@ int creature::get(ability_s value) const {
 			result++;
 	}
 	result += getbonus(ability_effects[value]);
+	switch(value) {
+	case Strenght:
+		if(is(Weaken))
+			result -= 4;
+		if(is(Sick))
+			result -= 2;
+		if(is(Poisoned))
+			result--;
+		break;
+	case Dexterity:
+		if(is(Sick))
+			result -= 3;
+		if(is(PoisonedWeak))
+			result--;
+		break;
+	}
+	if(result < 0)
+		result = 0;
 	return result;
 }
 
