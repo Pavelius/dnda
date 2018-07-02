@@ -37,7 +37,7 @@ enum diety_s : unsigned char {
 };
 enum slot_s : unsigned char {
 	Head, Neck, Melee, OffHand, TorsoBack, Torso, RightFinger, LeftFinger, Elbows, Legs, Ranged, Amunitions,
-	FirstBackpack, LastBackpack = FirstBackpack + 20,
+	FirstBackpack, LastBackpack = FirstBackpack + 19,
 };
 enum magic_s : unsigned char {
 	NoEffect,

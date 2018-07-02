@@ -203,9 +203,9 @@ static int fiela(int x, int y, int w, const char* name, int value, int basic_val
 	draw::state push;
 	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
 	if(value < basic_value)
-		draw::fore = colors::text.mix(colors::red, 128);
+		draw::fore = colors::text.mix(colors::red, 64);
 	else if(value > basic_value)
-		draw::fore = colors::text.mix(colors::green, 128);
+		draw::fore = colors::text.mix(colors::green, 64);
 	draw::text(x + w, y, szprints(temp, zendof(temp), "%1i", value));
 	return draw::texth();
 }
@@ -878,11 +878,8 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 		case KeyEscape:
 			return 0;
 		default:
-			if(getkey(id, count)) {
-				auto count = zlen(source);
-				if(id < count)
-					return source[id];
-			}
+			if(getkey(id, count))
+				return source[id];
 			break;
 		}
 	}
@@ -942,10 +939,10 @@ static item* choose_item(creature& e, point camera, slot_s slot) {
 	char temp[260]; szprints(temp, zendof(temp), "Что одеть на %1?", getstr(slot));
 	item* source[LastBackpack + 1];
 	auto p = source;
-	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
-		if(!e.wears[slot] || !e.wears[slot].is(slot))
+	for(auto i = FirstBackpack; i <= LastBackpack; i = (slot_s)(i + 1)) {
+		if(!e.wears[i] || !e.wears[i].is(slot))
 			continue;
-		*p++ = &e.wears[slot];
+		*p++ = &e.wears[i];
 	}
 	return logs::choose(e, source, p - source, temp);
 }
