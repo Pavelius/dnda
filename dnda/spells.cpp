@@ -72,7 +72,7 @@ static struct spell_info {
 {"Очаровать персону", "шарма", 13, 0, {{TargetNoHostileNoSelf, 4}, {SaveAbility, Wisdow}, setstate, Day, {Charmed}, "Внезапно %герой стал%а вести себя дружелюбно."}},
 {"Определить зло", "определения зла", 12, 0, {{TargetInvertory}, {}, detect_evil, Instant, {}, "%1 осветился красным светом."}},
 {"Страх", "страха", 5, 0, {{TargetHostile, 5, 2}, {SaveAbility, Wisdow}, setstate, 5 * Minute, {Scared}, "%герой запаниковал%а и начал%а бежать.", {}}},
-{"Лечение", "лечения", 7, 0, {{TargetNoHostile, 1}, {}, healdamage, Instant, {}, "%герой озарился белым светом.", {2, 6, Magic}}},
+{"Лечение", "лечения", 7, 0, {{TargetNoHostile, 1}, {}, healdamage, Instant, {}, "%герой озарился белым светом.", {1, 8, Magic}}},
 {"Опознать предмет", "опознания", 20, 2, {{TargetItemUnidentified}, {}, identify, Instant, {}, "%1 осветился голубым светом."}},
 {"Невидимость", "невидимости", 8, 0, {{TargetNoHostile, 1}, {}, setstate, Hour, {Hiding}, "%герой исчез%ла из виду."}},
 {"Свет", "света", 1, 0, {{TargetNoHostile, 1}, {}, setstate, Hour, {Lighted}, "Вокруг %героя появилось несколько светящихся шариков."}},
