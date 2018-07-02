@@ -2,7 +2,7 @@
 
 struct map_object_info {
 	const char*		name;
-} map_object_data[] = {{""},
+} map_object_data[] = {{"нет объекта"},
 {"дверь"},
 {"дерево"},
 {"алтарь"},

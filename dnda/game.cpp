@@ -556,11 +556,7 @@ void game::looktarget(short unsigned index) {
 		logs::add(p->getname());
 		return;
 	}
-	switch(getobject(index)) {
-	case Tree: logs::add("Дерево"); break;
-	case Door: logs::add("Дверь"); break;
-	case Trap: logs::add("Ловушка"); break;
-	}
+	logs::addu(getstr(getobject(index)));
 }
 
 void game::lookhere(short unsigned index) {

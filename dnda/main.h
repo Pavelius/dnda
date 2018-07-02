@@ -532,8 +532,9 @@ struct driver : stringcreator {
 };
 void				add(const char* format, ...);
 void				add(int id, const char* format, ...);
-void				addv(const char* format, const char* param);
-void				addv(stringcreator& driver, const char* format, const char* param);
+void				addu(const char* format, ...);
+void				addv(const char* format, const char* param, int letter = 0);
+void				addv(stringcreator& driver, const char* format, const char* param, int letter = 0);
 short unsigned		choose(const creature& e, short unsigned* source, int count);
 item*				choose(const creature& e, item** source, unsigned count, const char* title);
 bool				choose(creature& e, skill_s& result, skill_s* source, unsigned count, bool can_escape = true);

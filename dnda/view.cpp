@@ -69,6 +69,10 @@ void logs::add(const char* format, ...) {
 	addv(format, xva_start(format));
 }
 
+void logs::addu(const char* format, ...) {
+	addv(format, xva_start(format), 1);
+}
+
 void logs::add(int id, const char* format, ...) {
 	if(current_key_index >= sizeof(answers) / sizeof(answers[0]))
 		return;
@@ -78,7 +82,7 @@ void logs::add(int id, const char* format, ...) {
 	current_key_index++;
 }
 
-void logs::addv(stringcreator& sc, const char* format, const char* vl) {
+void logs::addv(stringcreator& sc, const char* format, const char* vl, int letter) {
 	char* p = zend(state_message);
 	// First string may not be emphty or white spaced
 	if(p == state_message)
@@ -96,11 +100,15 @@ void logs::addv(stringcreator& sc, const char* format, const char* vl) {
 			format++;
 	}
 	sc.printv(p, state_message + sizeof(state_message) - 1, format, vl);
+	if(letter > 0)
+		szupper(p, 1);
+	else if(letter < 0)
+		szlower(p, 1);
 }
 
-void logs::addv(const char* format, const char* vl) {
+void logs::addv(const char* format, const char* vl, int letter) {
 	stringcreator sc;
-	addv(sc, format, vl);
+	addv(sc, format, vl, letter);
 }
 
 void __cdecl dlgerr(char const* title, char const* format, ...) {}
