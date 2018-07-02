@@ -1275,6 +1275,9 @@ void creature::passturn(unsigned minutes) {
 }
 
 void creature::update() {
+	// RULE: horror stops if time expired
+	if(horror && !is(Scared))
+		horror = 0;
 	// RULE: poison effects
 	if((segments % (Minute * 4)) == 0) {
 		static damageinfo poison_effect[PoisonedStrong - PoisonedWeak + 1] = {{0, 3, Poison},
