@@ -317,7 +317,6 @@ struct creature {
 	direction_s		direction;
 	unsigned short	name;
 	unsigned char	level;
-	unsigned		recoil;
 	unsigned		experience;
 	unsigned		money;
 	creature*		charmer;
@@ -378,7 +377,7 @@ struct creature {
 	int				getmaxhits() const;
 	int				getmaxmana() const;
 	const char*		getmonstername() const;
-	int				getmoverecoil() const;
+	int				getmoverecoil(tile_s tile, map_object_s object) const;
 	const char*		getname() const; // Name used predefined names array
 	static const char* getname(state_s id, bool cursed);
 	creature*		getnearest(targetdesc ti) const;
@@ -405,7 +404,7 @@ struct creature {
 	void			levelup();
 	void			lookfloor();
 	void			makemove();
-	bool			manipulate(short unsigned index);
+	void			manipulate(short unsigned index);
 	void			meleeattack(creature* target);
 	bool			move(short unsigned index);
 	bool			moveto(short unsigned index);
@@ -446,6 +445,7 @@ private:
 	unsigned char	skills[LastSkill + 1];
 	unsigned char	spells[LastSpell + 1];
 	unsigned		states[LastState + 1];
+	unsigned		recoil;
 	creature*		party;
 	friend struct archive;
 };

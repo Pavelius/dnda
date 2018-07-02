@@ -1268,8 +1268,7 @@ static void character_use(creature& e) {
 		logs::add("Вокруг вас нету ничего, что можно было бы использовать.");
 		return;
 	}
-	if(e.manipulate(logs::choose(e, source, count)))
-		e.wait();
+	e.manipulate(logs::choose(e, source, count));
 }
 
 void logs::focusing(short unsigned index) {

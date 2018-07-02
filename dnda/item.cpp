@@ -49,8 +49,7 @@ static spell_s wand_spells[] = {Fear, MagicMissile, HealingSpell, ShokingGrasp, 
 static spell_s staff_spells[] = {Fear, MagicMissile, ShokingGrasp, Sleep};
 static state_s potion_red[] = {Anger, Blessed, Goodwill, Dexterious, Healthy, Intellegenced, Charismatic};
 static state_s potion_blue[] = {Blessed, Goodwill, Hiding, Sleeped, HealState, RemovePoison, RemoveSick, Healthy, Wisdowed};
-static state_s potion_green[] = {Poisoned, PoisonedWeak, PoisonedStrong, Sleeped, Sick,
-RemovePoison, RemoveSick, Strenghted, Healthy};
+static state_s potion_green[] = {Poisoned, PoisonedWeak, PoisonedStrong, Sleeped, Sick, RemovePoison, RemoveSick, Strenghted, Healthy};
 static constexpr struct item_info {
 	struct combat_info {
 		char			speed;

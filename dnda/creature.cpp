@@ -403,8 +403,18 @@ int	creature::getmaxmana() const {
 	return result;
 }
 
-int	creature::getmoverecoil() const {
-	return 3; // Default speed if 4 hexes in minute.
+int	creature::getmoverecoil(tile_s tile, map_object_s object) const {
+	int result;
+	switch(tile) {
+	case Plain: result = 4; break;
+	case Road: result = 3; break;
+	case Floor: result = 3; break;
+	case Swamp: result = 7; break;
+	case Hill: result = 5; break;
+	case Water: result = 10; break;
+	default: result = 4; break;
+	}
+	return result;
 }
 
 const char* creature::getname() const {
@@ -515,8 +525,6 @@ int	creature::getweight() const {
 }
 
 void creature::wait(int segments) {
-	if(!segments)
-		segments = getmoverecoil();
 	recoil += segments;
 }
 
@@ -574,7 +582,7 @@ bool creature::move(short unsigned i) {
 	if(isplayer())
 		lookfloor();
 	trapeffect();
-	wait();
+	wait(getmoverecoil(gettile(position), getobject(position)));
 	return true;
 }
 
@@ -582,8 +590,10 @@ bool creature::moveto(short unsigned index) {
 	if(distance(position, index) > 1) {
 		makewave(index);
 		index = getstepto(position);
-		if(index == Blocked)
+		if(index == Blocked) {
+			wait(xrand(1, 5));
 			return false;
+		}
 	}
 	return move(index);
 }
@@ -685,23 +695,19 @@ bool creature::isenemy(const creature* target) const {
 	return isenemystate(this, target) || isenemystate(target, this);
 }
 
-bool creature::manipulate(short unsigned index) {
+void creature::manipulate(short unsigned index) {
 	switch(getobject(index)) {
 	case Door:
 		if(!isopen(index)) {
 			if(isseal(index))
 				say("Здесь заперто.");
-			else {
+			else
 				game::set(index, Opened, true);
-				return true;
-			}
-		} else {
+		} else
 			game::set(index, Opened, false);
-			return true;
-		}
+		wait(Minute / 4);
 		break;
 	}
-	return false;
 }
 
 bool creature::interact(short unsigned index) {
@@ -712,7 +718,7 @@ bool creature::interact(short unsigned index) {
 				say("Здесь заперто.");
 			else
 				game::set(index, Opened, true);
-			wait();
+			wait(Minute / 4);
 			return true;
 		}
 		break;
@@ -726,7 +732,7 @@ bool creature::interact(short unsigned index) {
 			return true;
 		} else if(this != getplayer()) {
 			// Монстры и другие персонажи не меняются
-			wait();
+			wait(xrand(2, 8));
 			return true;
 		} else if(p->isguard()) {
 			static const char* talk[] = {
@@ -735,6 +741,7 @@ bool creature::interact(short unsigned index) {
 				"Не толкайся, я не отойду.",
 			};
 			p->say(maprnd(talk));
+			wait(xrand(1, 4));
 			return true;
 		} else {
 			// Игрок меняется позицией с неигроком
@@ -750,7 +757,7 @@ bool creature::interact(short unsigned index) {
 				return true;
 			}
 			p->position = position;
-			p->wait();
+			p->wait(xrand(1, 4));
 			if(d100() < 50) {
 				static const char* talk[] = {
 					"Эй! Не толкайся.",
@@ -1181,7 +1188,7 @@ bool creature::use(short unsigned index) {
 }
 
 void creature::remove(state_s value) {
-	if(value<=LastState)
+	if(value <= LastState)
 		states[value] = segments;
 }
 
