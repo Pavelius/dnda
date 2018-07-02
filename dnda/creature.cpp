@@ -1418,8 +1418,8 @@ static state_s get_ability_state(ability_s id) {
 
 void creature::use(item& it) {
 	if(it.isedible()) {
-		char temp[260]; grammar::of(temp, getstr(it.gettype())); szlower(temp);
-		act("%герой съел%а %1.", temp);
+		char temp[260]; grammar::what(temp, getstr(it.gettype()));
+		act("%герой съел%а %L1.", temp);
 		auto& e = it.getfood();
 		auto q = it.getquality();
 		damage(-e.hits, true, false);
@@ -1456,8 +1456,8 @@ void creature::use(item& it) {
 		else if(!it.getcharges())
 			hint("%1 раряжена, ее нужно зарядить.", temp);
 		else {
-			grammar::what(temp, getstr(it.gettype())); szlower(temp);
-			use(spell, 1 + it.getquality(), "%герой выставил%а вперед %1.", temp);
+			grammar::what(temp, getstr(it.gettype()));
+			use(spell, 1 + it.getquality(), "%герой выставил%а вперед %L1.", temp);
 			it.setcharges(it.getcharges() - 1);
 			wait(Minute / 4);
 		}

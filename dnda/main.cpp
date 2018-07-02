@@ -16,6 +16,7 @@ int main(int argc, char* argv[]) {
 
 	p1->equip(Fear);
 	p1->equip(Identify);
+	p1->equip(item(Apple));
 
 	p3->equip(BowLong);
 	p3->equip({Arrow, 2, 10});

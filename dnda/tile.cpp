@@ -15,12 +15,18 @@ static struct tile_info {
 {"Город"},
 };
 
+static char	dex_move_slowing[] = {7,
+6, 5, 4, 3, 2, 2, 1, 1, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0
+};
+
 const char* creature::getname(tile_s id) {
 	return tile_data[id].description;
 }
 
 int	creature::getmoverecoil() const {
 	auto tile = game::gettile(position);
-	int result = 3 + tile_data[tile].movement;
-	return result;
+	auto a = get(Dexterity);
+	return 3 + tile_data[tile].movement + maptbl(dex_move_slowing, a);
 }

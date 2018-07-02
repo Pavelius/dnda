@@ -1,7 +1,6 @@
 #pragma once
 
-struct collection
-{
+struct collection {
 	virtual void*		add(const void* element = 0) = 0; // Add new element to collection
 	virtual void		clear() = 0; // Clear all elements in collection
 	virtual void*		get(int index) const = 0; // Get content of element with index

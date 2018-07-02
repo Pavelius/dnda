@@ -74,7 +74,7 @@ char* stringcreator::parsenumber(char* dst, const char* result_max, unsigned val
 		value /= radix;
 	}
 	while(precision-- > i) {
-		if(dst<result_max)
+		if(dst < result_max)
 			*dst++ = '0';
 	}
 	while(i) {
@@ -83,7 +83,7 @@ char* stringcreator::parsenumber(char* dst, const char* result_max, unsigned val
 			if(v < 10)
 				*dst++ = '0' + v;
 			else
-				*dst++ = 'A' + (v-10);
+				*dst++ = 'A' + (v - 10);
 		}
 	}
 	dst[0] = 0;
@@ -92,7 +92,7 @@ char* stringcreator::parsenumber(char* dst, const char* result_max, unsigned val
 
 char* stringcreator::parseint(char* dst, const char* result_max, int value, int precision, const int radix) {
 	if(value < 0) {
-		if(dst<result_max)
+		if(dst < result_max)
 			*dst++ = '-';
 		value = -value;
 	}
@@ -109,8 +109,13 @@ const char* stringcreator::parseformat(char* dst, const char* result_max, const 
 	}
 	*dst = 0;
 	bool prefix_plus = false;
+	char letter = 0;
 	if(*src == '+') {
 		prefix_plus = true;
+		src++;
+	}
+	if(*src == 'U' || *src == 'L') {
+		letter = *src;
 		src++;
 	}
 	if(*src >= '0' && *src <= '9') {
@@ -127,7 +132,7 @@ const char* stringcreator::parseformat(char* dst, const char* result_max, const 
 			src++;
 			auto value = ((int*)vl)[pn - 1];
 			if(prefix_plus && value >= 0) {
-				if(dst<result_max)
+				if(dst < result_max)
 					*dst++ = '+';
 			}
 			dst = parseint(dst, result_max, value, pnp, 10);
@@ -135,8 +140,13 @@ const char* stringcreator::parseformat(char* dst, const char* result_max, const 
 			src++;
 			dst = parsenumber(dst, result_max, (unsigned)(((int*)vl)[pn - 1]), pnp, 16);
 		} else {
-			if(((char**)vl)[pn - 1])
+			if(((char**)vl)[pn - 1]) {
 				zcpy(dst, ((char**)vl)[pn - 1], result_max - dst);
+				if(letter == 'U')
+					szupper(dst, 1);
+				else if(letter == 'L')
+					szlower(dst, 1);
+			}
 		}
 	} else
 		parsevariable(dst, result_max, &src);
