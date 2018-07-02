@@ -220,23 +220,23 @@ short unsigned game::getfree(short unsigned i) {
 			}
 		}
 	}
-	return 0xFFFF;
+	return Blocked;
 }
 
 void game::set(short unsigned i, map_object_s value) {
-	if(i == 0xFFFF)
+	if(i == Blocked)
 		return;
 	mpobj[i] = value;
 }
 
 void game::set(short unsigned i, unsigned char value) {
-	if(i == 0xFFFF)
+	if(i == Blocked)
 		return;
 	mprnd[i] = value;
 }
 
 bool game::ispassable(short unsigned i) {
-	if(i == 0xFFFF)
+	if(i == Blocked)
 		return false;
 	switch(mptil[i]) {
 	case Wall:
@@ -256,7 +256,7 @@ bool game::ispassable(short unsigned i) {
 }
 
 bool game::ispassabledoor(short unsigned i) {
-	if(i == 0xFFFF)
+	if(i == Blocked)
 		return false;
 	switch(mptil[i]) {
 	case Wall:
@@ -276,7 +276,7 @@ bool game::ispassabledoor(short unsigned i) {
 }
 
 bool game::ispassablelight(short unsigned i) {
-	if(i == 0xFFFF)
+	if(i == Blocked)
 		return false;
 	switch(mptil[i]) {
 	case Wall:
@@ -570,20 +570,20 @@ void game::lookhere(short unsigned index) {
 		logs::add("Это место надо исследовать.");
 		return;
 	}
-	switch(gettile(index)) {
-	case Wall: logs::add("Стена преграждает путь."); break;
-	case Plain: logs::add("Равнина расположилась вокруг."); break;
-	case Hill: logs::add("Невысокие бугорки затрудняют движение."); break;
-	case Swamp: logs::add("Большая лужа находится на траве."); break;
-	}
+	logs::add(creature::getname(gettile(index)));
 	switch(getobject(index)) {
+	case NoTile: break;
 	case Tree:
-		logs::add("Здесь растет дерево.");
+		logs::add("Выское дерево выросло прямо посредине.");
 		break;
 	case Door:
-		logs::add("Здесь находится дверь и она %1.", isopen(index) ? "открыта" : "закрыта");
-		if(isseal(index))
-			logs::add("На двери висит замок.");
+		if(isopen(index))
+			logs::add("Здесь находится дверь.");
+		else {
+			logs::add("Здесь находится закрытая дверь.");
+			if(isseal(index))
+				logs::add("На двери висит замок.");
+		}
 		break;
 	case Trap:
 		if(!ishidden(index))

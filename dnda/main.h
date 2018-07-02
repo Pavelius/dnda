@@ -379,6 +379,7 @@ struct creature {
 	const char*		getmonstername() const;
 	int				getmoverecoil() const;
 	const char*		getname() const; // Name used predefined names array
+	static const char* getname(tile_s id);
 	static const char* getname(state_s id, bool cursed);
 	creature*		getnearest(targetdesc ti) const;
 	unsigned		getobjects(aref<short unsigned> result, targetdesc ti) const;

@@ -204,6 +204,9 @@
     <ClCompile Include="tile.cpp">
       <Filter>logic</Filter>
     </ClCompile>
+    <ClCompile Include="map_object.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="collections">

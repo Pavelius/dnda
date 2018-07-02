@@ -170,6 +170,7 @@
     <ClCompile Include="location.cpp" />
     <ClCompile Include="logs_driver.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="map_object.cpp" />
     <ClCompile Include="names.cpp" />
     <ClCompile Include="pma.cpp" />
     <ClCompile Include="point.cpp" />
