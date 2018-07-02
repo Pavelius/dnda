@@ -324,7 +324,7 @@ const foodinfo& item::getfood() const {
 }
 
 bool item::isedible() const {
-	return item_data[type].food.hits!=0;
+	return item_data[type].food.hits != 0;
 }
 
 int item::getarmor() const {
@@ -332,7 +332,10 @@ int item::getarmor() const {
 }
 
 int item::getdefence() const {
-	return item_data[type].combat.armor[0] - damaged + getbonus(OfDefence);
+	auto result = item_data[type].combat.armor[0];
+	if(result)
+		result += getquality();
+	return result - damaged + getbonus(OfDefence);
 }
 
 int	item::getweightsingle() const {
@@ -372,7 +375,7 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 	auto state = getstate();
 	auto identify = getidentify();
 	sc.prints(result, result_maximum, item_data[type].name);
-	if(effect && identify>=KnowEffect)
+	if(effect && identify >= KnowEffect)
 		sc.prints(zend(result), result_maximum, " %1%+2i", getstr(effect), bonus);
 	else if(spell && identify >= KnowQuality)
 		sc.prints(zend(result), result_maximum, " %1", getname(spell));

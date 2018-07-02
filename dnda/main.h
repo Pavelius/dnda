@@ -137,7 +137,7 @@ enum img_s : unsigned char {
 };
 enum target_s : unsigned char {
 	NoTarget,
-	TargetSelf, TargetCreature, TargetNoHostile, TargetNoHostileNoSelf, TargetFriendlyCreature, TargetHostile,
+	TargetSelf, TargetFriendly, TargetFriendlySelf, TargetHostile,
 	TargetItem, TargetItemUnidentified, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
 	TargetDoor, TargetDoorSealed,
 	TargetTrap,

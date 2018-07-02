@@ -147,16 +147,16 @@ static int textl(int x, int y, int width, item& value) {
 	char temp[260]; value.getname(temp, zendof(temp));
 	draw::state push;
 	switch(value.getidentify()) {
-	case KnowEffect:
+	case KnowMagic:
 		switch(value.getmagic()) {
-		case Artifact: draw::fore = colors::yellow; break;
-		case Cursed: draw::fore = colors::red; break;
+		case Artifact: draw::fore = colors::text.mix(colors::yellow, 128); break;
+		case Cursed: draw::fore = colors::text.mix(colors::red, 128); break;
 		case Magical: draw::fore = colors::text.mix(colors::blue, 128); break;
 		default: draw::fore = colors::text; break;
 		}
 		break;
 	case Unknown:
-		draw::fore = colors::gray;
+		draw::fore = colors::text.mix(colors::black, 192);
 		break;
 	default:
 		draw::fore = colors::text;
@@ -1256,7 +1256,7 @@ void logs::minimap(creature& e) {
 
 static void character_chat(creature& e) {
 	creature* opponent = 0;
-	if(!logs::getcreature(e, &opponent, {TargetNoHostileNoSelf, 1}))
+	if(!logs::getcreature(e, &opponent, {TargetFriendlySelf, 1}))
 		return;
 	e.chat(opponent);
 }

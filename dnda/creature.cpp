@@ -996,15 +996,8 @@ unsigned creature::getcreatures(aref<creature*> result, targetdesc ti, short uns
 		if(&e == exclude)
 			continue;
 		switch(ti.target) {
-		case TargetFriendlyCreature:
-			if(!e.isfriend(player))
-				continue;
-			break;
-		case TargetNoHostile:
-			if(e.isenemy(player))
-				continue;
-			break;
-		case TargetNoHostileNoSelf:
+		case TargetFriendly:
+		case TargetFriendlySelf:
 			if(e.isenemy(player))
 				continue;
 			break;
@@ -1030,8 +1023,7 @@ unsigned creature::getcreatures(aref<creature*> result, targetdesc ti) const {
 	if(!ti.range)
 		ti.range = getlos();
 	const creature* exclude = 0;
-	if(ti.target == TargetFriendlyCreature
-		|| ti.target == TargetNoHostileNoSelf)
+	if(ti.target == TargetFriendlySelf)
 		exclude = this;
 	return getcreatures(result, ti, position, this, exclude);
 }
@@ -1203,7 +1195,7 @@ void creature::set(state_s value, unsigned segments_count) {
 }
 
 bool creature::gettarget(targetinfo& result, const targetdesc ti) const {
-	if(ti.target >= TargetCreature && ti.target <= TargetHostile) {
+	if(ti.target >= TargetFriendly && ti.target <= TargetHostile) {
 		if(!logs::getcreature(*this, &result.cre, ti))
 			return false;
 	} else if(ti.target >= TargetItem && ti.target <= TargetItemChargeable) {
