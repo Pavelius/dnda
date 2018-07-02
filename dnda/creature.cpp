@@ -1188,7 +1188,7 @@ void creature::remove(state_s value) {
 void creature::set(state_s value, unsigned segments_count) {
 	switch(value) {
 	case HealState:
-		damage(-xrand(segments_count, segments_count + segments_count), false, false);
+		damage(-xrand(10, 20), false, false);
 		break;
 	case RemovePoison:
 		remove(Poisoned);
@@ -1197,6 +1197,7 @@ void creature::set(state_s value, unsigned segments_count) {
 		break;
 	case RemoveSick:
 		remove(Sick);
+		remove(Weaken);
 		break;
 	default:
 		if(value <= LastState) {

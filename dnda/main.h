@@ -145,6 +145,7 @@ enum target_s : unsigned char {
 enum spell_s : unsigned char {
 	NoSpell,
 	Armor, Bless, CharmPerson, DetectEvil, Fear, HealingSpell, Identify, Invisibility, LightSpell, MagicMissile,
+	RemovePoisonSpell, RemoveSickSpell,
 	ShieldSpell, ShokingGrasp, Sleep,
 	FirstSpell = Armor, LastSpell = Sleep
 };
