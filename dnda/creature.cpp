@@ -70,6 +70,24 @@ static struct class_info {
 assert_enum(class, Theif);
 getstr_enum(class);
 
+static struct attack_info {
+	const char*	name;
+	const char*	damage;
+} attack_data[] = {{"Ударное", "%герой пропустил%а удар на %1i хитов"},
+{"Режущее", "%герой ранен%а на %1i хитов"},
+{"Колющее", "%герой получил%а рану на %1i хитов"},
+//
+{"Кислота", "%героя обдало кислотой на %1i хитов"},
+{"Холод", "%героя обдало холодом на %1i хитов"},
+{"Электричество", "%героя поразил электрический разряд на %1i хитов"},
+{"Огонь", "%героя обдало огнем на %1i хитов"},
+{"Магия", "%героя поразил сгусток энергии на %1i хитов"},
+{"Яд", "В рану %героя попал яд"},
+{"Вода", "%героя обдало струей воды"},
+};
+assert_enum(attack, WaterAttack);
+getstr_enum(attack);
+
 int mget(int ox, int oy, int mx, int my);
 
 static int roll3d6() {
@@ -783,6 +801,14 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 			damage.max += step;
 	}
 	defender->damage(damage);
+	switch(ai.effect) {
+	case OfFire:
+		defender->damage({1, 6, Fire});
+		break;
+	case OfCold:
+		defender->damage({1, 4, Cold});
+		break;
+	}
 }
 
 void creature::damage(damageinfo dice, bool interactive) {
@@ -809,10 +835,10 @@ void creature::damage(damageinfo dice, bool interactive) {
 		break;
 	}
 	auto value = dice.roll();
-	damage(value, ignore_armor, interactive);
+	damage(value, ignore_armor, dice.type, interactive);
 }
 
-void creature::damage(int value, bool ignore_armor, bool interactive) {
+void creature::damage(int value, bool ignore_armor, attack_s type, bool interactive) {
 	if(value >= 0) {
 		if(!ignore_armor)
 			value -= getarmor();
@@ -823,8 +849,10 @@ void creature::damage(int value, bool ignore_armor, bool interactive) {
 			if(interactive)
 				act("%герой выдержал%а удар");
 		} else {
-			if(interactive)
-				act("%герой получил%а %1i урона", value);
+			if(interactive) {
+				//act("%герой получил%а %1i урона", value);
+				act(attack_data[type].damage, value);
+			}
 		}
 		if(hp <= 0) {
 			if(interactive)
@@ -858,7 +886,7 @@ void creature::damage(int value, bool ignore_armor, bool interactive) {
 		if(value > 0) {
 			hp += value;
 			if(interactive)
-				act("%герой восстановил%1i урона.", value);
+				act("%герой восстановил%а %1i хита.", value);
 		}
 	}
 }
@@ -1178,7 +1206,7 @@ void creature::remove(state_s value) {
 void creature::set(state_s value, unsigned segments_count) {
 	switch(value) {
 	case HealState:
-		damage(-xrand(10, 20), false, false);
+		heal(xrand(10, 20), false);
 		break;
 	case RemovePoison:
 		remove(Poisoned);
@@ -1422,8 +1450,8 @@ void creature::use(item& it) {
 		act("%герой съел%а %L1.", temp);
 		auto& e = it.getfood();
 		auto q = it.getquality();
-		damage(-e.hits, true, false);
-		consume(-e.mana, false);
+		heal(e.hits + q, true);
+		consume(-(e.mana + q), false);
 		if(d100() < e.sickness) {
 			remove(Sick);
 			remove(Weaken);
@@ -1433,10 +1461,9 @@ void creature::use(item& it) {
 			remove(Poisoned);
 			remove(PoisonedStrong);
 		}
-		for(auto i = 0; i <= Charisma; i++)
-			abilities_raise[i] += e.abilities[i];
 		for(auto i = Strenght; i <= Charisma; i = (ability_s)(i + 1)) {
 			auto m = e.get(abilities[i]);
+			abilities_raise[i] += e.abilities[i] * (1 + q);
 			if(abilities_raise[i] >= m) {
 				abilities[i]++;
 				abilities_raise[i] -= m;
@@ -1444,7 +1471,7 @@ void creature::use(item& it) {
 			}
 		}
 		it.clear();
-		wait(Minute);
+		wait(e.duration + xrand(1, 6));
 	} else if(it.isdrinkable())
 		drink(it, true);
 	else if(it.ischargeable()) {

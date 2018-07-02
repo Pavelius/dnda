@@ -39,7 +39,7 @@ static void setdamage(effectparam& e) {
 
 void healdamage(effectparam& e) {
 	// Heal damage according level
-	e.cre->damage(-(e.damage.roll() + (e.level - 1)), true, true);
+	e.cre->heal(e.damage.roll() + e.level - 1, true);
 }
 
 static void detect_evil(effectparam& e) {

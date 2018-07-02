@@ -42,8 +42,9 @@ enum slot_s : unsigned char {
 enum magic_s : unsigned char {
 	NoEffect,
 	OfArmor,
-	OfCharisma, OfConstitution,
+	OfCharisma, OfCold, OfConstitution,
 	OfDefence, OfDestruction, OfDexterity,
+	OfFire,
 	OfIntellegence,
 	OfMana,
 	OfPrecision,
@@ -203,6 +204,7 @@ struct foodinfo {
 	char			hits;
 	char			mana;
 	char			abilities[Charisma + 1];
+	unsigned		duration;
 	char			sickness;
 	char			poision;
 	explicit operator bool() const { return hits != 0; }
@@ -308,6 +310,8 @@ struct attackinfo {
 	char			bonus;
 	char			critical;
 	char			multiplier;
+	magic_s			effect;
+	char			quality;
 };
 struct creature {
 	race_s			race;
@@ -347,7 +351,7 @@ struct creature {
 	void			clear();
 	void			clear(state_s value) { states[value] = 0; }
 	void			consume(int value, bool interactive);
-	void			damage(int count, bool ignore_armor, bool interactive);
+	void			damage(int count, bool ignore_armor, attack_s type, bool interactive);
 	void			damage(damageinfo dice, bool interactive = true);
 	void			drink(item& it, bool interactive);
 	bool			dropdown(item& value);
@@ -388,6 +392,7 @@ struct creature {
 	short unsigned	getposition() const { return position; }
 	bool			gettarget(targetinfo& result, const targetdesc td) const;
 	int				getweight() const;
+	void			heal(int value, bool interactive) { damage(-value, true, Magic, interactive); }
 	void			hint(const char* format, ...) const;
 	static void		initialize();
 	bool			interact(short unsigned index);
