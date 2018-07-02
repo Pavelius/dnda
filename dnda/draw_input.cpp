@@ -7,15 +7,13 @@ command*	command_clear_render;
 static int	current_command;
 extern rect	sys_static_area;
 
-void draw::execute(int id, int param)
-{
+void draw::execute(int id, int param) {
 	hot::key = 0;
 	current_command = id;
 	hot::param = param;
 }
 
-int draw::input(bool redraw)
-{
+int draw::input(bool redraw) {
 	auto temp_hotkey = hot::key;
 	auto temp_command = current_command;
 	// Очистим данные
@@ -23,8 +21,7 @@ int draw::input(bool redraw)
 	hot::key = 0;
 	command_clear_render->execute();
 	// Если была команда, надо ее выполнить
-	if(temp_command)
-	{
+	if(temp_command) {
 		hot::key = temp_command;
 		return hot::key;
 	}

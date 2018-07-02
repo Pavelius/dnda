@@ -425,22 +425,25 @@ int creature::getdiscount(creature* customer) const {
 	return 40 * delta / 100;
 }
 
-bool creature::pickup(item value) {
+bool creature::pickup(item value, bool interactive) {
 	char temp[260];
 	if(value.isforsale()) {
 		auto loc = getlocation(position);
 		if(loc && loc->owner && loc->owner != this) {
 			auto cost = value.getcost();
 			cost -= cost * loc->owner->getdiscount(this) / 100;
-			if(!loc->owner->askyn(this, "Хотите купить за %1i монет?", value.getcost()))
-				return false;
+			if(interactive) {
+				if(!loc->owner->askyn(this, "Хотите купить за %1i монет?", value.getcost()))
+					return false;
+			}
 			if(money < cost) {
 				static const char* text[] = {
 					"Возвращайтесь когда будет достаточно денег.",
 					"У вас нету нужного количества денег.",
 					"Нет нужного количества денег - нет товара.",
 				};
-				loc->owner->say(maprnd(text));
+				if(interactive)
+					loc->owner->say(maprnd(text));
 				return false;
 			}
 			money -= cost;
@@ -448,7 +451,8 @@ bool creature::pickup(item value) {
 		}
 	}
 	if(value.gettype() == Coin) {
-		act("%герой собрал%а %1.", value.getname(temp, zendof(temp)));
+		if(interactive)
+			act("%герой собрал%а %1.", value.getname(temp, zendof(temp)));
 		money += value.getcount();
 		return true;
 	}
@@ -456,7 +460,8 @@ bool creature::pickup(item value) {
 		if(wears[slot])
 			continue;
 		wears[slot] = value;
-		act("%герой поднял%а %1.", value.getname(temp, zendof(temp)));
+		if(interactive)
+			act("%герой поднял%а %1.", value.getname(temp, zendof(temp)));
 		return true;
 	}
 	return false;
@@ -1467,6 +1472,22 @@ void creature::use(item& it) {
 			wait(Minute / 2);
 		}
 	}
+}
+
+bool creature::unequip(item& it) {
+	if(it.iscursed()) {
+		static const char* text[] = {
+			"Уберите руки! Это мое!",
+			"Нет, я это не отдам.",
+			"Мое сокровище! Моя прелесть!",
+		};
+		say(maprnd(text));
+		return false;
+	}
+	if(!pickup(it, false))
+		game::drop(position, it);
+	it.clear();
+	return true;
 }
 
 template<> void archive::set<creature>(creature& e) {

@@ -412,7 +412,7 @@ struct creature {
 	bool			moveaway(short unsigned index);
 	void			passturn(unsigned minutes);
 	static void		playturn();
-	bool			pickup(item value);
+	bool			pickup(item value, bool interactive = true);
 	void			raise(skill_s value);
 	void			raiseskills(int number);
 	void			rangeattack();
@@ -436,6 +436,7 @@ struct creature {
 	bool			use(spell_s value, int level, const char* format, ...);
 	void			use(item& it);
 	bool			use(short unsigned index);
+	bool			unequip(item& it);
 	void			wait(int segments = 0);
 	bool			walkaround();
 private:

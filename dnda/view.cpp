@@ -57,7 +57,7 @@ static int			answers[9];
 static bool			show_gui_panel = true;
 
 namespace colors {
-color			fow = color::create(10, 10, 10);
+color				fow = color::create(10, 10, 10);
 }
 
 static void clear_state() {
@@ -86,7 +86,7 @@ void logs::addv(stringcreator& sc, const char* format, const char* vl) {
 	if(format[0] == 0)
 		return;
 	if(p != state_message) {
-		if(p[-1] != ' ' && p[-1] != '\n' && *format != '\n' && *format != '.' && *format != ',') {
+		if(p[-1] != ' ' && p[-1] != '\n' && p[-1] != '\"' && *format != '\n' && *format != '.' && *format != ',' && *format != '\"') {
 			*p++ = ' ';
 			*p = 0;
 		}
@@ -980,11 +980,10 @@ static void character_invertory(creature& e) {
 			return;
 		default:
 			if(getkey(id, Amunitions + 1)) {
+				clear_state();
 				auto slot = (slot_s)id;
 				if(e.wears[slot]) {
-					if(!e.pickup(e.wears[slot]))
-						game::drop(e.position, e.wears[slot]);
-					e.wears[slot].clear();
+					e.unequip(e.wears[slot]);
 				} else {
 					auto p = choose_item(e, camera, slot);
 					if(p) {
