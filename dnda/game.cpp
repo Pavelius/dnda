@@ -470,9 +470,12 @@ short unsigned game::getstepfrom(short unsigned index) {
 }
 
 void game::makewave(short unsigned index, bool(*proc)(short unsigned)) {
+	const unsigned short BlockedCreature = Blocked - 1;
 	memset(movements, 0xFFFFFFFF, sizeof(movements));
 	if(index == Blocked)
 		return;
+	if(true)
+		creature::setblocks(movements, BlockedCreature);
 	auto start = index;
 	short unsigned push = 0;
 	short unsigned pop = 0;
@@ -483,7 +486,8 @@ void game::makewave(short unsigned index, bool(*proc)(short unsigned)) {
 		auto w = movements[n] + 1;
 		for(auto d : all_aroud) {
 			auto i = to(n, d);
-			if(!proc(i))
+			if(movements[i] == BlockedCreature
+				|| !proc(i))
 				continue;
 			if(movements[i] == Blocked || movements[i] > w) {
 				movements[i] = w;

@@ -366,7 +366,7 @@ struct creature {
 	int				getdefence() const;
 	int				getdiscount(creature* customer) const;
 	char*			getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
-	creature*		gethenchmen(int index);
+	creature*		gethenchmen(int index) const;
 	int				gethits() const { return hp; }
 	unsigned		getitems(aref<item*> result, targetdesc ti) const;
 	int				getlos() const;
@@ -398,7 +398,6 @@ struct creature {
 	bool			isparty(const creature* target) const;
 	bool			isplayer() const;
 	void			join(creature* party);
-	void			lead();
 	void			levelup();
 	void			lookfloor();
 	void			makemove();
@@ -421,7 +420,9 @@ struct creature {
 	static void		select(creature** result, rect rc);
 	void			set(state_s value, unsigned segments);
 	void			set(spell_s value, int level);
+	static void		setblocks(short unsigned* movements, short unsigned value);
 	void			setplayer();
+	static void		setleader(const creature* party, creature* leader);
 	void			setlos();
 	void			trapeffect();
 	static void		turnbegin();

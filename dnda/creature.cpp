@@ -137,7 +137,7 @@ void creature::playturn() {
 	}
 }
 
-creature* creature::gethenchmen(int index) {
+creature* creature::gethenchmen(int index) const {
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;
@@ -159,6 +159,14 @@ void creature::select(creature** result, rect rc) {
 		if(!game::isvisible(e.position))
 			continue;
 		result[i] = &e;
+	}
+}
+
+void creature::setblocks(short unsigned* movements, short unsigned value) {
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		movements[e.position] = value;
 	}
 }
 
@@ -279,6 +287,10 @@ void creature::release(unsigned exeperience_cost) const {
 			e.horror = 0;
 		if(e.charmer == this)
 			e.charmer = 0;
+	}
+	if(isleader()) {
+		auto new_leader = gethenchmen(0);
+		setleader(party, new_leader);
 	}
 }
 
@@ -584,12 +596,6 @@ bool creature::moveaway(short unsigned index) {
 }
 
 void creature::makemove() {
-	if(charmer && !(*charmer))
-		charmer = 0;
-	if(enemy && !(*enemy))
-		enemy = 0;
-	if(horror && !(*horror))
-		horror = 0;
 	// RULE: sleeped creature don't move
 	if(is(Sleeped))
 		return;
@@ -620,19 +626,19 @@ void creature::makemove() {
 		walkaround();
 }
 
-void creature::lead() {
-	if(isleader())
+void creature::setleader(const creature* party, creature* leader) {
+	if(party == leader)
 		return;
-	auto old_party = party;
-	if(old_party) {
+	if(party) {
 		for(auto& e : creature_data) {
 			if(!e)
 				continue;
-			if(e.party == old_party)
-				e.party = this;
+			if(e.party == party)
+				e.party = leader;
 		}
 	}
-	party = this;
+	if(leader)
+		leader->party = leader;
 }
 
 creature* creature::getplayer() {
@@ -640,7 +646,7 @@ creature* creature::getplayer() {
 }
 
 void creature::setplayer() {
-	lead();
+	setleader(party, this);
 	current_player = this;
 }
 
@@ -1275,9 +1281,13 @@ void creature::passturn(unsigned minutes) {
 }
 
 void creature::update() {
-	// RULE: horror stops if time expired
-	if(horror && !is(Scared))
+	// Remove any links if target is invalid
+	if(horror && (!is(Scared) || !(*horror)))
 		horror = 0;
+	if(charmer && (!is(Charmed) || !(*charmer)))
+		charmer = 0;
+	if(enemy && !(*enemy))
+		enemy = 0;
 	// RULE: poison effects
 	if((segments % (Minute * 4)) == 0) {
 		static damageinfo poison_effect[PoisonedStrong - PoisonedWeak + 1] = {{0, 3, Poison},
