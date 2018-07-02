@@ -86,13 +86,13 @@ enum skill_s : unsigned char {
 };
 enum state_s : unsigned char {
 	NoState,
-	Anger, Armored, Blessed, Charismatic, Charmed, Dexterious,
-	Healthy, Hiding, Goodwill,
-	Intellegenced, Lighted,
-	PoisonedWeak, Poisoned, PoisonedStrong,
-	Shielded, Sick, Scared, Sleeped, Strenghted,
-	Weaken, Wisdowed,
-	LastState = Wisdowed,
+	Anger, Armored, Blessed, Charmed, Hiding, Goodwill,
+	Lighted, PoisonedWeak, Poisoned, PoisonedStrong,
+	Shielded, Sick, Scared, Sleeped, Weaken,
+	//
+	Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic,
+	LastState = Charismatic,
+	//
 	HealState, RemoveSick, RemovePoison,
 	LastEffectState = RemovePoison,
 };
