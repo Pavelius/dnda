@@ -179,27 +179,22 @@ static int shortcut(int x, int y, int w, int index) {
 	char temp[32];
 	char temx[32];
 	draw::fore = colors::green;
-	temp[0] = temp[1] = 0;
-	if(index < 9)
-		temp[0] = '1' + index;
-	else if(index==9)
-		temp[0] = '0';
-	else
-		temp[0] = 'A' + (index-10);
+	temp[0] = 'A' + index;
+	temp[1] = 0;
 	szprints(temx, zendof(temx), "%1)", temp);
 	draw::text(x, y, temx);
 	return x + w;
 }
 
-static bool getkey(int& id) {
-	if(id >= (Alpha + '1') && id <= (Alpha + '9'))
-		id = id - (Alpha + '1');
-	else if(id == '0')
-		id = 9;
-	else if(id >= (Alpha + 'A') && id <= (Alpha + 'Z'))
-		id = id - (Alpha + 'A') + 10;
+static bool getkey(int& id, unsigned count) {
+	unsigned result = 0;
+	if(id >= (Alpha + 'A') && id <= (Alpha + 'Z'))
+		result = id - (Alpha + 'A');
 	else
 		return false;
+	if(result >= count)
+		return false;
+	id = result;
 	return true;
 }
 
@@ -883,7 +878,7 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 		case KeyEscape:
 			return 0;
 		default:
-			if(getkey(id)) {
+			if(getkey(id, count)) {
 				auto count = zlen(source);
 				if(id < count)
 					return source[id];
@@ -987,7 +982,7 @@ static void character_invertory(creature& e) {
 		case KeyEscape:
 			return;
 		default:
-			if(getkey(id)) {
+			if(getkey(id, Amunitions + 1)) {
 				auto slot = (slot_s)id;
 				if(e.wears[slot]) {
 					if(!e.pickup(e.wears[slot]))
@@ -1084,6 +1079,7 @@ bool logs::choose(creature& e, skill_s& result, skill_s* source, unsigned count,
 	const int width = 400;
 	const int height = 360;
 	const int dy = 20;
+	unsigned real_count = 0;
 	while(true) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
@@ -1099,6 +1095,7 @@ bool logs::choose(creature& e, skill_s& result, skill_s* source, unsigned count,
 			x1 = textl(x1, y, 308, getstr(i));
 			x1 = textl(x1, y, 60, szpercent(temp, zendof(temp), e.get(i)));
 			y += dy;
+			real_count++;
 		}
 		if(!index)
 			textl(x, y, width, "У вас нет подходящих навыков");
@@ -1109,11 +1106,9 @@ bool logs::choose(creature& e, skill_s& result, skill_s* source, unsigned count,
 				return false;
 			break;
 		default:
-			if(getkey(id)) {
-				if(id < (int)count) {
-					result = source[id];
-					return true;
-				}
+			if(getkey(id, real_count)) {
+				result = source[id];
+				return true;
 			}
 			break;
 		}
@@ -1160,11 +1155,9 @@ bool logs::choose(creature& e, spell_s& result, spell_s* source, unsigned count)
 		case KeyEscape:
 			return false;
 		default:
-			if(getkey(id)) {
-				if(id < (int)count) {
-					result = source[id];
-					return true;
-				}
+			if(getkey(id, count)) {
+				result = source[id];
+				return true;
 			}
 			break;
 		}
