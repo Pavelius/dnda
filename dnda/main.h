@@ -377,7 +377,7 @@ struct creature {
 	int				getmaxhits() const;
 	int				getmaxmana() const;
 	const char*		getmonstername() const;
-	int				getmoverecoil(tile_s tile, map_object_s object) const;
+	int				getmoverecoil() const;
 	const char*		getname() const; // Name used predefined names array
 	static const char* getname(state_s id, bool cursed);
 	creature*		getnearest(targetdesc ti) const;

@@ -403,20 +403,6 @@ int	creature::getmaxmana() const {
 	return result;
 }
 
-int	creature::getmoverecoil(tile_s tile, map_object_s object) const {
-	int result;
-	switch(tile) {
-	case Plain: result = 4; break;
-	case Road: result = 3; break;
-	case Floor: result = 3; break;
-	case Swamp: result = 7; break;
-	case Hill: result = 5; break;
-	case Water: result = 10; break;
-	default: result = 4; break;
-	}
-	return result;
-}
-
 const char* creature::getname() const {
 	auto p = getmonstername();
 	if(p)
@@ -582,7 +568,7 @@ bool creature::move(short unsigned i) {
 	if(isplayer())
 		lookfloor();
 	trapeffect();
-	wait(getmoverecoil(gettile(position), getobject(position)));
+	wait(getmoverecoil());
 	return true;
 }
 

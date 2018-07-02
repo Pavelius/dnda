@@ -184,6 +184,7 @@
     <ClCompile Include="state.cpp" />
     <ClCompile Include="stringcreator.cpp" />
     <ClCompile Include="surface.cpp" />
+    <ClCompile Include="tile.cpp" />
     <ClCompile Include="traps.cpp" />
     <ClCompile Include="view.cpp" />
     <ClCompile Include="win_draw.cpp" />
