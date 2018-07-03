@@ -236,6 +236,7 @@ struct effectinfo {
 	damageinfo		damage;
 	unsigned		experience;
 	void(*fail)(effectparam& e);
+	bool(*test)(effectparam& e);
 };
 struct effectparam : targetinfo, effectinfo {
 	creature&		player;
