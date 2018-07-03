@@ -27,6 +27,7 @@ enum item_s : unsigned char {
 	WandRed, WandGreen, WandBlue,
 	Book,
 	PotionRed, PotionGreen, PotionBlue,
+	RingRed,
 	DoorKey, Coin,
 	Claws, Slam, Bite,
 	ManyItems

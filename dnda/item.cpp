@@ -142,6 +142,8 @@ static struct item_info {
 {"Зелье", 25 * GP, Glass, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_green},
 {"Зелье", 30 * GP, Glass, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_blue},
 //
+{"Кольцо", 60 * GP, Iron, {}, {}, {}, NoSkill, ring_effect},
+//
 {"Ключ", 0, Iron},
 {"Монета", 1, Iron, {}, {}, {}, NoSkill, {}, {}, NoItem, 50},
 //
