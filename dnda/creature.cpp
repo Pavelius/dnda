@@ -1120,7 +1120,7 @@ static bool linelos(int x0, int y0, int x1, int y1) {
 	}
 }
 
-unsigned creature::getcreatures(aref<creature*> result, targetdesc ti, short unsigned position, const creature* player, const creature* exclude) {
+aref<creature*> creature::getcreatures(aref<creature*> result, targetdesc ti, short unsigned position, const creature* player, const creature* exclude) {
 	auto pb = result.data;
 	auto pe = pb + result.count;
 	auto x = game::getx(position);
@@ -1151,10 +1151,10 @@ unsigned creature::getcreatures(aref<creature*> result, targetdesc ti, short uns
 				break;
 		}
 	}
-	return pb - result.data;
+	return aref<creature*>(result.data, pb - result.data);
 }
 
-unsigned creature::getcreatures(aref<creature*> result, targetdesc ti) const {
+aref<creature*> creature::getcreatures(aref<creature*> result, targetdesc ti) const {
 	if(!ti.range)
 		ti.range = getlos();
 	const creature* exclude = 0;

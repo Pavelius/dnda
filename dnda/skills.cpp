@@ -94,24 +94,24 @@ static struct skill_info {
 } skill_data[] = {{"Нет навыка"},
 {"Торговля", {Charisma, Intellegence}},
 {"Блеф", {Charisma, Dexterity}},
-{"Дипломатия", {Charisma, Wisdow}, {{TargetFriendlySelf, 1}, {}, setstate, Turn / 2, {Goodwill}, "%герой одобрил%а предложение."}},
+{"Дипломатия", {Charisma, Wisdow}, {{TargetFriendlySelf, 1}, {}, {setstate}, Turn / 2, {Goodwill}, "%герой одобрил%а предложение."}},
 //
 {"Акробатика", {Dexterity, Dexterity}},
 {"Внимательность", {Wisdow, Dexterity}},
 {"Атлетика", {Strenght, Dexterity}},
 {"Концентрация", {Wisdow, Constitution}},
-{"Обезвредить ловушки", {Dexterity, Intellegence}, {{TargetTrap, 1}, {}, removetrap, Instant, {}, "%герой обезвредил%а ловушку.", {}, 30}},
+{"Обезвредить ловушки", {Dexterity, Intellegence}, {{TargetTrap, 1}, {}, {removetrap}, Instant, {}, "%герой обезвредил%а ловушку.", {}, 30}},
 {"Слышать звуки", {Wisdow, Intellegence}},
-{"Прятаться в тени", {Dexterity, Dexterity}, {{TargetSelf}, {}, setstate, Turn / 2, {Hiding}, "%герой внезапно изчез%ла из поля зрения."}},
-{"Открыть замок", {Dexterity, Intellegence}, {{TargetDoor, 1}, {}, removelock, Instant, {}, "%герой вскрыл%а замок.", {}, 50}},
-{"Очистить карманы", {Dexterity, Charisma}, {{TargetFriendlySelf, 1}, {}, pickpockets, Instant, {}, 0, {}, 25, 0, test_pickpockets}},
+{"Прятаться в тени", {Dexterity, Dexterity}, {{TargetSelf}, {}, {setstate}, Turn / 2, {Hiding}, "%герой внезапно изчез%ла из поля зрения."}},
+{"Открыть замок", {Dexterity, Intellegence}, {{TargetDoor, 1}, {}, {removelock}, Instant, {}, "%герой вскрыл%а замок.", {}, 50}},
+{"Очистить карманы", {Dexterity, Charisma}, {{TargetFriendlySelf, 1}, {}, {pickpockets, 0, test_pickpockets}, Instant, {}, 0, {}, 25}},
 {"Алхимия", {Intellegence, Intellegence}},
-{"Танцы", {Dexterity, Charisma}, {{TargetSelf}, {}, dance, Instant, {}, "%герой станевал%а отличный танец.", {}, 10}},
+{"Танцы", {Dexterity, Charisma}, {{TargetSelf}, {}, {dance}, Instant, {}, "%герой станевал%а отличный танец.", {}, 10}},
 {"Инженерное дело", {Intellegence, Intellegence}},
-{"Азартные игры", {Charisma, Dexterity}, {{TargetFriendlySelf, 1}, {}, gamble, Instant, {}, 0, {}, 25, failgamble, test_gamble}, {0, 2}},
+{"Азартные игры", {Charisma, Dexterity}, {{TargetFriendlySelf, 1}, {}, {gamble, failgamble, test_gamble}, Instant, {}, 0, {}, 25}, {0, 2}},
 {"История", {Intellegence, Intellegence}},
-{"Лечение", {Wisdow, Intellegence}, {{TargetFriendlySelf, 1}, {}, healdamage, Instant, {}, "%герой перевязал%а раны.", 5}},
-{"Грамотность", {Intellegence, Intellegence}, {{TargetItemReadable}, {}, literacy, Minute / 2, {}, 0, {}, 25, literacy}},
+{"Лечение", {Wisdow, Intellegence}, {{TargetFriendlySelf, 1}, {}, {healdamage}, Instant, {}, "%герой перевязал%а раны.", 5}},
+{"Грамотность", {Intellegence, Intellegence}, {{TargetItemReadable}, {}, {literacy, literacy}, Minute / 2, {}, 0, {}, 25}},
 {"Шахтерское дело", {Strenght, Intellegence}},
 {"Кузнечное дело", {Strenght, Intellegence}},
 {"Выживание", {Wisdow, Constitution}},
@@ -123,6 +123,7 @@ static struct skill_info {
 {"Сражение двумя оружиями", {Strenght, Dexterity}},
 //
 {"Сопротивление кислоте", {Dexterity, Constitution}, {}, {}, OfAcidResistance, true},
+{"Сопротивление шарму", {Wisdow, Wisdow}, {}, {}, OfCharmResistance},
 {"Сопротивление холоду", {Constitution, Strenght}, {}, {}, OfColdResistance, true},
 {"Сопротивление электричеству", {Dexterity, Dexterity}, {}, {}, OfElectricityResistance, true},
 {"Сопротивление огню", {Constitution, Dexterity}, {}, {}, OfFireResistance, true},
@@ -166,10 +167,10 @@ void creature::use(skill_s value) {
 		if(!gettarget(ep, ep.type))
 			return;
 	}
-	if(!ep.fail)
-		ep.fail = failskill;
-	if(ep.test) {
-		if(!ep.test(ep))
+	if(!ep.proc.fail)
+		ep.proc.fail = failskill;
+	if(ep.proc.test) {
+		if(!ep.proc.test(ep))
 			return;
 	}
 	auto r = d100();
@@ -179,7 +180,7 @@ void creature::use(skill_s value) {
 	if(e.koef[1] && ep.cre)
 		v = v - ep.cre->get(value) / e.koef[1];
 	if(r >= v)
-		ep.apply(ep.fail);
+		ep.apply(ep.proc.fail);
 	else
 		ep.apply();
 }

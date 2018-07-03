@@ -54,7 +54,7 @@ enum enchantment_s : unsigned char {
 	OfSharping, OfSmashing, OfSpeed, OfStrenght, OfSustenance,
 	OfVampirism, OfWisdow,
 	// Resistances
-	OfAcidResistance, OfColdResistance, OfFireResistance, OfElectricityResistance, OfPoisonResistance, OfWaterproof,
+	OfAcidResistance, OfCharmResistance, OfColdResistance, OfFireResistance, OfElectricityResistance, OfPoisonResistance, OfWaterproof,
 	LastEnchantment = OfWaterproof,
 };
 enum race_s : unsigned char {
@@ -87,7 +87,7 @@ enum skill_s : unsigned char {
 	Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival, Swimming,
 	WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting,
 	LastSkill = TwoWeaponFighting,
-	ResistAcid, ResistCold, ResistElectricity, ResistFire, ResistPoison, ResistWater,
+	ResistAcid, ResistCharm, ResistCold, ResistElectricity, ResistFire, ResistPoison, ResistWater,
 	LastResist = ResistWater,
 };
 enum state_s : unsigned char {
@@ -178,9 +178,6 @@ enum attack_s : unsigned char {
 	Bludgeon, Slashing, Piercing,
 	Acid, Cold, Electricity, Fire, Magic, Poison, WaterAttack
 };
-enum save_s : unsigned char {
-	NoSave, SaveAbility, SaveSkill,
-};
 enum material_s : unsigned char {
 	Glass, Iron, Leather, Organic, Paper, Stone, Wood,
 };
@@ -227,21 +224,19 @@ struct foodinfo {
 	int				get(int value) const { return value * 50; }
 };
 struct effectinfo {
-	struct savec {
-		save_s		type;
-		ability_s	ability;
-		skill_s		skill;
+	struct callback {
+		void(*success)(effectparam& e);
+		void(*fail)(effectparam& e);
+		bool(*test)(effectparam& e);
 	};
 	targetdesc		type;
-	savec			save;
-	void(*success)(effectparam& e);
+	skill_s			save;
+	callback		proc;
 	unsigned		duration;
 	cflags<state_s>	state;
 	const char*		text;
 	damageinfo		damage;
 	unsigned		experience;
-	void(*fail)(effectparam& e);
-	bool(*test)(effectparam& e);
 };
 struct effectparam : targetinfo, effectinfo {
 	creature&		player;
@@ -391,8 +386,8 @@ struct creature {
 	int				getcost(spell_s value) const;
 	unsigned		getcostexp() const;
 	static creature* getcreature(short unsigned index);
-	unsigned		getcreatures(aref<creature*> result, targetdesc ti) const;
-	static unsigned	getcreatures(aref<creature*> result, targetdesc ti, short unsigned position, const creature* player, const creature* exclude);
+	aref<creature*> getcreatures(aref<creature*> result, targetdesc ti) const;
+	static aref<creature*> getcreatures(aref<creature*> result, targetdesc ti, short unsigned position, const creature* player, const creature* exclude);
 	int				getdefence() const;
 	int				getdiscount(creature* customer) const;
 	encumbrance_s	getencumbrance() const { return encumbrance; }

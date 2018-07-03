@@ -1,8 +1,20 @@
 #include "main.h"
 
+static void apply_area(effectparam& e, void(*method)(effectparam& e)) {
+	creature* result[64];
+	effectparam e1 = e;
+	e1.type.area = 0;
+	for(auto p : e.cre->getcreatures(result, {e.type.target, e.type.area}, e.cre->position, &e.player, e.cre)) {
+		e1.cre = p;
+		method(e1);
+	}
+}
+
 void effectparam::apply(void(*proc)(effectparam& e)) {
 	if(!proc)
 		return;
+	if(type.area)
+		apply_area(*this, proc);
 	switch(type.target) {
 	case TargetInvertory:
 		for(auto& e : player.wears) {
@@ -21,23 +33,15 @@ void effectparam::apply() {
 		if(cre)
 			cre->actvs(player, text);
 	}
-	apply(success);
+	apply(proc.success);
 	if(experience)
 		player.addexp(experience);
 }
 
 bool effectparam::saving() const {
-	if(cre && save.type != NoSave) {
-		auto chance_save = 0;
-		switch(save.type) {
-		case SaveAbility:
-			chance_save = cre->get(save.ability) * 4;
-			break;
-		case SaveSkill:
-			chance_save = cre->get(save.skill);
-			break;
-		}
-		if(chance_save) {
+	if(cre && save != NoSkill) {
+		auto chance_save = cre->get(save);
+		if(chance_save>0) {
 			auto r = d100();
 			if(r < chance_save) {
 				if(interactive)

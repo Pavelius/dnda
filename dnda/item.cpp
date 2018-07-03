@@ -31,6 +31,7 @@ static struct enchantment_info {
 {"wisdow", "мудрости", 6},
 //
 {"acid resistance", "сопротивления кислоте", 1},
+{"charm resistance", "сопротивления шарму", 1},
 {"cold resistance", "сопротивления холоду", 1},
 {"fire resistance", "сопротивления огня", 2},
 {"electricity resistance", "сопротивления электричеству", 1},
