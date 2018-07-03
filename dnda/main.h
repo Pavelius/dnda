@@ -9,8 +9,8 @@
 
 #pragma once
 
-const int max_map_x = 96;
-const int max_map_y = 96;
+const int max_map_x = 72;
+const int max_map_y = 72;
 const unsigned short Blocked = 0xFFFF;
 
 enum item_s : unsigned char {
@@ -512,7 +512,7 @@ location*			getlocation(short unsigned i);
 int					getitems(item** result, unsigned maximum_count, short unsigned index);
 short unsigned		getmovement(short unsigned i);
 const char*			getnamepart(unsigned short value);
-creature*			getnearest(creature** source, unsigned count, short unsigned position);
+creature*			getnearest(aref<creature*> source, short unsigned position);
 int					getnight();
 int					getrand(short unsigned i);
 short unsigned		getstepto(short unsigned index);

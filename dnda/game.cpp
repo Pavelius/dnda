@@ -5,6 +5,8 @@
 // Each minute has 12 segments, and each segment if 6 seconds duration.
 // Attack duration is 12 segments - speed of weapon - dexterity speed bonus but minimum of 3 segments
 
+const unsigned short BlockedCreature = Blocked - 1;
+
 areainfo				game::statistic;
 int						isqrt(int num);
 static unsigned			start_year;
@@ -432,7 +434,7 @@ short unsigned game::getstepto(short unsigned index) {
 	auto current_value = Blocked;
 	for(auto d : all_aroud) {
 		auto i = to(index, d);
-		if(i == Blocked)
+		if(i >= BlockedCreature)
 			continue;
 		if(movements[i] < current_value) {
 			current_value = movements[i];
@@ -447,7 +449,7 @@ short unsigned game::getstepfrom(short unsigned index) {
 	auto current_value = 0;
 	for(auto d : all_aroud) {
 		auto i = to(index, d);
-		if(i == Blocked || movements[i] == Blocked)
+		if(i == Blocked || movements[i] >= BlockedCreature)
 			continue;
 		if(movements[i] > current_value) {
 			current_value = movements[i];
@@ -458,7 +460,6 @@ short unsigned game::getstepfrom(short unsigned index) {
 }
 
 void game::makewave(short unsigned index, bool(*proc)(short unsigned)) {
-	const unsigned short BlockedCreature = Blocked - 1;
 	memset(movements, 0xFFFFFFFF, sizeof(movements));
 	if(index == Blocked)
 		return;
@@ -474,8 +475,7 @@ void game::makewave(short unsigned index, bool(*proc)(short unsigned)) {
 		auto w = movements[n] + 1;
 		for(auto d : all_aroud) {
 			auto i = to(n, d);
-			if(movements[i] == BlockedCreature
-				|| !proc(i))
+			if(movements[i] == BlockedCreature || !proc(i))
 				continue;
 			if(movements[i] == Blocked || movements[i] > w) {
 				movements[i] = w;
@@ -491,7 +491,7 @@ short unsigned game::getmovement(short unsigned index) {
 
 bool logs::getcreature(const creature& e, creature** result, targetdesc ti) {
 	creature* source[64];
-	auto count = e.getcreatures(source, ti);
+	auto count = e.getcreatures(source, ti).count;
 	if(!count) {
 		e.hint("Вокруг никого нет.");
 		return false;
@@ -605,9 +605,11 @@ int compare_creature_by_distance(const void* p1, const void* p2) {
 	return d1 - d2;
 }
 
-creature* game::getnearest(creature** source, unsigned count, short unsigned position) {
+creature* game::getnearest(aref<creature*> source, short unsigned position) {
+	if(!source)
+		return 0;
 	compare_index = position;
-	qsort(source, count, sizeof(source[0]), compare_creature_by_distance);
+	qsort(source.data, source.count, sizeof(source.data[0]), compare_creature_by_distance);
 	return source[0];
 }
 

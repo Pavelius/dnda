@@ -1165,10 +1165,7 @@ aref<creature*> creature::getcreatures(aref<creature*> result, targetdesc ti) co
 
 creature* creature::getnearest(targetdesc ti) const {
 	creature* source[128];
-	auto count = getcreatures(source, ti);
-	if(!count)
-		return 0;
-	return game::getnearest(source, count, position);
+	return game::getnearest(getcreatures(source, ti), position);
 }
 
 int	creature::getlos() const {
@@ -1666,6 +1663,7 @@ template<> void archive::set<creature>(creature& e) {
 	set(e.guard);
 	set(e.states);
 	set(e.wears);
+	set(e.encumbrance);
 	set(e.charmer);
 	set(e.enemy);
 	set(e.horror);
