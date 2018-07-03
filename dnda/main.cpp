@@ -19,9 +19,10 @@ int main(int argc, char* argv[]) {
 	p1->equip(Apple);
 
 	p3->equip(BowLong);
-	p3->equip(item(Arrow, Mundane, NoEffect));
+	p3->equip(Arrow);
 	p3->equip(item(SwordLong, Artifact, OfStrenght));
 	p3->equip(item(Dagger, Cursed, OfDexterity));
+	p3->equip(item(BracersLeather, Magical, OfDefence));
 
 	p2->equip(item(Shield, Mundane, NoEffect));
 

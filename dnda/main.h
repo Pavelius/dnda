@@ -21,7 +21,7 @@ enum item_s : unsigned char {
 	CrossbowLight, CrossbowHeavy, BowLong, BowShort, Dart, Sling,
 	Rock, Arrow, Bolt,
 	LeatherArmour, StuddedLeatherArmour, ScaleMail, ChainMail, SplintMail, PlateMail,
-	Shield, Helmet, BracersIron, BracersLeather,
+	Shield, Helmet, BracersLeather, BracersIron,
 	Ration, Apple, BreadHalflings, BreadEvlen, BreadDwarven, Cake, Sausage, Meat,
 	ScrollRed, ScrollGreen, ScrollBlue,
 	WandRed, WandGreen, WandBlue,
