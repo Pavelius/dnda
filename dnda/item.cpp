@@ -25,6 +25,7 @@ static struct enchantment_info {
 {"smashing", "раскалывания"},
 {"speed", "скорости"},
 {"strenght", "силы"},
+{"sustenance", "питания"},
 {"vampirism", "вампиризма"},
 {"wisdow", "мудрости"},
 //
@@ -54,6 +55,10 @@ static enchantment_s swords_effect[] = {OfCold, OfDefence, OfDexterity, OfFire, 
 static enchantment_s axe_effect[] = {OfStrenght, OfDestruction, OfFire, OfSharping, OfSmashing};
 static enchantment_s bludgeon_effect[] = {OfConstitution, OfDestruction, OfFire, OfSmashing, OfStrenght};
 static enchantment_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
+static enchantment_s armor_effect[] = {OfDefence, OfArmor, OfCharisma, OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
+static enchantment_s ring_effect[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma,
+OfPrecision, OfDefence, OfArmor, OfRegeneration, OfMana,
+OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
 static spell_s scroll_spells[] = {CharmPerson, Identify, Armor, ShieldSpell};
 static spell_s wand_spells[] = {Fear, MagicMissile, HealingSpell, ShokingGrasp, Sleep, RemovePoisonSpell, RemoveSickSpell};
 static spell_s staff_spells[] = {Fear, MagicMissile, ShokingGrasp, Sleep};
@@ -103,12 +108,12 @@ static struct item_info {
 {"Стрела", 2 * CP, Wood, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
 {"Болт", 1 * CP, Iron, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
 //
-{"Кожанная броня", 5 * GP, Leather, {0, {}, 0, {2}}, {}, {Torso}},
-{"Клепанная броня", 20 * GP, Leather, {0, {}, 0, {3}}, {}, {Torso}},
-{"Чешуйчатый доспех", 30 * GP, Iron, {0, {}, 0, {5}}, {}, {Torso}},
-{"Кольчуга", 50 * GP, Iron, {0, {}, 0, {5, 1}}, {}, {Torso}},
-{"Бахрец", 200 * GP, Iron, {0, {}, 0, {6, 2}}, {}, {Torso}},
-{"Латы", 800 * GP, Iron, {0, {}, 0, {8, 3}}, {}, {Torso}},
+{"Кожанная броня", 5 * GP, Leather, {0, {}, 0, {2}}, {}, {Torso}, NoSkill, armor_effect},
+{"Клепанная броня", 20 * GP, Leather, {0, {}, 0, {3}}, {}, {Torso}, NoSkill, armor_effect},
+{"Чешуйчатый доспех", 30 * GP, Iron, {0, {}, 0, {5}}, {}, {Torso}, NoSkill, armor_effect},
+{"Кольчуга", 50 * GP, Iron, {0, {}, 0, {5, 1}}, {}, {Torso}, NoSkill, armor_effect},
+{"Бахрец", 200 * GP, Iron, {0, {}, 0, {6, 2}}, {}, {Torso}, NoSkill, armor_effect},
+{"Латы", 800 * GP, Iron, {0, {}, 0, {8, 3}}, {}, {Torso}, NoSkill, armor_effect},
 //
 {"Щит", 20 * GP, Iron, {0, {}, {}, {2}}, {}, {OffHand}},
 {"Шлем", 5 * GP, Iron, {0, {}, {}, {1}}, {}, {Head}},

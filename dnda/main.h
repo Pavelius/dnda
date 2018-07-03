@@ -49,7 +49,7 @@ enum enchantment_s : unsigned char {
 	OfMana,
 	OfPrecision,
 	OfRegeneration,
-	OfSharping, OfSmashing, OfSpeed, OfStrenght,
+	OfSharping, OfSmashing, OfSpeed, OfStrenght, OfSustenance,
 	OfVampirism, OfWisdow,
 	// Resistances
 	OfAcidResistance, OfColdResistance, OfFireResistance, OfElectricityResistance, OfPoisonResistance, OfWaterproof,

@@ -920,16 +920,16 @@ void creature::damagewears(int value, attack_s type) {
 		material_s	material;
 		char		damage_chance;
 		const char*	damage_text;
-		bool		destroy;
-	} attack_damage_data[] = {{Fire, Paper, 40, "%герой сгорел%а дотла.", true},
-	{Fire, Iron, 20, "%герой расплавил%ась дотла.", true},
-	{Fire, Leather, 30, "%герой частично сгорел%а."},
-	{Fire, Wood, 50, "%герой частично сгорел%а."},
-	{Acid, Iron, 80, "%герой разъело кислотой."},
-	{Acid, Leather, 70, "%герой разъело кислотой."},
-	{Acid, Wood, 60, "%герой разъело кислотой."},
-	{WaterAttack, Iron, 50, "%герой заржавел%а."},
-	{WaterAttack, Paper, 60, "%герой промок%ла насквозь.", true},
+		void		(item::*destroy)();
+	} attack_damage_data[] = {{Fire, Paper, 55, "%герой сгорел%а дотла.", &item::clear},
+	{Fire, Iron, 15, "%герой расплавил%ась дотла.", &item::clear},
+	{Fire, Wood, 40, "%герой сгорел%а в ярком пламени.", &item::clear},
+	{Fire, Leather, 30, "%герой частично сгорел%а.", &item::damage},
+	{Acid, Iron, 80, "%герой разъело кислотой.", &item::damage},
+	{Acid, Leather, 70, "%герой разъело кислотой.", &item::damage},
+	{Acid, Wood, 60, "%герой разъело кислотой.", &item::damage},
+	{WaterAttack, Iron, 50, "%герой заржавел%а.", &item::damage},
+	{WaterAttack, Paper, 60, "%герой промок%ла насквозь.", &item::clear},
 	};
 	if(!(*this))
 		return;
@@ -952,10 +952,7 @@ void creature::damagewears(int value, attack_s type) {
 				continue;
 			if(getplayer()->canhear(position))
 				it.act(e.damage_text);
-			if(e.destroy)
-				it.clear();
-			else
-				it.damage();
+			(it.*e.destroy)();
 		}
 	}
 }
@@ -1534,7 +1531,8 @@ void creature::use(item& it) {
 		act("%герой съел%а %L1.", temp);
 		auto& e = it.getfood();
 		auto q = it.getquality();
-		heal(e.hits + q, true);
+		auto calory = e.hits + q + getbonus(OfSustenance) * 2;
+		heal(calory, true);
 		consume(-(e.mana + q), false);
 		if(d100() < e.sickness) {
 			remove(Sick);
