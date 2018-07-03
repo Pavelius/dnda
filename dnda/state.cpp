@@ -109,10 +109,10 @@ void creature::drink(item& it, bool interactive) {
 			auto dice = maptbl(healing, quality_raw);
 			if(it.isartifact()) // Artifact permanently add health maximum
 				mhp += xrand(2, 8);
-			heal(-dice.roll(), false);
+			heal(dice.roll(), false);
 		} else {
 			auto dice = maptbl(healing, quality_raw);
-			damage(dice.roll(), false, Magic, false);
+			damage(dice.roll(), Magic, false);
 		}
 		break;
 	default:

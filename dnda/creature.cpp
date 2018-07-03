@@ -36,7 +36,7 @@ static char	int_checks[] = {2,
 4, 4, 5, 5, 6, 6, 6, 7, 7, 7,
 8, 8, 9, 9, 9
 };
-static magic_s ability_effects[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma};
+static enchantment_s ability_effects[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma};
 static state_s ability_states[] = {Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic};
 const int chance_loot = 40;
 
@@ -52,6 +52,18 @@ static struct equipment_info {
 {NoRace, Theif, {SwordShort, LeatherArmour}},
 {NoRace, Mage, {Staff, WandGreen, ScrollRed, ScrollGreen, ScrollBlue, PotionBlue}},
 };
+
+static constexpr struct race_info {
+	const char*		name;
+	cflags<skill_s>	skills;
+} race_data[] = {{"Человекооразный"},
+{"Человек", {Bargaining, Gambling}},
+{"Гном", {Smithing, Mining}},
+{"Эльф", {Survival, WeaponFocusBows}},
+{"Полурослик", {HideInShadow, Acrobatics}},
+};
+assert_enum(race, Halfling);
+getstr_enum(race);
 
 static struct class_info {
 	const char*			name;
@@ -73,17 +85,19 @@ getstr_enum(class);
 static struct attack_info {
 	const char*	name;
 	const char*	damage;
-} attack_data[] = {{"Ударное", "%герой пропустил%а удар на %1i хитов"},
-{"Режущее", "%герой ранен%а на %1i хитов"},
-{"Колющее", "%герой получил%а рану на %1i хитов"},
+	bool		ignore_armor;
+	skill_s		resist;
+} attack_data[] = {{"Ударное", "%герой пропустил%а удар на %1i хитов", false, NoSkill},
+{"Режущее", "%герой ранен%а на %1i хитов", false, NoSkill},
+{"Колющее", "%герой получил%а рану на %1i хитов", false, NoSkill},
 //
-{"Кислота", "%героя обдало кислотой на %1i хитов"},
-{"Холод", "%героя обдало холодом на %1i хитов"},
-{"Электричество", "%героя поразил электрический разряд на %1i хитов"},
-{"Огонь", "%героя обдало огнем на %1i хитов"},
-{"Магия", "%героя поразил сгусток энергии на %1i хитов"},
-{"Яд", "В рану %героя попал яд"},
-{"Вода", "%героя обдало струей воды"},
+{"Кислота", "%героя обдало кислотой на %1i хитов", false, NoSkill},
+{"Холод", "%героя обдало холодом на %1i хитов", true, ResistCold},
+{"Электричество", "%героя поразил электрический разряд на %1i хитов", false, ResistElectricity},
+{"Огонь", "%героя обдало огнем на %1i хитов", false, ResistFire},
+{"Магия", "%героя поразил сгусток энергии на %1i хитов", true, NoSkill},
+{"Яд", "В рану %героя попал яд", true, ResistPoison},
+{"Вода", "%героя обдало струей воды", false},
 };
 assert_enum(attack, WaterAttack);
 getstr_enum(attack);
@@ -268,7 +282,7 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 	for(auto& e : abilities)
 		e = roll3d6();
 	choosebestability();
-	for(auto e : game::getskills(race))
+	for(auto e : race_data[race].skills)
 		raise(e);
 	for(auto e : class_data[type].skills)
 		raise(e);
@@ -321,17 +335,11 @@ void creature::clear() {
 	role = Character;
 }
 
-int	creature::getbonus(magic_s value) const {
+int	creature::getbonus(enchantment_s value) const {
 	auto result = 0;
 	for(int i = Head; i < Legs; i++)
 		result += wears[i].getbonus(value);
 	return result;
-}
-
-int	creature::getbasic(skill_s value) const {
-	if(value <= LastSkill)
-		return skills[value];
-	return 0;
 }
 
 int creature::getarmor() const {
@@ -556,8 +564,8 @@ void creature::trapeffect() {
 			return;
 		}
 	}
-	auto ai = game::getattackinfo(trap);
-	damage(ai.damage);
+	auto a = game::getattackinfo(trap);
+	damage(a.damage.roll(), a.damage.type, true);
 }
 
 bool creature::move(short unsigned i) {
@@ -800,50 +808,32 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 		for(auto i = ai.multiplier; i > 0; i--)
 			damage.max += step;
 	}
-	defender->damage(damage);
+	auto value = damage.roll();
+	defender->damage(value, damage.type, true);
 	switch(ai.effect) {
 	case OfFire:
-		defender->damage({1, 6 + ai.quality * 2, Fire});
+		defender->damage(xrand(1, 6) + ai.quality * 2, Fire, true);
 		break;
 	case OfCold:
-		defender->damage({1, 6 + ai.quality, Cold});
+		defender->damage(xrand(1, 4) + ai.quality, Cold, true);
 		break;
 	case OfVampirism:
-		attacker->damage(-(xrand(1, 4) + ai.quality), false, Magic, true);
+		attacker->heal(-(xrand(1, 4) + ai.quality), false);
 		break;
 	}
 }
 
-void creature::damage(damageinfo dice, bool interactive) {
-	auto ignore_armor = false;
-	switch(dice.type) {
-	case Poison:
-		if(roll(ResistPoison))
-			dice.max = dice.min;
-		ignore_armor = true;
-		break;
-	case Fire:
-		if(roll(ResistFire))
-			dice.max = dice.min;
-		break;
-	case Cold:
-		if(roll(ResistCold))
-			dice.max = dice.min;
-		break;
-	case Electricity:
-		if(roll(ResistElectricity))
-			dice.max = dice.min;
-		break;
-	default:
-		break;
-	}
-	auto value = dice.roll();
-	damage(value, ignore_armor, dice.type, interactive);
-}
-
-void creature::damage(int value, bool ignore_armor, attack_s type, bool interactive) {
+void creature::damage(int value, attack_s type, bool interactive) {
 	if(value >= 0) {
-		if(!ignore_armor)
+		const auto& a = attack_data[type];
+		if(value >= 0 && a.resist) {
+			// RULE: reistance to damage remove percent of damage
+			auto skill_value = get(a.resist);
+			if(skill_value > 100)
+				skill_value = 100;
+			value = (value * (100 - skill_value)) / 100;
+		}
+		if(!a.ignore_armor)
 			value -= getarmor();
 		if(value < 0)
 			value = 0;
@@ -852,10 +842,8 @@ void creature::damage(int value, bool ignore_armor, attack_s type, bool interact
 			if(interactive)
 				act("%герой выдержал%а удар");
 		} else {
-			if(interactive) {
-				//act("%герой получил%а %1i урона", value);
-				act(attack_data[type].damage, value);
-			}
+			if(interactive)
+				act(a.damage, value);
 		}
 		if(hp <= 0) {
 			if(interactive)
@@ -889,7 +877,7 @@ void creature::damage(int value, bool ignore_armor, attack_s type, bool interact
 		if(value > 0) {
 			hp += value;
 			if(interactive)
-				act("%герой восстановил%а %1i хита.", value);
+				act("%герой восстановил%а %1i хитов.", value);
 		}
 	}
 }
@@ -1363,7 +1351,8 @@ void creature::update() {
 		for(auto state : states) {
 			if(!is(state))
 				continue;
-			damage(poison_effect[state - PoisonedWeak]);
+			auto& a = poison_effect[state - PoisonedWeak];
+			damage(a.roll(), a.type, true);
 		}
 	}
 	// RULE: В среднем восстанавливаем 1 хит за 30 минут

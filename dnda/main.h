@@ -39,7 +39,7 @@ enum slot_s : unsigned char {
 	Head, Neck, Melee, OffHand, TorsoBack, Torso, RightFinger, LeftFinger, Elbows, Legs, Ranged, Amunitions,
 	FirstBackpack, LastBackpack = FirstBackpack + 19,
 };
-enum magic_s : unsigned char {
+enum enchantment_s : unsigned char {
 	NoEffect,
 	OfArmor,
 	OfCharisma, OfCold, OfConstitution,
@@ -51,6 +51,9 @@ enum magic_s : unsigned char {
 	OfRegeneration,
 	OfSharping, OfSmashing, OfSpeed, OfStrenght,
 	OfVampirism, OfWisdow,
+	// Resistances
+	OfColdResistance, OfFireResistance, OfElectricityResistance, OfPoisonResistance,
+	LastEnchantment = OfPoisonResistance,
 };
 enum race_s : unsigned char {
 	NoRace,
@@ -240,7 +243,7 @@ struct effectparam : targetinfo, effectinfo {
 class item {
 	item_s			type;
 	//
-	magic_s			effect;
+	enchantment_s			effect;
 	//
 	unsigned char	count : 6;
 	unsigned char	damaged : 2;
@@ -251,8 +254,8 @@ class item {
 	unsigned char	forsale : 1;
 public:
 	constexpr item(item_s type = NoItem) : type(type), effect(NoEffect), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
-	constexpr item(item_s type, item_type_s magic, magic_s effect, unsigned char quality, identify_s identify = Unknown) : type(type), effect(effect), count(0), magic(magic), quality(quality), identify(identify), forsale(0), damaged(0) {}
-	constexpr item(spell_s spell, unsigned char quality_param) : type(ScrollRed), effect((magic_s)spell), count(0), magic(), quality(quality_param), identify(KnowEffect), forsale(0), damaged(0) {}
+	constexpr item(item_s type, item_type_s magic, enchantment_s effect, unsigned char quality, identify_s identify = Unknown) : type(type), effect(effect), count(0), magic(magic), quality(quality), identify(identify), forsale(0), damaged(0) {}
+	constexpr item(spell_s spell, unsigned char quality_param) : type(ScrollRed), effect((enchantment_s)spell), count(0), magic(), quality(quality_param), identify(KnowEffect), forsale(0), damaged(0) {}
 	constexpr item(spell_s spell) : item(spell, 0) {}
 	item(item_s type, int level, int chance_curse = 10);
 	operator bool() const { return type != NoItem; }
@@ -260,13 +263,13 @@ public:
 	void			get(attackinfo& e) const;
 	item_s			getammo() const;
 	int				getarmor() const;
-	int				getbonus(magic_s type) const;
+	int				getbonus(enchantment_s type) const;
 	int				getcharges() const;
 	unsigned		getcost() const { return getcostsingle()*getcount(); }
 	unsigned		getcostsingle() const;
 	int				getcount() const;
 	int				getdefence() const;
-	magic_s			geteffect() const;
+	enchantment_s			geteffect() const;
 	skill_s			getfocus() const;
 	const foodinfo& getfood() const;
 	identify_s		getidentify() const { return identify; }
@@ -300,7 +303,7 @@ public:
 	void			setcount(int count);
 	void			set(identify_s value);
 	void			set(item_type_s value) { magic = value; }
-	void			set(magic_s value) { effect = value; }
+	void			set(enchantment_s value) { effect = value; }
 	void			setforsale() { forsale = 1; }
 	void			setsold() { forsale = 0; }
 };
@@ -310,7 +313,7 @@ struct attackinfo {
 	char			bonus;
 	char			critical;
 	char			multiplier;
-	magic_s			effect;
+	enchantment_s			effect;
 	char			quality;
 };
 struct creature {
@@ -351,8 +354,7 @@ struct creature {
 	void			clear();
 	void			clear(state_s value) { states[value] = 0; }
 	void			consume(int value, bool interactive);
-	void			damage(int count, bool ignore_armor, attack_s type, bool interactive);
-	void			damage(damageinfo dice, bool interactive = true);
+	void			damage(int count, attack_s type, bool interactive);
 	void			drink(item& it, bool interactive);
 	bool			dropdown(item& value);
 	bool			equip(item value);
@@ -364,7 +366,7 @@ struct creature {
 	int				getattacktime(slot_s slot) const;
 	int				getbasic(ability_s value) const;
 	int				getbasic(skill_s value) const;
-	int				getbonus(magic_s value) const;
+	int				getbonus(enchantment_s value) const;
 	int				getcost(spell_s value) const;
 	unsigned		getcostexp() const;
 	static creature* getcreature(short unsigned index);
@@ -392,7 +394,7 @@ struct creature {
 	short unsigned	getposition() const { return position; }
 	bool			gettarget(targetinfo& result, const targetdesc td) const;
 	int				getweight() const;
-	void			heal(int value, bool interactive) { damage(-value, true, Magic, interactive); }
+	void			heal(int value, bool interactive) { damage(-value, Magic, interactive); }
 	void			hint(const char* format, ...) const;
 	static void		initialize();
 	bool			interact(short unsigned index);
@@ -449,7 +451,7 @@ private:
 	short			abilities_raise[Charisma + 1];
 	short			hp, mhp, mp, mmp;
 	unsigned		restore_hits, restore_mana;
-	unsigned char	skills[LastSkill + 1];
+	unsigned char	skills[LastResist + 1];
 	unsigned char	spells[LastSpell + 1];
 	unsigned		states[LastState + 1];
 	unsigned		recoil;
@@ -492,7 +494,6 @@ const char*			getnamepart(unsigned short value);
 creature*			getnearest(creature** source, unsigned count, short unsigned position);
 int					getnight();
 int					getrand(short unsigned i);
-cflags<skill_s>		getskills(race_s value);
 short unsigned		getstepto(short unsigned index);
 short unsigned		getstepfrom(short unsigned index);
 const char*			getdate(char* result, const char* result_maximum, unsigned segments, bool show_time);

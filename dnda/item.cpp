@@ -5,10 +5,10 @@ const int SP = 10;
 const int CP = 1;
 static_assert(sizeof(item) == sizeof(int), "Invalid sizeof(item). Must be equal sizeof(int).");
 
-static struct magic_info {
+static struct enchantment_info {
 	const char*		id;
 	const char*		name;
-} magic_data[] = {{""},
+} enchantment_data[] = {{""},
 {"armor", "брони"},
 {"charisma", "харизмы"},
 {"cold", "холода"},
@@ -27,9 +27,14 @@ static struct magic_info {
 {"strenght", "силы"},
 {"vampirism", "вампиризма"},
 {"wisdow", "мудрости"},
+//
+{"cold resistance", "сопротивления холоду"},
+{"fire resistance", "сопротивления огня"},
+{"electricity resistance", "сопротивления электричеству"},
+{"poison resistance", "сопротивления яду"},
 };
-assert_enum(magic, OfWisdow);
-getstr_enum(magic);
+assert_enum(enchantment, LastEnchantment);
+getstr_enum(enchantment);
 
 static const char* key_names[][2] = {{"simple", "простой"},
 // Металлические ключи
@@ -43,10 +48,10 @@ static const char* key_names[][2] = {{"simple", "простой"},
 {"stone", "каменный"},
 {"crystal", "кристальный"},
 };
-static magic_s swords_effect[] = {OfCold, OfDefence, OfDexterity, OfFire, OfSpeed, OfPrecision, OfSharping, OfVampirism};
-static magic_s axe_effect[] = {OfStrenght, OfDestruction, OfFire, OfSharping, OfSmashing};
-static magic_s bludgeon_effect[] = {OfConstitution, OfDestruction, OfFire, OfSmashing, OfStrenght};
-static magic_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
+static enchantment_s swords_effect[] = {OfCold, OfDefence, OfDexterity, OfFire, OfSpeed, OfPrecision, OfSharping, OfVampirism};
+static enchantment_s axe_effect[] = {OfStrenght, OfDestruction, OfFire, OfSharping, OfSmashing};
+static enchantment_s bludgeon_effect[] = {OfConstitution, OfDestruction, OfFire, OfSmashing, OfStrenght};
+static enchantment_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
 static spell_s scroll_spells[] = {CharmPerson, Identify, Armor, ShieldSpell};
 static spell_s wand_spells[] = {Fear, MagicMissile, HealingSpell, ShokingGrasp, Sleep, RemovePoisonSpell, RemoveSickSpell};
 static spell_s staff_spells[] = {Fear, MagicMissile, ShokingGrasp, Sleep};
@@ -66,7 +71,7 @@ static constexpr struct item_info {
 	cflags<item_flag_s>	flags;
 	cflags<slot_s>		slots;
 	skill_s				focus;
-	aref<magic_s>		effects;
+	aref<enchantment_s>		effects;
 	aref<spell_s>		spells;
 	item_s				ammunition;
 	unsigned char		count;
@@ -172,11 +177,11 @@ item::item(item_s type, int level, int chance_curse) : item(type) {
 		if(magic == Artifact
 			|| (is(Melee) && magic != Mundane && d100() < level)
 			|| !is(Melee))
-			effect = (magic_s)item_data[type].spells.data[rand() % item_data[type].spells.count];
+			effect = (enchantment_s)item_data[type].spells.data[rand() % item_data[type].spells.count];
 	}
 	// Spell be on mostly any scroll or wand
 	if(item_data[type].states)
-		effect = (magic_s)item_data[type].states.data[rand() % item_data[type].states.count];
+		effect = (enchantment_s)item_data[type].states.data[rand() % item_data[type].states.count];
 	// Set maximum item count in set
 	if(iscountable())
 		setcount(item_data[type].count);
@@ -240,13 +245,13 @@ state_s item::getstate() const {
 	return NoState;
 }
 
-magic_s item::geteffect() const {
+enchantment_s item::geteffect() const {
 	if(item_data[type].effects.count)
 		return effect;
 	return NoEffect;
 }
 
-int item::getbonus(magic_s value) const {
+int item::getbonus(enchantment_s value) const {
 	return (geteffect() == value) ? getquality() : 0;
 }
 

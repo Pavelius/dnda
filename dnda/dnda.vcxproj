@@ -174,7 +174,6 @@
     <ClCompile Include="names.cpp" />
     <ClCompile Include="pma.cpp" />
     <ClCompile Include="point.cpp" />
-    <ClCompile Include="race.cpp" />
     <ClCompile Include="resources.cpp" />
     <ClCompile Include="role.cpp" />
     <ClCompile Include="skills.cpp" />

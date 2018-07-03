@@ -34,7 +34,7 @@ static void setdamage(effectparam& e) {
 		else
 			damage.max += level;
 	}
-	e.cre->damage(damage);
+	e.cre->damage(damage.roll(), e.damage.type, true);
 }
 
 void healdamage(effectparam& e) {

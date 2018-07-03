@@ -54,11 +54,12 @@ static void failgamble(effectparam& e) {
 		logs::add("Ты выиграл [+%1i] монет.", e.param);
 }
 
-static struct skillinfo {
+static struct skill_info {
 	const char*		name;
 	ability_s		ability[2];
 	effectinfo		effect;
 	unsigned char	koef[2];
+	enchantment_s	enchant;
 } skill_data[] = {{"Нет навыка"},
 {"Торговля", {Charisma, Intellegence}},
 {"Блеф", {Charisma, Dexterity}},
@@ -89,10 +90,10 @@ static struct skillinfo {
 {"Владение топором", {Strenght, Constitution}},
 {"Сражение двумя оружиями", {Strenght, Dexterity}},
 //
-{"Сопротивление холоду", {Constitution, Strenght}},
-{"Сопротивление электричеству", {Dexterity, Dexterity}},
-{"Сопротивление огню", {Constitution, Dexterity}},
-{"Сопротивление яду", {Constitution, Constitution}},
+{"Сопротивление холоду", {Constitution, Strenght}, {}, {}, OfColdResistance},
+{"Сопротивление электричеству", {Dexterity, Dexterity}, {}, {}, OfElectricityResistance},
+{"Сопротивление огню", {Constitution, Dexterity}, {}, {}, OfFireResistance},
+{"Сопротивление яду", {Constitution, Constitution}, {}, {}, OfPoisonResistance},
 };
 assert_enum(skill, ResistPoison);
 getstr_enum(skill);
@@ -103,20 +104,26 @@ static const char* talk_location[] = {"библиотеку", "ратушу", "магазин", "таверн
 static const char* talk_games[] = {"кубики", "карты", "наперстки"};
 
 void creature::raise(skill_s value) {
-	if(value <= LastSkill)
-		skills[value] += xrand(3, 9);
+	skills[value] += xrand(3, 9);
+}
+
+int	creature::getbasic(skill_s value) const {
+	return skills[value];
 }
 
 int creature::get(skill_s value) const {
-	auto result = getbasic(value);
-	result += get(skill_data[value].ability[0]) + get(skill_data[value].ability[1]);
-	switch(value) {
-	case ResistPoison:
-		if(race == Dwarf)
-			result += 30;
-		break;
+	if(value > LastSkill) {
+		auto result = getbasic(value);
+		switch(value) {
+		case ResistPoison:
+			result += get(skill_data[value].ability[0]) + get(skill_data[value].ability[1]);
+			break;
+		}
+		return result;
 	}
-	return result;
+	return getbasic(value)
+		+ get(skill_data[value].ability[0])
+		+ get(skill_data[value].ability[1]);
 }
 
 void creature::use(skill_s value) {

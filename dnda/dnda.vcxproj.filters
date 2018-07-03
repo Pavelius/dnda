@@ -147,9 +147,6 @@
     <ClCompile Include="names.cpp">
       <Filter>logic</Filter>
     </ClCompile>
-    <ClCompile Include="race.cpp">
-      <Filter>logic</Filter>
-    </ClCompile>
     <ClCompile Include="role.cpp">
       <Filter>logic</Filter>
     </ClCompile>
