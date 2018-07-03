@@ -137,7 +137,7 @@ static void start_equipment(creature& e) {
 		}
 	}
 	e.equip(Ration);
-	e.money += xrand(3, 18);
+	e.money += xrand(3, 18)*GP;
 }
 
 void creature::initialize() {

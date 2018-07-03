@@ -1,8 +1,5 @@
 #include "main.h"
 
-const int GP = 100;
-const int SP = 10;
-const int CP = 1;
 static_assert(sizeof(item) == sizeof(int), "Invalid sizeof(item). Must be equal sizeof(int).");
 
 static struct enchantment_info {

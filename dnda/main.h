@@ -9,6 +9,9 @@
 
 #pragma once
 
+const int GP = 100;
+const int SP = 10;
+const int CP = 1;
 const int max_map_x = 80;
 const int max_map_y = 80;
 const unsigned short Blocked = 0xFFFF;
