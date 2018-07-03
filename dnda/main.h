@@ -52,8 +52,8 @@ enum enchantment_s : unsigned char {
 	OfSharping, OfSmashing, OfSpeed, OfStrenght,
 	OfVampirism, OfWisdow,
 	// Resistances
-	OfColdResistance, OfFireResistance, OfElectricityResistance, OfPoisonResistance,
-	LastEnchantment = OfPoisonResistance,
+	OfAcidResistance, OfColdResistance, OfFireResistance, OfElectricityResistance, OfPoisonResistance, OfWaterproof,
+	LastEnchantment = OfWaterproof,
 };
 enum race_s : unsigned char {
 	NoRace,
@@ -85,8 +85,8 @@ enum skill_s : unsigned char {
 	Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival, Swimming,
 	WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting,
 	LastSkill = TwoWeaponFighting,
-	ResistCold, ResistElectricity, ResistFire, ResistPoison,
-	LastResist = ResistPoison,
+	ResistAcid, ResistCold, ResistElectricity, ResistFire, ResistPoison, ResistWater,
+	LastResist = ResistWater,
 };
 enum state_s : unsigned char {
 	NoState,
@@ -180,8 +180,7 @@ enum save_s : unsigned char {
 	NoSave, SaveAbility, SaveSkill,
 };
 enum material_s : unsigned char {
-	Wood,
-	Glass, Iron, Leather, Organic, Paper,
+	Glass, Iron, Leather, Organic, Paper, Stone, Wood,
 };
 struct attackinfo;
 struct creature;
@@ -267,7 +266,9 @@ public:
 	constexpr item(spell_s spell) : item(spell, 0) {}
 	item(item_s type, int level, int chance_curse = 10);
 	operator bool() const { return type != NoItem; }
+	void			act(const char* format, ...) const;
 	void			clear();
+	void			damage();
 	void			get(attackinfo& e) const;
 	item_s			getammo() const;
 	int				getarmor() const;
@@ -283,6 +284,7 @@ public:
 	identify_s		getidentify() const { return identify; }
 	static unsigned	getitems(item_s* result, slot_s* slots, unsigned slots_count);
 	item_type_s		getmagic() const { return magic; }
+	material_s		getmaterial() const;
 	static const char* getname(spell_s value);
 	static const char* getname(state_s value);
 	char*			getname(char* result, const char* result_maximum, bool show_info = true) const;
@@ -365,6 +367,7 @@ struct creature {
 	void			clear(state_s value) { states[value] = 0; }
 	void			consume(int value, bool interactive);
 	void			damage(int count, attack_s type, bool interactive);
+	void			damagewears(int count, attack_s type);
 	void			drink(item& it, bool interactive);
 	bool			dropdown(item& value);
 	bool			equip(item value);

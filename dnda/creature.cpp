@@ -60,10 +60,10 @@ static constexpr struct race_info {
 	cflags<skill_s>	skills;
 	skillvalue		skills_pregen[8];
 } race_data[] = {{"Человекооразный"},
-{"Человек", {Bargaining, Gambling}},
-{"Гном", {Smithing, Mining}, {{ResistPoison, 30}}},
-{"Эльф", {Survival, WeaponFocusBows}},
-{"Полурослик", {HideInShadow, Acrobatics}},
+{"Человек", {Bargaining, Gambling, Swimming}},
+{"Гном", {Smithing, Mining, Athletics}, {{ResistPoison, 30}}},
+{"Эльф", {Survival, WeaponFocusBows, Swimming}},
+{"Полурослик", {HideInShadow, Acrobatics, Swimming}},
 };
 assert_enum(race, Halfling);
 getstr_enum(race);
@@ -101,22 +101,22 @@ static struct attack_info {
 {"Огонь", "%героя обдало огнем на %1i хитов", "и %она превратил%ась в обугленный труп", false, ResistFire},
 {"Магия", "%героя поразил сгусток энергии на %1i хитов", "и %она упал%а", true, NoSkill},
 {"Яд", "%герой страдает от яда на %1i хитов", "и умирает", true, ResistPoison},
-{"Вода", "%героя обдало струей воды", "и %она упал%а", false},
+{"Вода", "%герой нахлебал%ась воды на %1i хитов", "и захлебнул%ась", false},
 };
 assert_enum(attack, WaterAttack);
 getstr_enum(attack);
 
 static struct material_info {
 	const char*			name;
-	cflags<attack_s>	
-} material_data[] = {{"Дерево"},
+} material_data[] = {{"Бумага"},
 {"Стекло"},
 {"Железо"},
 {"Кожа"},
 {"Органика"},
-{"Бумага"},
+{"Камень"},
+{"Дерево"},
 };
-assert_enum(material, Paper);
+assert_enum(material, Wood);
 getstr_enum(material);
 
 int mget(int ox, int oy, int mx, int my);
@@ -624,10 +624,10 @@ bool creature::move(short unsigned i) {
 	trapeffect();
 	switch(gettile(position)) {
 	case Water:
-		if(!roll(Swimming, 20)) {
-			act("%герой начал тонуть.");
-			damage(xrand(1, 6), WaterAttack, false);
-		}
+		if(!roll(Swimming))
+			damage(xrand(1, 6), WaterAttack, true);
+		else if(!roll(ResistWater))
+			damagewears(1, WaterAttack);
 		break;
 	}
 	wait(getmoverecoil());
@@ -888,6 +888,7 @@ void creature::damage(int value, attack_s type, bool interactive) {
 		}
 		if(interactive)
 			act(".");
+		damagewears(value, type);
 		if(hp <= 0) {
 			for(auto& e : wears) {
 				if(!e)
@@ -909,6 +910,52 @@ void creature::damage(int value, attack_s type, bool interactive) {
 			hp += value;
 			if(interactive)
 				act("%герой восстановил%а %1i хитов.", value);
+		}
+	}
+}
+
+void creature::damagewears(int value, attack_s type) {
+	static struct attack_damage {
+		attack_s	type;
+		material_s	material;
+		char		damage_chance;
+		const char*	damage_text;
+		bool		destroy;
+	} attack_damage_data[] = {{Fire, Paper, 40, "%герой сгорел%а дотла.", true},
+	{Fire, Iron, 20, "%герой расплавил%ась дотла.", true},
+	{Fire, Leather, 30, "%герой частично сгорел%а."},
+	{Fire, Wood, 50, "%герой частично сгорел%а."},
+	{Acid, Iron, 80, "%герой разъело кислотой."},
+	{Acid, Leather, 70, "%герой разъело кислотой."},
+	{Acid, Wood, 60, "%герой разъело кислотой."},
+	{WaterAttack, Iron, 50, "%герой заржавел%а."},
+	{WaterAttack, Paper, 60, "%герой промок%ла насквозь.", true},
+	};
+	if(!(*this))
+		return;
+	if(value <= 0)
+		return;
+	for(auto& e : attack_damage_data) {
+		if(e.type != type)
+			continue;
+		for(auto& it : wears) {
+			if(!it)
+				continue;
+			if(it.isartifact())
+				continue;
+			if(e.material != it.getmaterial())
+				continue;
+			auto chance = e.damage_chance;
+			auto result = d100();
+			chance -= iabs(it.getquality()) * 5;
+			if((chance <= 0) || (result >= chance))
+				continue;
+			if(getplayer()->canhear(position))
+				it.act(e.damage_text);
+			if(e.destroy)
+				it.clear();
+			else
+				it.damage();
 		}
 	}
 }
@@ -1386,7 +1433,7 @@ void creature::update() {
 				continue;
 			damage_hits += e.damage.roll();
 		}
-		if(damage_hits>0)
+		if(damage_hits > 0)
 			damage(damage_hits, Poison, true);
 	}
 	// RULE: В среднем восстанавливаем 1 хит за 30 минут
@@ -1453,10 +1500,7 @@ void creature::actv(creature& opponent, const char* format, const char* param) c
 }
 
 void creature::actv(const char* format, const char* param) const {
-	auto player = getplayer();
-	if(!player)
-		return;
-	if(!player->canhear(position))
+	if(!getplayer()->canhear(position))
 		return;
 	logs::driver driver;
 	driver.name = getname();

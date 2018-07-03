@@ -92,12 +92,14 @@ static struct skill_info {
 {"Владение топором", {Strenght, Constitution}},
 {"Сражение двумя оружиями", {Strenght, Dexterity}},
 //
+{"Сопротивление кислоте", {Dexterity, Constitution}, {}, {}, OfAcidResistance, true},
 {"Сопротивление холоду", {Constitution, Strenght}, {}, {}, OfColdResistance, true},
 {"Сопротивление электричеству", {Dexterity, Dexterity}, {}, {}, OfElectricityResistance, true},
 {"Сопротивление огню", {Constitution, Dexterity}, {}, {}, OfFireResistance, true},
 {"Сопротивление яду", {Constitution, Constitution}, {}, {}, OfPoisonResistance},
+{"Дыхание водой", {Strenght, Constitution}, {}, {}, OfWaterproof, true},
 };
-assert_enum(skill, ResistPoison);
+assert_enum(skill, ResistWater);
 getstr_enum(skill);
 
 static const char* talk_subjects[] = {"гномов", "хоббитов", "эльфов", "рыцарей"};
