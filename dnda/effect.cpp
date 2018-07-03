@@ -19,7 +19,7 @@ void effectparam::apply(void(*proc)(effectparam& e)) {
 void effectparam::apply() {
 	if(text) {
 		if(cre)
-			cre->act(text);
+			cre->actvs(player, text);
 	}
 	apply(success);
 	if(experience)

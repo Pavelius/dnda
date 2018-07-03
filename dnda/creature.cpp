@@ -3,6 +3,9 @@
 
 using namespace game;
 
+const int chance_loot = 40;
+const unsigned poison_update = Minute * 5;
+
 static creature*			current_player;
 static adat<creature, 1024>	creature_data;
 static unsigned	experience_level[] = {0,
@@ -38,7 +41,6 @@ static char	int_checks[] = {2,
 };
 static enchantment_s ability_effects[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma};
 static state_s ability_states[] = {Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic};
-const int chance_loot = 40;
 
 static struct equipment_info {
 	race_s				race;
@@ -85,19 +87,20 @@ getstr_enum(class);
 static struct attack_info {
 	const char*	name;
 	const char*	damage;
+	const char*	killed;
 	bool		ignore_armor;
 	skill_s		resist;
-} attack_data[] = {{"Ударное", "%герой пропустил%а удар на %1i хитов", false, NoSkill},
-{"Режущее", "%герой ранен%а на %1i хитов", false, NoSkill},
-{"Колющее", "%герой получил%а рану на %1i хитов", false, NoSkill},
+} attack_data[] = {{"Ударное", "%герой пропустил%а удар на %1i хитов", "и упал%а", false, NoSkill},
+{"Режущее", "%герой был%а ранен%а на %1i хитов", "и упал%а на землю", false, NoSkill},
+{"Колющее", "%герой получил%а рану на %1i хитов", "и упал%а на землю", false, NoSkill},
 //
-{"Кислота", "%героя обдало кислотой на %1i хитов", false, NoSkill},
-{"Холод", "%героя обдало холодом на %1i хитов", true, ResistCold},
-{"Электричество", "%героя поразил электрический разряд на %1i хитов", false, ResistElectricity},
-{"Огонь", "%героя обдало огнем на %1i хитов", false, ResistFire},
-{"Магия", "%героя поразил сгусток энергии на %1i хитов", true, NoSkill},
-{"Яд", "В рану %героя попал яд", true, ResistPoison},
-{"Вода", "%героя обдало струей воды", false},
+{"Кислота", "%героя обдало кислотой на %1i хитов", "и %она упал%а", false, NoSkill},
+{"Холод", "%героя обдало холодом на %1i хитов", "и %она замерзл%а до смерти", true, ResistCold},
+{"Электричество", "%героя поразил электрический разряд на %1i хитов", "и дергаясь в конвульсиях %она упал%а", false, ResistElectricity},
+{"Огонь", "%героя обдало огнем на %1i хитов", "и %она превратил%ась в обугленный труп", false, ResistFire},
+{"Магия", "%героя поразил сгусток энергии на %1i хитов", "и %она упал%а", true, NoSkill},
+{"Яд", "%герой страдает от яда на %1i хитов", "и умирает", true, ResistPoison},
+{"Вода", "%героя обдало струей воды", "и %она упал%а", false},
 };
 assert_enum(attack, WaterAttack);
 getstr_enum(attack);
@@ -221,7 +224,9 @@ bool creature::isbooming() {
 void creature::hint(const char* format, ...) const {
 	if(!isplayer())
 		return;
-	logs::driver driver(getname(), gender, 0);
+	logs::driver driver;
+	driver.name = getname();
+	driver.gender = gender;
 	logs::addv(driver, format, xva_start(format));
 }
 
@@ -398,7 +403,9 @@ void creature::say(const char* format, ...) {
 bool creature::sayv(const char* format, const char* param) {
 	if(!getplayer()->canhear(position))
 		return false;
-	logs::driver driver(getname(), gender, 0);
+	logs::driver driver;
+	driver.name = getname();
+	driver.gender = gender;
 	logs::add("[%1:]\"", getname());
 	logs::addv(driver, format, param);
 	logs::add("\"");
@@ -847,7 +854,7 @@ void creature::damage(int value, attack_s type, bool interactive) {
 		}
 		if(hp <= 0) {
 			if(interactive)
-				act(" и упал%а");
+				act(a.killed);
 		} else {
 			if(is(Sleeped)) {
 				if(interactive)
@@ -1341,19 +1348,22 @@ void creature::update() {
 	if(enemy && !(*enemy))
 		enemy = 0;
 	// RULE: poison effects
-	if((segments % (Minute * 4)) == 0) {
-		static damageinfo poison_effect[PoisonedStrong - PoisonedWeak + 1] = {{0, 3, Poison},
-		{1, 8, Poison},
-		{2, 16, Poison},
+	if((segments % poison_update) == 0) {
+		static struct poison_info {
+			damageinfo	damage;
+			state_s		state;
+		} poison_effect[] = {{{0, 3, Poison}, PoisonedWeak},
+		{{1, 8, Poison}, Poisoned},
+		{{2, 16, Poison}, PoisonedStrong}
 		};
-		static state_s states[] = {PoisonedWeak, Poisoned, PoisonedStrong};
 		auto damage_hits = 0;
-		for(auto state : states) {
-			if(!is(state))
+		for(auto& e : poison_effect) {
+			if(!is(e.state))
 				continue;
-			auto& a = poison_effect[state - PoisonedWeak];
-			damage(a.roll(), a.type, true);
+			damage_hits += e.damage.roll();
 		}
+		if(damage_hits>0)
+			damage(damage_hits, Poison, true);
 	}
 	// RULE: В среднем восстанавливаем 1 хит за 30 минут
 	if(segments >= restore_hits) {
@@ -1404,15 +1414,29 @@ bool creature::roll(skill_s skill, int bonus) {
 	return d100() < result;
 }
 
+void creature::actv(creature& opponent, const char* format, const char* param) const {
+	auto player = getplayer();
+	if(!player)
+		return;
+	if(!player->canhear(position))
+		return;
+	logs::driver driver;
+	driver.name = getname();
+	driver.gender = gender;
+	driver.name_opponent = opponent.getname();
+	driver.gender_opponent = opponent.gender;
+	logs::addv(driver, format, param);
+}
+
 void creature::actv(const char* format, const char* param) const {
 	auto player = getplayer();
 	if(!player)
 		return;
 	if(!player->canhear(position))
 		return;
-	logs::driver driver(getname(), gender, 0);
-	if(wears[Melee])
-		driver.weapon = getstr(wears[Melee].gettype());
+	logs::driver driver;
+	driver.name = getname();
+	driver.gender = gender;
 	logs::addv(driver, format, param);
 }
 

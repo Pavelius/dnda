@@ -346,6 +346,8 @@ struct creature {
 	//
 	void			act(const char* format, ...) const { actv(format, xva_start(format)); }
 	void			actv(const char* format, const char* param) const;
+	void			actv(creature& opponent, const char* format, const char* param) const;
+	void			actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
 	void			addexp(unsigned count);
 	bool			askyn(creature* opponent, const char* format, ...);
 	bool			canhear(short unsigned index) const;
@@ -531,9 +533,10 @@ direction_s			turn(direction_s from, direction_s side);
 namespace logs {
 struct driver : stringcreator {
 	gender_s		gender;
+	gender_s		gender_opponent;
 	const char*		name;
-	const char*		weapon;
-	driver(const char* name, gender_s gender, const char* weapon);
+	const char*		name_opponent;
+	constexpr driver() : gender(Male), gender_opponent(Male), name(""), name_opponent("") {}
 	void			parseidentifier(char* result, const char* result_max, const char* identifier) override;
 };
 void				add(const char* format, ...);
