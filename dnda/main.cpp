@@ -5,7 +5,7 @@ using namespace game;
 int main(int argc, char* argv[]) {
 	//return 0;
 	logs::initialize();
-	create(Floor, get(10, 10), 1, true, true);
+	create(City, get(10, 10), 1, true, true);
 	auto p1 = add(get(8, 5), new creature(Human, Female, Mage));
 	auto p2 = add(get(8, 5), new creature(Dwarf, Male, Fighter));
 	auto p3 = add(get(2, 2), new creature(Elf, Male, Theif));
