@@ -9,9 +9,10 @@
 
 #pragma once
 
-const int max_map_x = 72;
-const int max_map_y = 72;
+const int max_map_x = 80;
+const int max_map_y = 80;
 const unsigned short Blocked = 0xFFFF;
+const unsigned short BlockedCreature = Blocked - 1;
 
 enum item_s : unsigned char {
 	NoItem,

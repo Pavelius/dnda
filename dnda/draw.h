@@ -278,9 +278,3 @@ namespace draw
 int							distance(point p1, point p2);
 int							isqrt(int num);
 char*						key2str(char* result, int key);
-void						statusbar(const char* format, ...);
-void						set_light_theme();
-void						set_dark_theme();
-void						tooltips(const char* format, ...);
-void						tooltips(int x, int y, const char* format, ...);
-void						tooltips(rect rc, const char* format, ...);

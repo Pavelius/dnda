@@ -29,8 +29,8 @@ int main(int argc, char* argv[]) {
 	p3->equip(item(Dagger, Cursed, OfDexterity));
 	p3->equip(item(BracersLeather, Magical, OfDefence));
 
-	for(int i=0; i<6; i++)
-		add(get(14, 14), new creature(GoblinWarrior));
+	//for(int i=0; i<6; i++)
+	//	add(get(14, 14), new creature(GoblinWarrior));
 
 	play();
 }

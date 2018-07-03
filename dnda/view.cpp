@@ -1481,6 +1481,8 @@ int compare_hotkey(const void* p1, const void* p2) {
 	return strcmp(e1->command, e2->command);
 }
 
+void set_dark_theme();
+
 void logs::initialize() {
 	viewport.x = 800;
 	viewport.y = 600;
@@ -1490,9 +1492,9 @@ void logs::initialize() {
 	metrics::h2 = (sprite*)loadb("art/h2.pma");
 	metrics::h3 = (sprite*)loadb("art/h3.pma");
 	static draw::window main_window(-1, -1, viewport.x, viewport.y, WFMinmax | WFResize, 32);
-	colors::form = color::create(32, 32, 64);
-	colors::text = colors::white;
-	colors::special = colors::yellow;
+	set_dark_theme();
+	//colors::text = colors::white;
+	//colors::special = colors::yellow;
 	draw::fore = colors::text;
 	draw::sysmouse(false);
 }

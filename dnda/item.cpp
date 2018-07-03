@@ -283,6 +283,7 @@ int item::getbonus(enchantment_s value) const {
 unsigned item::getcost() const {
 	auto result = item_data[gettype()].cost;
 	auto effect = geteffect();
+	result += imin(5000, (result * quality) / 5);
 	if(effect)
 		result += enchantment_data[effect].cost * 10 * GP;
 	if(result < 0)

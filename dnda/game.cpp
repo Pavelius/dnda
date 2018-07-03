@@ -5,8 +5,6 @@
 // Each minute has 12 segments, and each segment if 6 seconds duration.
 // Attack duration is 12 segments - speed of weapon - dexterity speed bonus but minimum of 3 segments
 
-const unsigned short BlockedCreature = Blocked - 1;
-
 areainfo				game::statistic;
 int						isqrt(int num);
 static unsigned			start_year;
