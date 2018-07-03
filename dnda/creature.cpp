@@ -609,6 +609,14 @@ bool creature::move(short unsigned i) {
 	if(isplayer())
 		lookfloor();
 	trapeffect();
+	switch(gettile(position)) {
+	case Water:
+		if(!roll(Swimming, 20)) {
+			act("%герой начал тонуть.");
+			damage(xrand(1, 6), WaterAttack, false);
+		}
+		break;
+	}
 	wait(getmoverecoil());
 	return true;
 }

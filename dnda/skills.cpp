@@ -85,6 +85,7 @@ static struct skill_info {
 {"Шахтерское дело", {Strenght, Intellegence}},
 {"Кузнечное дело", {Strenght, Intellegence}},
 {"Выживание", {Wisdow, Constitution}},
+{"Плавание", {Strenght, Constitution}},
 //
 {"Владение луком", {Dexterity, Dexterity}},
 {"Владение мечом", {Strenght, Dexterity}},
@@ -113,18 +114,13 @@ int	creature::getbasic(skill_s value) const {
 }
 
 int creature::get(skill_s value) const {
-	if(value > LastSkill) {
-		auto& e = skill_data[value];
-		auto result = getbasic(value);
-		if(!e.deny_ability)
-			result += get(e.ability[0]) + get(e.ability[1]);
-		if(e.enchant)
-			result += getbonus(e.enchant) * 10;
-		return result;
-	}
-	return getbasic(value)
-		+ get(skill_data[value].ability[0])
-		+ get(skill_data[value].ability[1]);
+	auto& e = skill_data[value];
+	auto result = getbasic(value);
+	if(!e.deny_ability)
+		result += get(e.ability[0]) + get(e.ability[1]);
+	if(e.enchant)
+		result += getbonus(e.enchant) * 10;
+	return result;
 }
 
 void creature::use(skill_s value) {

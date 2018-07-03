@@ -82,7 +82,7 @@ enum skill_s : unsigned char {
 	NoSkill,
 	Bargaining, Bluff, Diplomacy,
 	Acrobatics, Alertness, Athletics, Concetration, DisarmTraps, HearNoises, HideInShadow, Lockpicking, PickPockets,
-	Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival,
+	Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival, Swimming,
 	WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting,
 	LastSkill = TwoWeaponFighting,
 	ResistCold, ResistElectricity, ResistFire, ResistPoison,

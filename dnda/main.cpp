@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 }
 
 int __stdcall WinMain(void* ci, void* pi, char* cmd, int sw) {
-	unsigned c = clock();
-	srand(c);
+	//srand(clock());
+	srand(1000);
 	return main(0, 0);
 }

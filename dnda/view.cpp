@@ -163,9 +163,9 @@ static int textl(int x, int y, int width, item& value) {
 		case Magical: draw::fore = draw::fore.mix(colors::blue, 128); break;
 		}
 		break;
-	case Unknown:
-		draw::fore = draw::fore.mix(colors::black, 192);
-		break;
+	//case Unknown:
+	//	draw::fore = draw::fore.mix(colors::black, 192);
+	//	break;
 	}
 	draw::text(x, y, temp);
 	return x + width;
