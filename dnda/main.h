@@ -183,6 +183,10 @@ enum save_s : unsigned char {
 enum material_s : unsigned char {
 	Glass, Iron, Leather, Organic, Paper, Stone, Wood,
 };
+enum encumbrance_s : unsigned char {
+	NoEncumbered,
+	Encumbered, HeavilyEncumbered,
+};
 struct attackinfo;
 struct creature;
 struct effectparam;
@@ -349,7 +353,7 @@ struct creature {
 		hp(), mhp(), mp(), mmp(),
 		recoil(), restore_hits(), restore_mana(), experience(), money(),
 		charmer(0), enemy(0), horror(), party(),
-		position(), guard() {}
+		position(), guard(), encumbrance(NoEncumbered) {}
 	creature(role_s value);
 	creature(race_s race, gender_s gender, class_s type);
 	explicit operator bool() const { return hp > 0; }
@@ -370,9 +374,10 @@ struct creature {
 	void			damage(int count, attack_s type, bool interactive);
 	void			damagewears(int count, attack_s type);
 	void			drink(item& it, bool interactive);
-	bool			dropdown(item& value);
+	void			dropdown(item& value);
 	bool			equip(item_s value);
 	bool			equip(item value);
+	void			equip(slot_s slot, item value);
 	int				get(ability_s value) const;
 	int				get(spell_s value) const;
 	int				get(skill_s value) const;
@@ -389,6 +394,7 @@ struct creature {
 	static unsigned	getcreatures(aref<creature*> result, targetdesc ti, short unsigned position, const creature* player, const creature* exclude);
 	int				getdefence() const;
 	int				getdiscount(creature* customer) const;
+	encumbrance_s	getencumbrance() const { return encumbrance; }
 	char*			getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
 	creature*		gethenchmen(int index) const;
 	int				gethits() const { return hp; }
@@ -409,11 +415,13 @@ struct creature {
 	short unsigned	getposition() const { return position; }
 	bool			gettarget(targetinfo& result, const targetdesc td) const;
 	int				getweight() const;
+	int				getweight(encumbrance_s id) const;
 	void			heal(int value, bool interactive) { damage(-value, Magic, interactive); }
 	void			hint(const char* format, ...) const;
 	static void		initialize();
 	bool			interact(short unsigned index);
 	bool			is(state_s value) const;
+	bool			is(encumbrance_s value) const { return encumbrance == value; }
 	bool			isagressive() const;
 	static bool		isbooming();
 	bool			ischaracter() const { return role == Character; }
@@ -471,7 +479,9 @@ private:
 	unsigned		states[LastState + 1];
 	unsigned		recoil;
 	creature*		party;
+	encumbrance_s	encumbrance;
 	friend struct archive;
+	void			updateweight();
 };
 struct location : rect {
 	location_s		type;

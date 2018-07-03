@@ -672,6 +672,15 @@ static void view_message() {
 	draw::textf(rc.x1, rc.y1, width, state_message);
 }
 
+static int texth(int x, int y, const char* text, char level) {
+	static color color_level[] = {colors::text, colors::yellow};
+	draw::state push;
+	if(level > 0)
+		draw::fore = color_level[level];
+	draw::text(x, y, text);
+	return draw::textw(text) + 4;
+}
+
 static void view_info(const creature& e) {
 	if(!show_gui_panel)
 		return;
@@ -721,6 +730,11 @@ static void view_info(const creature& e) {
 	x += dx + 58;
 	x = x1;
 	y = y1 + draw::texth() * 2;
+	// Draw encumbrance
+	switch(e.getencumbrance()) {
+	case Encumbered: x += texth(x, y, "Нагружен", 0); break;
+	case HeavilyEncumbered: x += texth(x, y, "Нагружен", 1); break;
+	}
 	// Draw status
 	for(auto i = Anger; i <= LastState; i = (state_s)(i + 1)) {
 		switch(i) {
@@ -736,7 +750,7 @@ static void view_info(const creature& e) {
 				continue;
 			break;
 		}
-		const char* pt = getstr(i);
+		auto pt = getstr(i);
 		draw::text(x, y, pt);
 		x += draw::textw(pt) + 4;
 	}
@@ -841,7 +855,7 @@ static void view_mini(int x, int y, point camera) {
 	//view_legends(x, y, map::size.x*mmaps + metrics::padding);
 }
 
-static int view_total(int x, int y, int width, item** source, unsigned count) {
+static int view_total(int x, int y, int width, item** source, unsigned count, const creature* player) {
 	char temx[64];
 	char temp[1024];
 	auto result = 0;
@@ -850,8 +864,14 @@ static int view_total(int x, int y, int width, item** source, unsigned count) {
 		result += source[i]->getweight();
 		rcount++;
 	}
-	if(rcount)
+	if(rcount) {
 		szprints(temp, zendof(temp), "Всего %1.", szweight(temx, result));
+		if(player) {
+			szprints(zend(temp), zendof(temp), " Ваш общий вес сейчас [%1].", szweight(temx, player->getweight()));
+			szprints(zend(temp), zendof(temp), " Будете нагружены при %1", szweight(temx, player->getweight(Encumbered)));
+			szprints(zend(temp), zendof(temp), " и тяжело нагружены при %1.", szweight(temx, player->getweight(HeavilyEncumbered)));
+		}
+	}
 	else
 		szprints(temp, zendof(temp), "Нет подходящих предметов.");
 	return draw::textf(x, y, width, temp);
@@ -877,7 +897,7 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 			y += dy;
 		}
 		y += padding;
-		y += view_total(x, y, width, source, count);
+		y += view_total(x, y, width, source, count, &e);
 		auto id = draw::input();
 		switch(id) {
 		case KeyEscape:
@@ -925,8 +945,7 @@ static void character_dropdown(creature& e) {
 	item* result = logs::choose(e, source, p - source, temp);
 	if(!result)
 		return;
-	if(e.dropdown(*result))
-		result->clear();
+	e.dropdown(*result);
 }
 
 static void character_stuff(creature& e) {
@@ -978,7 +997,7 @@ static void character_invertory(creature& e) {
 			y += dy;
 		}
 		y += padding;
-		y += view_total(x, y, width, source, p - source);
+		y += view_total(x, y, width, source, p - source, &e);
 		auto id = draw::input();
 		switch(id) {
 		case KeyEscape:
@@ -992,9 +1011,9 @@ static void character_invertory(creature& e) {
 				} else {
 					auto p = choose_item(e, camera, slot);
 					if(p) {
-						e.wears[slot] = *p;
-						e.wears[slot].set(KnowQuality);
+						auto it = *p;
 						p->clear();
+						e.equip(slot, it);
 					}
 				}
 			}

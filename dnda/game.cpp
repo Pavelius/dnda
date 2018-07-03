@@ -87,18 +87,6 @@ static unsigned getday() {
 	return (segments / Day) % 30;
 }
 
-static unsigned getmonth() {
-	return (segments / (Day * 30)) % 12;
-}
-
-static unsigned getyear() {
-	return start_year + (segments / Year);
-}
-
-static unsigned getturn() {
-	return segments / Minute;
-}
-
 static char* zadd(char* result, const char* result_maximum, const char* format, ...) {
 	szprintvs(zend(result), result_maximum, format, xva_start(format));
 }

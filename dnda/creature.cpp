@@ -315,6 +315,7 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 	name = game::genname(race, gender);
 	//
 	start_equipment(*this);
+	updateweight();
 }
 
 void creature::join(creature* value) {
@@ -387,6 +388,9 @@ int creature::getdefence() const {
 		result += 6;
 	if(is(Armored))
 		result += 2;
+	// RULE: Heavy encumbrace level apply to defence
+	if(is(HeavilyEncumbered))
+		result -= 4;
 	return result;
 }
 
@@ -497,6 +501,7 @@ bool creature::pickup(item value, bool interactive) {
 		if(interactive)
 			act("%герой собрал%а %1.", value.getname(temp, zendof(temp)));
 		money += value.getcount();
+		updateweight();
 		return true;
 	}
 	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
@@ -505,12 +510,13 @@ bool creature::pickup(item value, bool interactive) {
 		wears[slot] = value;
 		if(interactive)
 			act("%герой поднял%а %1.", value.getname(temp, zendof(temp)));
+		updateweight();
 		return true;
 	}
 	return false;
 }
 
-bool creature::dropdown(item& value) {
+void creature::dropdown(item& value) {
 	char temp[260];
 	auto loc = getlocation(position);
 	if(loc && loc->owner && loc->owner != this) {
@@ -520,19 +526,28 @@ bool creature::dropdown(item& value) {
 			static const char* text[] = {
 				"Эту дешевку я брать не буду.",
 				"Только не надо мусорить здесь.",
-				"Выкинь это за пределами моего заведения.",
+				"Выкинь это, но только за пределами моего заведения.",
 			};
 			loc->owner->say(maprnd(text));
-			return false;
+			return;
 		}
 		if(!loc->owner->askyn(this, "Я могу купить это за %1i монет. Ты согласен?", cost))
-			return false;
+			return;
 		money += cost;
 		value.setforsale();
 	}
-	drop(position, value);
+	auto itc = value;
+	value.clear();
+	drop(position, itc);
 	act("%герой положил%а %1.", value.getname(temp, zendof(temp)));
-	return true;
+	updateweight();
+}
+
+void creature::equip(slot_s slot, item value) {
+	wears[slot] = value;
+	if(slot < FirstBackpack)
+		wears[slot].set(KnowQuality);
+	updateweight();
 }
 
 bool creature::equip(item value) {
@@ -543,9 +558,7 @@ bool creature::equip(item value) {
 			continue;
 		if(i < FirstBackpack && !value.is(i))
 			continue;
-		wears[i] = value;
-		if(i < FirstBackpack)
-			wears[i].set(KnowQuality);
+		equip(i, value);
 		return true;
 	}
 	return false;
@@ -559,9 +572,32 @@ bool creature::equip(item_s value) {
 
 int	creature::getweight() const {
 	auto result = 0;
-	for(auto& e : wears)
-		result += e.getweight();
+	for(auto& e : wears) {
+		if(e)
+			result += e.getweight();
+	}
 	return result;
+}
+
+int creature::getweight(encumbrance_s id) const {
+	switch(id) {
+	case Encumbered: return get(Strenght) * 5 * 50;
+	case HeavilyEncumbered: return get(Strenght) * 10 * 50;
+	default: return 0;
+	}
+}
+
+void creature::updateweight() {
+	static encumbrance_s levels[] = {HeavilyEncumbered, Encumbered};
+	auto w = getweight();
+	encumbrance = NoEncumbered;
+	for(auto e : levels) {
+		auto m = getweight(e);
+		if(w >= m) {
+			encumbrance = e;
+			break;
+		}
+	}
 }
 
 void creature::wait(int segments) {
@@ -1220,6 +1256,9 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 		result.bonus += 2;
 		result.damage.max++;
 	}
+	// RULE: Heavy encumbrace level apply to attack
+	if(is(HeavilyEncumbered))
+		result.bonus -= 4;
 	return result;
 }
 
@@ -1233,6 +1272,8 @@ int creature::getattacktime(slot_s slot) const {
 	auto tm = Minute - maptbl(dex_speed_bonus, get(Dexterity)) - getattackinfo(slot).speed;
 	if(slot == Melee && wears[Melee].is(Melee) && wears[OffHand].is(Melee))
 		tm += Minute / 2 - getattackinfo(OffHand).speed;
+	// RULE: Encumbrace level apply to attack time
+	tm += 4 * getencumbrance();
 	if(tm < Minute / 4)
 		tm = Minute / 4;
 	return tm;
@@ -1415,7 +1456,7 @@ void creature::update() {
 		charmer = 0;
 	if(enemy && !(*enemy))
 		enemy = 0;
-	// RULE: poison effects
+	// RULE: Poison affect creature every short time interval.
 	if((segments % poison_update) == 0) {
 		static struct poison_info {
 			damageinfo	damage;
@@ -1593,9 +1634,10 @@ bool creature::unequip(item& it) {
 		say(maprnd(text));
 		return false;
 	}
-	if(!pickup(it, false))
-		game::drop(position, it);
+	auto itc = it;
 	it.clear();
+	if(!pickup(itc, false))
+		game::drop(position, itc);
 	return true;
 }
 

@@ -28,5 +28,11 @@ const char* creature::getname(tile_s id) {
 int	creature::getmoverecoil() const {
 	auto tile = game::gettile(position);
 	auto a = get(Dexterity);
-	return 3 + tile_data[tile].movement + maptbl(dex_move_slowing, a);
+	auto result = 3;
+	result += tile_data[tile].movement;
+	result += maptbl(dex_move_slowing, a);
+	// RULE: Encumbrance slow movement.
+	if(getencumbrance())
+		result += 4;
+	return result;
 }
