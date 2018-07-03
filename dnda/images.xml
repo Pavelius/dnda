@@ -288,6 +288,12 @@
     <png input="...\item28"/>
     <png input="...\item15"/>
     <png input="...\item14"/>
+    
+    <png input="...\item38"/>
+    <png input="...\item39"/>
+    <png input="...\item75"/>
+    <png input="...\item314"/>
+    <png input="...\item331"/>
 
     <png input="...\item21"/>
     <png input="...\item55"/>
@@ -378,6 +384,8 @@
     <png input="...\shortbow.png"/>
     <png input="...\sling.png"/>
     <png input="...\crossbow.png"/>
+    <png input="...\cloak.png"/>
+    <png input="...\cloak_small.png"/>
   </library>
   <library output="...\monsters" input="...\npc" count="32" ox="41" oy="-24">
     <files input="...\0.png"/>

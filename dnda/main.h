@@ -22,6 +22,7 @@ enum item_s : unsigned char {
 	Rock, Arrow, Bolt,
 	LeatherArmour, StuddedLeatherArmour, ScaleMail, ChainMail, SplintMail, PlateMail,
 	Shield, Helmet, BracersLeather, BracersIron,
+	Cloack1, Cloack2, Cloack3, Cloack4, Cloack5,
 	Ration, Apple, BreadHalflings, BreadEvlen, BreadDwarven, Cake, Sausage, Meat,
 	ScrollRed, ScrollGreen, ScrollBlue,
 	WandRed, WandGreen, WandBlue,

@@ -19,6 +19,9 @@ int main(int argc, char* argv[]) {
 	p1->equip(Apple);
 	p1->equip(Rock);
 	p1->equip(Sling);
+	p1->equip(Cloack1);
+
+	p2->equip(Cloack5);
 
 	p3->equip(BowLong);
 	p3->equip(Arrow);

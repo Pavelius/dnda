@@ -59,6 +59,7 @@ static enchantment_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfS
 static enchantment_s armor_effect[] = {OfDefence, OfArmor, OfCharisma, OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
 static enchantment_s helm_effect[] = {OfIntellegence, OfWisdow, OfCharisma};
 static enchantment_s bracers_effect[] = {OfDefence, OfArmor, OfStrenght, OfDexterity};
+static enchantment_s cloack_effect[] = {OfDefence, OfArmor, OfIntellegence, OfFireResistance, OfColdResistance};
 static enchantment_s ring_effect[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma,
 OfPrecision, OfDefence, OfArmor, OfRegeneration, OfMana,
 OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
@@ -124,6 +125,12 @@ static struct item_info {
 {"Шлем", 300, 5 * GP, Iron, {0, {}, {}, {1}}, {}, {Head}, NoSkill, helm_effect},
 {"Наручи", 200, 3 * GP, Leather, {0, {}, {}, {1}}, {}, {Elbows}, NoSkill, bracers_effect},
 {"Наручи", 400, 8 * GP, Iron, {0, {}, {}, {1, 1}}, {}, {Elbows}, NoSkill, bracers_effect},
+//
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {TorsoBack}, NoSkill, cloack_effect},
 //
 {"Сухпаек", 100, 3 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {5, 0, {1, 0, 1, 0, 0, 0}, 10 * Minute}},
 {"Яблоко", 10, 1 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {1, 0, {2, 0, 0, 0, 0, 0}, 2 * Minute}},

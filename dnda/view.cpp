@@ -333,6 +333,18 @@ static void view_avatar(int x, int y, class_s type, race_s race, gender_s gender
 		at = 1;
 		break;
 	}
+	// Cloack
+	if(back) {
+		switch(race) {
+		case Dwarf:
+		case Halfling:
+			draw::image(x, y, gres(ResPCmac), 5, flags, alpha);
+			break;
+		default:
+			draw::image(x, y, gres(ResPCmac), 4, flags, alpha);
+			break;
+		}
+	}
 	// Weapon on back
 	if(ranged && getorder(ranged.gettype()) == 0) {
 		auto index = getaccindex(ranged.gettype());
