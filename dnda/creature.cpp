@@ -58,9 +58,10 @@ static struct equipment_info {
 static constexpr struct race_info {
 	const char*		name;
 	cflags<skill_s>	skills;
+	skillvalue		skills_pregen[8];
 } race_data[] = {{"Человекооразный"},
 {"Человек", {Bargaining, Gambling}},
-{"Гном", {Smithing, Mining}},
+{"Гном", {Smithing, Mining}, {{ResistPoison, 30}}},
 {"Эльф", {Survival, WeaponFocusBows}},
 {"Полурослик", {HideInShadow, Acrobatics}},
 };
@@ -287,6 +288,8 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 	for(auto& e : abilities)
 		e = roll3d6();
 	choosebestability();
+	for(auto e : race_data[race].skills_pregen)
+		skills[e.id] += e.value;
 	for(auto e : race_data[race].skills)
 		raise(e);
 	for(auto e : class_data[type].skills)

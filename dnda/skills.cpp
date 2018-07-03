@@ -60,6 +60,7 @@ static struct skill_info {
 	effectinfo		effect;
 	unsigned char	koef[2];
 	enchantment_s	enchant;
+	bool			deny_ability;
 } skill_data[] = {{"Нет навыка"},
 {"Торговля", {Charisma, Intellegence}},
 {"Блеф", {Charisma, Dexterity}},
@@ -90,9 +91,9 @@ static struct skill_info {
 {"Владение топором", {Strenght, Constitution}},
 {"Сражение двумя оружиями", {Strenght, Dexterity}},
 //
-{"Сопротивление холоду", {Constitution, Strenght}, {}, {}, OfColdResistance},
-{"Сопротивление электричеству", {Dexterity, Dexterity}, {}, {}, OfElectricityResistance},
-{"Сопротивление огню", {Constitution, Dexterity}, {}, {}, OfFireResistance},
+{"Сопротивление холоду", {Constitution, Strenght}, {}, {}, OfColdResistance, true},
+{"Сопротивление электричеству", {Dexterity, Dexterity}, {}, {}, OfElectricityResistance, true},
+{"Сопротивление огню", {Constitution, Dexterity}, {}, {}, OfFireResistance, true},
 {"Сопротивление яду", {Constitution, Constitution}, {}, {}, OfPoisonResistance},
 };
 assert_enum(skill, ResistPoison);
@@ -113,12 +114,12 @@ int	creature::getbasic(skill_s value) const {
 
 int creature::get(skill_s value) const {
 	if(value > LastSkill) {
+		auto& e = skill_data[value];
 		auto result = getbasic(value);
-		switch(value) {
-		case ResistPoison:
-			result += get(skill_data[value].ability[0]) + get(skill_data[value].ability[1]);
-			break;
-		}
+		if(!e.deny_ability)
+			result += get(e.ability[0]) + get(e.ability[1]);
+		if(e.enchant)
+			result += getbonus(e.enchant) * 10;
 		return result;
 	}
 	return getbasic(value)

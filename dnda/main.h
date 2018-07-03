@@ -185,6 +185,10 @@ struct effectparam;
 struct location;
 struct targetdesc;
 class item;
+struct skillvalue {
+	skill_s			id;
+	char			value;
+};
 struct targetinfo {
 	constexpr targetinfo() : cre(0), itm(0), pos(Blocked) {}
 	creature*		cre;
