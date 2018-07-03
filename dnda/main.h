@@ -25,7 +25,7 @@ enum item_s : unsigned char {
 	Ration, Apple, BreadHalflings, BreadEvlen, BreadDwarven, Cake, Sausage, Meat,
 	ScrollRed, ScrollGreen, ScrollBlue,
 	WandRed, WandGreen, WandBlue,
-	Book,
+	Book1, Book2, Book3,
 	PotionRed, PotionGreen, PotionBlue,
 	RingRed, RingBlue, RingGreen,
 	DoorKey, Coin,

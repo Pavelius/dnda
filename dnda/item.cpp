@@ -63,6 +63,7 @@ static enchantment_s ring_effect[] = {OfStrenght, OfDexterity, OfConstitution, O
 OfPrecision, OfDefence, OfArmor, OfRegeneration, OfMana,
 OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
 static spell_s scroll_spells[] = {CharmPerson, Identify, Armor, ShieldSpell};
+static spell_s book_spells[] = {Bless, Armor, Fear, MagicMissile, HealingSpell, ShokingGrasp, Sleep, RemovePoisonSpell, RemoveSickSpell};
 static spell_s wand_spells[] = {Fear, MagicMissile, HealingSpell, ShokingGrasp, Sleep, RemovePoisonSpell, RemoveSickSpell};
 static spell_s staff_spells[] = {Fear, MagicMissile, ShokingGrasp, Sleep};
 static state_s potion_red[] = {Anger, Blessed, Goodwill, Dexterious, Healthy, Intellegenced, Charismatic};
@@ -141,7 +142,9 @@ static struct item_info {
 {"ѕалочка", 5, 70 * GP, Wood, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 30},
 {"ѕалочка", 5, 90 * GP, Iron, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 40},
 //
-{" нига", 300, 0, Paper},
+{" нига", 300, 70 * GP, Paper, {}, {}, {}, NoSkill, {}, wand_spells},
+{" нига", 350, 90 * GP, Paper, {}, {}, {}, NoSkill, {}, wand_spells},
+{" нига", 300, 110 * GP, Paper, {}, {}, {}, NoSkill, {}, wand_spells},
 //
 {"«елье", 40, 20 * GP, Glass, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_red},
 {"«елье", 40, 25 * GP, Glass, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_green},
@@ -344,7 +347,9 @@ bool item::isreadable() const {
 	case ScrollRed:
 	case ScrollBlue:
 	case ScrollGreen:
-	case Book:
+	case Book1:
+	case Book2:
+	case Book3:
 		return true;
 	default:
 		return false;
@@ -391,8 +396,7 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 		sc.prints(zend(result), result_maximum, " %1%", getstr(effect));
 		if(forsale)
 			sc.prints(zend(result), result_maximum, "%+1i", bonus);
-	}
-	else if(spell && identify >= KnowQuality)
+	} else if(spell && identify >= KnowQuality)
 		sc.prints(zend(result), result_maximum, " %1", getname(spell));
 	else if(state && identify >= KnowQuality)
 		sc.prints(zend(result), result_maximum, " %1", getname(state));

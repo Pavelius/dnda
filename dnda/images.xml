@@ -307,6 +307,8 @@
     <png input="...\item100"/>
     
     <png input="...\item88"/>
+    <png input="...\item200"/>
+    <png input="...\item514"/>
 
     <png input="...\item244"/>
     <png input="...\item482"/>
@@ -374,6 +376,8 @@
   <library output="...\pcmac" input="...\pc\modular\accessories" count="16" ox="41" oy="87">
     <png input="...\longbow.png"/>
     <png input="...\shortbow.png"/>
+    <png input="...\sling.png"/>
+    <png input="...\crossbow.png"/>
   </library>
   <library output="...\monsters" input="...\npc" count="32" ox="41" oy="-24">
     <files input="...\0.png"/>

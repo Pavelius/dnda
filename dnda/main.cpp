@@ -14,17 +14,17 @@ int main(int argc, char* argv[]) {
 	p3->join(p1);
 	p1->setplayer();
 
-	p1->equip(Fear);
+	p1->equip(Book1);
 	p1->equip(Identify);
 	p1->equip(Apple);
+	p1->equip(Rock);
+	p1->equip(Sling);
 
 	p3->equip(BowLong);
 	p3->equip(Arrow);
 	p3->equip(item(SwordLong, Artifact, OfStrenght));
 	p3->equip(item(Dagger, Cursed, OfDexterity));
 	p3->equip(item(BracersLeather, Magical, OfDefence));
-
-	p2->equip(item(Shield, Mundane, NoEffect));
 
 	//for(int i=0; i<6; i++)
 	//	add(get(14, 14), new creature(GoblinWarrior));

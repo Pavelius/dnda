@@ -163,9 +163,9 @@ static int textl(int x, int y, int width, item& value) {
 		case Magical: draw::fore = draw::fore.mix(colors::blue, 128); break;
 		}
 		break;
-	//case Unknown:
-	//	draw::fore = draw::fore.mix(colors::black, 192);
-	//	break;
+		//case Unknown:
+		//	draw::fore = draw::fore.mix(colors::black, 192);
+		//	break;
 	}
 	draw::text(x, y, temp);
 	return x + width;
@@ -288,10 +288,19 @@ inline bool xget(short unsigned i, direction_s direction) {
 	return !game::isexplore(i1);
 }
 
+static int getorder(item_s type) {
+	switch(type) {
+	case Sling: return 2;
+	default: return 0;
+	}
+}
+
 static int getaccindex(item_s type) {
 	switch(type) {
 	case BowLong: return 0;
 	case BowShort: return 1;
+	case Sling: return 2;
+	case CrossbowLight: case CrossbowHeavy: return 3;
 	default: return -1;
 	}
 }
@@ -324,13 +333,22 @@ static void view_avatar(int x, int y, class_s type, race_s race, gender_s gender
 		at = 1;
 		break;
 	}
-	if(ranged) {
+	// Weapon on back
+	if(ranged && getorder(ranged.gettype()) == 0) {
 		auto index = getaccindex(ranged.gettype());
 		if(index != -1)
 			draw::image(x, y, gres(ResPCmac), index, flags, alpha);
 	}
+	// Character body
 	draw::image(x, y, gres(ResPCmar), i1, flags, alpha);
 	draw::image(x, y, gres(ResPCmbd), (race - Human) * 6 + (gender - Male) * 3 + at, flags, alpha);
+	// Weapon on belt
+	if(ranged && getorder(ranged.gettype()) == 2) {
+		auto index = getaccindex(ranged.gettype());
+		if(index != -1)
+			draw::image(x, y, gres(ResPCmac), index, flags, alpha);
+	}
+	// Hand
 	draw::image(x, y, gres(ResPCmar), i2, flags, alpha);
 }
 
@@ -871,8 +889,7 @@ static int view_total(int x, int y, int width, item** source, unsigned count, co
 			szprints(zend(temp), zendof(temp), " Будете нагружены при %1", szweight(temx, player->getweight(Encumbered)));
 			szprints(zend(temp), zendof(temp), " и тяжело нагружены при %1.", szweight(temx, player->getweight(HeavilyEncumbered)));
 		}
-	}
-	else
+	} else
 		szprints(temp, zendof(temp), "Нет подходящих предметов.");
 	return draw::textf(x, y, width, temp);
 }
