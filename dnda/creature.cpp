@@ -106,6 +106,19 @@ static struct attack_info {
 assert_enum(attack, WaterAttack);
 getstr_enum(attack);
 
+static struct material_info {
+	const char*			name;
+	cflags<attack_s>	
+} material_data[] = {{"Дерево"},
+{"Стекло"},
+{"Железо"},
+{"Кожа"},
+{"Органика"},
+{"Бумага"},
+};
+assert_enum(material, Paper);
+getstr_enum(material);
+
 int mget(int ox, int oy, int mx, int my);
 
 static int roll3d6() {

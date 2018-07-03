@@ -176,8 +176,12 @@ enum attack_s : unsigned char {
 	Bludgeon, Slashing, Piercing,
 	Acid, Cold, Electricity, Fire, Magic, Poison, WaterAttack
 };
-enum save_s : char {
+enum save_s : unsigned char {
 	NoSave, SaveAbility, SaveSkill,
+};
+enum material_s : unsigned char {
+	Wood,
+	Glass, Iron, Leather, Organic, Paper,
 };
 struct attackinfo;
 struct creature;
