@@ -16,9 +16,15 @@ const int chance_corridor_content = 10;
 const int dense_forest = 15;
 const int max_building_size = 15;
 extern tile_s location_type;
-static slot_s slots_weapons[] = {Melee, Ranged, OffHand};
-static slot_s slots_armor[] = {Head, Elbows, Legs, TorsoBack, Torso};
-static item_s item_treasure[] = {Coin, Coin, Coin, Coin};
+static slot_s slots_weapons_armor[] = {Melee, Ranged, OffHand, Head, Elbows, Legs, Torso};
+static item_s item_treasure[] = {Coin, Coin, Coin, Coin, RingRed};
+static item_s item_potion_scrolls[] = {ScrollRed, ScrollRed, ScrollRed,
+ScrollGreen, ScrollGreen, ScrollBlue,
+Book,
+PotionRed, PotionGreen, PotionBlue,
+WandRed, WandGreen, WandBlue,
+RingRed, RingGreen, RingBlue};
+static item_s item_food[] = {Ration, Ration, Ration, BreadEvlen, BreadHalflings, BreadDwarven, Sausage};
 static roominfo	rooms[256]; // Кольцевой буфер генератора. Главное чтобы разница не была 256 значений.
 static unsigned char stack_put, stack_get;
 
@@ -220,10 +226,28 @@ static creature* create_priest(location& e, short unsigned index) {
 	return e.owner;
 }
 
-static void create_item(short unsigned index, item_s type, int level, bool forsale) {
-	auto it = item(type, level, 10);
+static item_s random(aref<item_s> source) {
+	if(!source)
+		return NoItem;
+	return source.data[rand() % source.count];
+}
+
+static item_s random(aref<slot_s> source) {
+	item_s result[128];
+	return random(item::getitems(result, source));
+}
+
+static void create_item(short unsigned index, item_s type, int level, bool forsale, identify_s identify = Unknown) {
+	if(type == NoItem)
+		return;
+	auto chance_artifact = imax(0, level/4);
+	auto chance_quality = imax(0, 40 + level);
+	auto chance_magic = imax(0, 5 + level);
+	auto chance_curse = 20;
+	auto it = item(type, chance_artifact, chance_magic, chance_curse, chance_quality);
+	it.set(identify);
 	if(it.gettype() == Coin)
-		it.setcount(xrand(20, 50));
+		it.setcount(xrand(1, 5) * level);
 	if(forsale)
 		it.setforsale();
 	drop(index, it);
@@ -233,7 +257,9 @@ static void create_door(short unsigned index) {
 	set(index, Door);
 }
 
-static void create_shop(int x0, int y0, int w, int h, int chance, unsigned char level, bool forsale, item_s* source, unsigned count) {
+static void create_shop(int x0, int y0, int w, int h, int chance, unsigned char level, bool forsale, aref<item_s> source) {
+	if(!source)
+		return;
 	for(auto y = y0; y < y0 + h; y++) {
 		if(y < 0 || y >= max_map_y)
 			continue;
@@ -241,7 +267,7 @@ static void create_shop(int x0, int y0, int w, int h, int chance, unsigned char 
 			if(x < 0 || x >= max_map_x)
 				continue;
 			if(d100() < chance)
-				create_item(get(x, y), source[rand() % count], level, forsale);
+				create_item(get(x, y), source.data[rand() % source.count], level, forsale, KnowEffect);
 		}
 	}
 }
@@ -262,18 +288,18 @@ static void create_objects(location& e, int x, int y, int w, int h, location_s t
 		break;
 	case ShopWeaponAndArmor:
 		create_shopkeeper(e, pt);
-		create_shop(x, y, w, h, 90, 10, true, source,
-			item::getitems(source, slots_weapons, sizeof(slots_weapons) / sizeof(slots_weapons[0])));
-		create_shop(x, y, w, h, 40, 10, true, source,
-			item::getitems(source, slots_armor, sizeof(slots_armor) / sizeof(slots_armor[0])));
+		create_shop(x, y, w, h, 90, 10, true, item::getitems(source, slots_weapons_armor));
 		break;
 	case ShopPotionAndScrolls:
+		create_shopkeeper(e, pt);
+		create_shop(x, y, w, h, 90, 30, true, item_potion_scrolls);
 		break;
 	case ShopFood:
+		create_shopkeeper(e, pt);
+		create_shop(x, y, w, h, 90, 5, true, item_food);
 		break;
 	case TreasureRoom:
-		create_shop(x, y, w, h, 80, 10, false,
-			item_treasure, sizeof(item_treasure) / sizeof(item_treasure[0]));
+		create_shop(x, y, w, h, 80, 10, false, item_treasure);
 		break;
 	}
 }
@@ -469,12 +495,7 @@ static bool isvalidroom(short unsigned index, direction_s dir) {
 }
 
 static void create_dungeon_item(short unsigned index) {
-	item_s source[128];
-	auto count = 0;
-	count = item::getitems(source, slots_weapons, sizeof(slots_weapons) / sizeof(slots_weapons[0]));
-	if(!count)
-		return;
-	create_item(index, source[rand() % count], statistic.level, false);
+	create_item(index, random(slots_weapons_armor), statistic.level, false);
 }
 
 static void create_corridor_content(short unsigned index) {

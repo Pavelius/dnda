@@ -16,17 +16,17 @@ int main(int argc, char* argv[]) {
 
 	p1->equip(Fear);
 	p1->equip(Identify);
-	p1->equip(item(Apple));
+	p1->equip(Apple);
 
 	p3->equip(BowLong);
-	p3->equip({Arrow, 2, 10});
-	p3->equip(item(SwordLong, Artifact, OfStrenght, 3, KnowEffect));
-	p3->equip(item(Dagger, Cursed, OfDexterity, 2, KnowMagic));
+	p3->equip(item(Arrow, Mundane, NoEffect));
+	p3->equip(item(SwordLong, Artifact, OfStrenght));
+	p3->equip(item(Dagger, Cursed, OfDexterity));
 
-	p2->equip(item(Shield, Mundane, NoEffect, 3));
+	p2->equip(item(Shield, Mundane, NoEffect));
 
-	for(int i=0; i<6; i++)
-		add(get(14, 14), new creature(GoblinWarrior));
+	//for(int i=0; i<6; i++)
+	//	add(get(14, 14), new creature(GoblinWarrior));
 
 	play();
 }

@@ -9,6 +9,7 @@ struct aref {
 
 	constexpr aref() = default;
 	template<unsigned N> constexpr aref(T(&data)[N]) : data(data), count(N) {}
+	constexpr aref(T* data, unsigned count) : data(data), count(count) {}
 	T& operator[](int index) { return data[index]; }
 	operator bool() const { return count != 0; }
 

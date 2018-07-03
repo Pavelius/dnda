@@ -8,33 +8,34 @@ static_assert(sizeof(item) == sizeof(int), "Invalid sizeof(item). Must be equal 
 static struct enchantment_info {
 	const char*		id;
 	const char*		name;
-} enchantment_data[] = {{""},
-{"armor", "брони"},
-{"charisma", "харизмы"},
-{"cold", "холода"},
-{"constitution", "телосложения"},
-{"defence", "защиты"},
-{"destruction", "разрушения"},
-{"dexterity", "ловкости"},
-{"fire", "огня"},
-{"intellegene", "интеллекта"},
-{"mana", "маны"},
-{"precision", "точности"},
-{"regeneration", "регенерации"},
-{"sharping", "остроты"},
-{"smashing", "раскалывания"},
-{"speed", "скорости"},
-{"strenght", "силы"},
-{"sustenance", "питания"},
-{"vampirism", "вампиризма"},
-{"wisdow", "мудрости"},
+	char			cost;
+} enchantment_data[] = {{"", ""},
+{"armor", "брони", 10},
+{"charisma", "харизмы", 5},
+{"cold", "холода", 5},
+{"constitution", "телосложения", 5},
+{"defence", "защиты", 7},
+{"destruction", "разрушения", 7},
+{"dexterity", "ловкости", 6},
+{"fire", "огня", 6},
+{"intellegene", "интеллекта", 6},
+{"mana", "маны", 9},
+{"precision", "точности", 7},
+{"regeneration", "регенерации", 10},
+{"sharping", "остроты", 5},
+{"smashing", "раскалывания", 5},
+{"speed", "скорости", 3},
+{"strenght", "силы", 8},
+{"sustenance", "питания", 4},
+{"vampirism", "вампиризма", 10},
+{"wisdow", "мудрости", 6},
 //
-{"acid resistance", "сопротивления кислоте"},
-{"cold resistance", "сопротивления холоду"},
-{"fire resistance", "сопротивления огня"},
-{"electricity resistance", "сопротивления электричеству"},
-{"poison resistance", "сопротивления яду"},
-{"waterproof", "водонепроницаемости"},
+{"acid resistance", "сопротивления кислоте", 1},
+{"cold resistance", "сопротивления холоду", 1},
+{"fire resistance", "сопротивления огня", 2},
+{"electricity resistance", "сопротивления электричеству", 1},
+{"poison resistance", "сопротивления яду", 1},
+{"waterproof", "водонепроницаемости", 1},
 };
 assert_enum(enchantment, LastEnchantment);
 getstr_enum(enchantment);
@@ -56,6 +57,8 @@ static enchantment_s axe_effect[] = {OfStrenght, OfDestruction, OfFire, OfSharpi
 static enchantment_s bludgeon_effect[] = {OfConstitution, OfDestruction, OfFire, OfSmashing, OfStrenght};
 static enchantment_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
 static enchantment_s armor_effect[] = {OfDefence, OfArmor, OfCharisma, OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
+static enchantment_s helm_effect[] = {OfIntellegence, OfWisdow, OfCharisma};
+static enchantment_s bracers_effect[] = {OfDefence, OfArmor, OfStrenght, OfDexterity};
 static enchantment_s ring_effect[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma,
 OfPrecision, OfDefence, OfArmor, OfRegeneration, OfMana,
 OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
@@ -109,15 +112,16 @@ static struct item_info {
 {"Болт", 1 * CP, Iron, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
 //
 {"Кожанная броня", 5 * GP, Leather, {0, {}, 0, {2}}, {}, {Torso}, NoSkill, armor_effect},
-{"Клепанная броня", 20 * GP, Leather, {0, {}, 0, {3}}, {}, {Torso}, NoSkill, armor_effect},
+{"Клепанная броня", 15 * GP, Leather, {0, {}, 0, {3}}, {}, {Torso}, NoSkill, armor_effect},
 {"Чешуйчатый доспех", 30 * GP, Iron, {0, {}, 0, {5}}, {}, {Torso}, NoSkill, armor_effect},
 {"Кольчуга", 50 * GP, Iron, {0, {}, 0, {5, 1}}, {}, {Torso}, NoSkill, armor_effect},
 {"Бахрец", 200 * GP, Iron, {0, {}, 0, {6, 2}}, {}, {Torso}, NoSkill, armor_effect},
 {"Латы", 800 * GP, Iron, {0, {}, 0, {8, 3}}, {}, {Torso}, NoSkill, armor_effect},
 //
-{"Щит", 20 * GP, Iron, {0, {}, {}, {2}}, {}, {OffHand}},
-{"Шлем", 5 * GP, Iron, {0, {}, {}, {1}}, {}, {Head}},
-{"Наручи", 3 * GP, Iron, {0, {}, {}, {1}}, {}, {Elbows}},
+{"Щит", 20 * GP, Iron, {0, {}, {}, {2}}, {}, {OffHand}, NoSkill, armor_effect},
+{"Шлем", 5 * GP, Iron, {0, {}, {}, {1}}, {}, {Head}, NoSkill, helm_effect},
+{"Наручи", 3 * GP, Leather, {0, {}, {}, {1}}, {}, {Elbows}, NoSkill, bracers_effect},
+{"Наручи", 8 * GP, Iron, {0, {}, {}, {1, 1}}, {}, {Elbows}, NoSkill, bracers_effect},
 //
 {"Сухпаек", 3 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {5, 0, {1, 0, 1, 0, 0, 0}, 10 * Minute}},
 {"Яблоко", 1 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {1, 0, {2, 0, 0, 0, 0, 0}, 2 * Minute}},
@@ -143,6 +147,8 @@ static struct item_info {
 {"Зелье", 30 * GP, Glass, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_blue},
 //
 {"Кольцо", 60 * GP, Iron, {}, {}, {}, NoSkill, ring_effect},
+{"Кольцо", 70 * GP, Iron, {}, {}, {}, NoSkill, ring_effect},
+{"Кольцо", 80 * GP, Iron, {}, {}, {}, NoSkill, ring_effect},
 //
 {"Ключ", 0, Iron},
 {"Монета", 1, Iron, {}, {}, {}, NoSkill, {}, {}, NoItem, 50},
@@ -154,39 +160,36 @@ static struct item_info {
 assert_enum(item, Bite);
 getstr_enum(item);
 
-item::item(item_s type, int level, int chance_curse) : item(type) {
+item::item(item_s type, int chance_artifact, int chance_magic, int chance_cursed, int chance_quality = 30) :
+	type(type), count(0), forsale(0), damaged(0), effect(NoEffect), identify(Unknown) {
 	// Chance item to be magical
-	if(d100() < level * 2) {
-		if(level > 5 && d100() < (level - 5))
-			magic = Artifact; // Random artifact is very rare
-		else
-			magic = Magical;
-	} else if(d100() < chance_curse)
+	if(d100() < chance_artifact)
+		magic = Artifact;
+	else if(d100() < chance_magic)
+		magic = Magical;
+	else if(d100() < chance_cursed)
 		magic = Cursed;
 	else
 		magic = Mundane;
 	// Quality depend on level
-	auto m = imax(20, 70 - level * 2);
 	auto r = d100();
+	auto m = 100 - chance_quality;
 	if(r < m)
 		quality = 0;
-	else if(r < m + m / 2)
+	else if(r < m + chance_quality / 2)
 		quality = 1;
-	else if(r < m + m / 2 + m / 4)
+	else if(r < m + (chance_quality * 3) / 4)
 		quality = 2;
 	else
 		quality = 3;
 	// Effect can be or not can be
 	if(item_data[type].effects) {
-		if(magic == Artifact
-			|| (magic != Mundane && d100() < level))
+		if(magic != Mundane)
 			effect = item_data[type].effects.data[rand() % item_data[type].effects.count];
 	}
 	// Spell be on mostly any scroll or wand
 	if(item_data[type].spells) {
-		if(magic == Artifact
-			|| (is(Melee) && magic != Mundane && d100() < level)
-			|| !is(Melee))
+		if((is(Melee) && magic != Mundane) || !is(Melee))
 			effect = (enchantment_s)item_data[type].spells.data[rand() % item_data[type].spells.count];
 	}
 	// Spell be on mostly any scroll or wand
@@ -265,8 +268,14 @@ int item::getbonus(enchantment_s value) const {
 	return (geteffect() == value) ? getquality() : 0;
 }
 
-unsigned item::getcostsingle() const {
-	return item_data[gettype()].cost;
+unsigned item::getcost() const {
+	auto result = item_data[gettype()].cost;
+	auto effect = geteffect();
+	if(effect)
+		result += enchantment_data[effect].cost * 10 * GP;
+	if(result < 0)
+		result = 1;
+	return result;
 }
 
 int item::getsalecost() const {
@@ -319,6 +328,10 @@ bool item::is(item_flag_s value) const {
 
 bool item::istwohanded() const {
 	return item_data[type].flags.is(TwoHanded);
+}
+
+bool item::isarmor() const {
+	return item_data[type].combat.armor[0] != 0;
 }
 
 bool item::isdrinkable() const {
@@ -405,11 +418,11 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 			if(is(Melee) || is(Ranged)) {
 				attackinfo e = {0}; get(e);
 				szblock(sc, p, result_maximum, "урон %2i-%3i", e.bonus, e.damage.min, e.damage.max);
-			} else if(is(Torso) || is(Head) || is(Legs) || is(Elbows) || is(OffHand))
+			} else if(isarmor())
 				szblock(sc, p, result_maximum, "защита %1i/%2i", getdefence(), getarmor());
 		}
 		if(forsale)
-			szblock(sc, p, result_maximum, "цена %1i", getcostsingle());
+			szblock(sc, p, result_maximum, "цена %1i", getcost());
 		if(p[0])
 			sc.prints(zend(p), result_maximum, ")");
 	}
@@ -422,22 +435,24 @@ skill_s item::getfocus() const {
 	return item_data[type].focus;
 }
 
-unsigned item::getitems(item_s* result, slot_s* slots, unsigned slots_count) {
-	auto pd = result;
-	auto pe = slots + slots_count;
+aref<item_s> item::getitems(aref<item_s> result, aref<slot_s> source) {
+	auto pb = result.begin();
+	auto pe = result.end();
 	for(auto type = NoItem; type < ManyItems; type = (item_s)(type + 1)) {
-		item n(type);
+		item it(type, Mundane, NoEffect, 0);
 		bool valid = false;
-		for(auto s = slots; s < pe; s++) {
-			if(n.is(*s)) {
+		for(auto slot : source) {
+			if(it.is(slot)) {
 				valid = true;
 				break;
 			}
 		}
-		if(valid)
-			*pd++ = type;
+		if(valid) {
+			if(pb < pe)
+				*pb++ = type;
+		}
 	}
-	return pd - result;
+	return aref<item_s>(result.data, pb - result.data);
 }
 
 item_s item::getammo() const {

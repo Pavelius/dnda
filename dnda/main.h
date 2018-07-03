@@ -21,13 +21,13 @@ enum item_s : unsigned char {
 	CrossbowLight, CrossbowHeavy, BowLong, BowShort, Dart, Sling,
 	Rock, Arrow, Bolt,
 	LeatherArmour, StuddedLeatherArmour, ScaleMail, ChainMail, SplintMail, PlateMail,
-	Shield, Helmet, Bracers,
+	Shield, Helmet, BracersIron, BracersLeather,
 	Ration, Apple, BreadHalflings, BreadEvlen, BreadDwarven, Cake, Sausage, Meat,
 	ScrollRed, ScrollGreen, ScrollBlue,
 	WandRed, WandGreen, WandBlue,
 	Book,
 	PotionRed, PotionGreen, PotionBlue,
-	RingRed,
+	RingRed, RingBlue, RingGreen,
 	DoorKey, Coin,
 	Claws, Slam, Bite,
 	ManyItems
@@ -252,7 +252,7 @@ struct effectparam : targetinfo, effectinfo {
 class item {
 	item_s			type;
 	//
-	enchantment_s			effect;
+	enchantment_s	effect;
 	//
 	unsigned char	count : 6;
 	unsigned char	damaged : 2;
@@ -262,11 +262,11 @@ class item {
 	identify_s		identify : 2;
 	unsigned char	forsale : 1;
 public:
-	constexpr item(item_s type = NoItem) : type(type), effect(NoEffect), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
-	constexpr item(item_s type, item_type_s magic, enchantment_s effect, unsigned char quality, identify_s identify = Unknown) : type(type), effect(effect), count(0), magic(magic), quality(quality), identify(identify), forsale(0), damaged(0) {}
-	constexpr item(spell_s spell, unsigned char quality_param) : type(ScrollRed), effect((enchantment_s)spell), count(0), magic(), quality(quality_param), identify(KnowEffect), forsale(0), damaged(0) {}
-	constexpr item(spell_s spell) : item(spell, 0) {}
-	item(item_s type, int level, int chance_curse = 10);
+	constexpr item() : type(NoItem), effect(NoEffect), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
+	constexpr item(spell_s spell) : type(ScrollRed), effect((enchantment_s)spell), count(0), magic(), quality(0), identify(KnowEffect), forsale(0), damaged(0) {}
+	constexpr item(item_s type) : type(type), effect(NoEffect), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
+	constexpr item(item_s type, item_type_s magic, enchantment_s effect) : type(type), effect(effect), count(0), magic(magic), quality(0), identify(KnowEffect), forsale(0), damaged(0) {}
+	item(item_s type, int chance_artifact, int chance_magic, int chance_cursed, int chance_quality);
 	operator bool() const { return type != NoItem; }
 	void			act(const char* format, ...) const;
 	void			clear();
@@ -276,15 +276,14 @@ public:
 	int				getarmor() const;
 	int				getbonus(enchantment_s type) const;
 	int				getcharges() const;
-	unsigned		getcost() const { return getcostsingle()*getcount(); }
-	unsigned		getcostsingle() const;
+	unsigned		getcost() const;
 	int				getcount() const;
 	int				getdefence() const;
 	enchantment_s			geteffect() const;
 	skill_s			getfocus() const;
 	const foodinfo& getfood() const;
 	identify_s		getidentify() const { return identify; }
-	static unsigned	getitems(item_s* result, slot_s* slots, unsigned slots_count);
+	static aref<item_s>	getitems(aref<item_s> result, aref<slot_s> source);
 	item_type_s		getmagic() const { return magic; }
 	material_s		getmaterial() const;
 	static const char* getname(spell_s value);
@@ -300,7 +299,7 @@ public:
 	int				getweightsingle() const;
 	bool			is(slot_s value) const;
 	bool			is(item_flag_s value) const;
-	bool			isarmor() const { return type >= LeatherArmour && type <= Bracers; }
+	bool			isarmor() const;
 	bool			isartifact() const { return magic == Artifact; }
 	bool			ischargeable() const;
 	bool			iscountable() const;
@@ -372,6 +371,7 @@ struct creature {
 	void			damagewears(int count, attack_s type);
 	void			drink(item& it, bool interactive);
 	bool			dropdown(item& value);
+	bool			equip(item_s value);
 	bool			equip(item value);
 	int				get(ability_s value) const;
 	int				get(spell_s value) const;

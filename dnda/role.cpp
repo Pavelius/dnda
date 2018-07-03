@@ -45,7 +45,7 @@ creature::creature(role_s role) {
 	for(int i = Strenght; i <= Charisma; i++)
 		abilities[i] = e.abilities[i];
 	for(auto i : e.equipment)
-		equip(item(i, e.level, 15));
+		equip(item(i, 0, 10, 10, 30));
 	// Восполним хиты
 	mhp = 0;
 	if(level) {

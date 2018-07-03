@@ -125,24 +125,18 @@ static int roll3d6() {
 	return (rand() % 6) + (rand() % 6) + (rand() % 6) + 3;
 }
 
-static item random(item_s i) {
-	item it(i, 5, 0);
-	it.set(KnowEffect);
-	return it;
-}
-
 static void start_equipment(creature& e) {
 	for(auto& ei : equipment_data) {
 		if((ei.race == e.race || ei.race == NoRace) && ei.type == e.type) {
 			for(auto i : ei.equipment) {
 				if(!i)
 					break;
-				e.equip(random(i));
+				e.equip(i);
 			}
 			break;
 		}
 	}
-	e.equip(random(Ration));
+	e.equip(Ration);
 	e.money += xrand(3, 18);
 }
 
@@ -555,6 +549,12 @@ bool creature::equip(item value) {
 		return true;
 	}
 	return false;
+}
+
+bool creature::equip(item_s value) {
+	item it(value, 0, 0, 0, 0);
+	it.set(KnowEffect);
+	return equip(it);
 }
 
 int	creature::getweight() const {
