@@ -5,7 +5,7 @@ using namespace game;
 int main(int argc, char* argv[]) {
 	//return 0;
 	logs::initialize();
-	create(City, get(10, 10), 1, true, true);
+	create(City, get(10, 10), 1, false, false);
 	auto p1 = add(get(8, 5), new creature(Human, Female, Mage));
 	auto p2 = add(get(8, 5), new creature(Dwarf, Male, Fighter));
 	auto p3 = add(get(2, 2), new creature(Elf, Male, Theif));
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 	//for(int i=0; i<6; i++)
 	//	add(get(14, 14), new creature(GoblinWarrior));
 
-	play();
+	p1->play();
 }
 
 int __stdcall WinMain(void* ci, void* pi, char* cmd, int sw) {

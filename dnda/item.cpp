@@ -80,10 +80,11 @@ static struct item_info {
 	int					cost;
 	material_s			material;
 	combat_info			combat;
+	specialinfo			special;
 	cflags<item_flag_s>	flags;
 	cflags<slot_s>		slots;
 	skill_s				focus;
-	aref<enchantment_s>		effects;
+	aref<enchantment_s>	effects;
 	aref<spell_s>		spells;
 	item_s				ammunition;
 	unsigned char		count;
@@ -91,80 +92,80 @@ static struct item_info {
 	aref<state_s>		states;
 	foodinfo			food;
 } item_data[] = {{"Пусто"},
-{"Боевой топор", 850, 5 * GP, Iron, {1, {1, 8, Slashing}}, {Versatile}, {Melee}, WeaponFocusAxes, axe_effect},
-{"Дубина", 1000, 5 * CP, Wood, {2, {1, 6}}, {}, {Melee}, NoSkill, bludgeon_effect},
-{"Кинжал", 50, 2 * GP, Iron, {3, {1, 4, Piercing}, 1}, {}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
-{"Молот", 800, 2 * GP, Wood, {1, {2, 5}}, {}, {Melee}, WeaponFocusAxes, bludgeon_effect},
-{"Булава", 700, 8 * GP, Iron, {1, {1, 7}}, {}, {Melee}, WeaponFocusAxes, bludgeon_effect},
-{"Копье", 250, 8 * SP, Wood, {1, {1, 8, Piercing}}, {Versatile}, {Melee}, NoSkill, pierce_effect},
-{"Посох", 200, 1 * SP, Wood, {2, {1, 6}}, {TwoHanded}, {Melee}, NoSkill, {}, staff_spells, NoItem, 0, 50},
-{"Длинный меч", 200, 15 * GP, Iron, {1, {1, 8, Slashing}}, {}, {Melee}, WeaponFocusBlades, swords_effect},
-{"Короткий меч", 150, 10 * GP, Iron, {1, {1, 6, Slashing}}, {}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
-{"Двуручный меч", 1500, 50 * GP, Iron, {0, {2, 12, Slashing}}, {TwoHanded}, {Melee}, WeaponFocusBlades, swords_effect},
-{"Арбалет", 700, 40 * GP, Wood, {0, {2, 7, Piercing}, 1}, {}, {Ranged}, NoSkill, pierce_effect, {}, Bolt},
-{"Тяжелый арбалет", 1200, 80 * GP, Wood, {0, {3, 9, Piercing}, 1}, {}, {Ranged}, NoSkill, pierce_effect, {}, Bolt},
-{"Длинный лук", 500, 60 * GP, Wood, {1, {1, 8, Piercing}}, {}, {Ranged}, WeaponFocusBows, pierce_effect, {}, Arrow},
-{"Лук", 300, 30 * GP, Wood, {2, {1, 6, Piercing}}, {}, {Ranged}, WeaponFocusBows, pierce_effect, {}, Arrow},
-{"Дротик", 30, 1 * SP, Wood, {3, {1, 3, Piercing}}, {}, {Ranged}},
-{"Пращя", 50, 1 * SP, Leather, {2, {1, 4}}, {}, {Ranged}, NoSkill, pierce_effect, {}, Rock},
+{"Боевой топор", 850, 5 * GP, Iron, {1, {1, 8, Slashing}}, {}, {Versatile}, {Melee}, WeaponFocusAxes, axe_effect},
+{"Дубина", 1000, 5 * CP, Wood, {2, {1, 6}}, {}, {}, {Melee}, NoSkill, bludgeon_effect},
+{"Кинжал", 50, 2 * GP, Iron, {3, {1, 4, Piercing}, 1}, {}, {}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
+{"Молот", 800, 2 * GP, Wood, {1, {2, 5}}, {}, {}, {Melee}, WeaponFocusAxes, bludgeon_effect},
+{"Булава", 700, 8 * GP, Iron, {1, {1, 7}}, {}, {}, {Melee}, WeaponFocusAxes, bludgeon_effect},
+{"Копье", 250, 8 * SP, Wood, {1, {1, 8, Piercing}}, {}, {Versatile}, {Melee}, NoSkill, pierce_effect},
+{"Посох", 200, 1 * SP, Wood, {2, {1, 6}}, {}, {TwoHanded}, {Melee}, NoSkill, {}, staff_spells, NoItem, 0, 50},
+{"Длинный меч", 200, 15 * GP, Iron, {1, {1, 8, Slashing}}, {}, {}, {Melee}, WeaponFocusBlades, swords_effect},
+{"Короткий меч", 150, 10 * GP, Iron, {1, {1, 6, Slashing}}, {}, {}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
+{"Двуручный меч", 1500, 50 * GP, Iron, {0, {2, 12, Slashing}}, {}, {TwoHanded}, {Melee}, WeaponFocusBlades, swords_effect},
+{"Арбалет", 700, 40 * GP, Wood, {0, {2, 7, Piercing}, 1}, {}, {}, {Ranged}, NoSkill, pierce_effect, {}, Bolt},
+{"Тяжелый арбалет", 1200, 80 * GP, Wood, {0, {3, 9, Piercing}, 1}, {}, {}, {Ranged}, NoSkill, pierce_effect, {}, Bolt},
+{"Длинный лук", 500, 60 * GP, Wood, {1, {1, 8, Piercing}}, {}, {}, {Ranged}, WeaponFocusBows, pierce_effect, {}, Arrow},
+{"Лук", 300, 30 * GP, Wood, {2, {1, 6, Piercing}}, {}, {}, {Ranged}, WeaponFocusBows, pierce_effect, {}, Arrow},
+{"Дротик", 30, 1 * SP, Wood, {3, {1, 3, Piercing}}, {}, {}, {Ranged}},
+{"Пращя", 50, 1 * SP, Leather, {2, {1, 4}}, {}, {}, {Ranged}, NoSkill, pierce_effect, {}, Rock},
 //
-{"Камень", 20, 0, Stone, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
-{"Стрела", 2, 2 * CP, Wood, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
-{"Болт", 3, 1 * CP, Iron, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
+{"Камень", 20, 0, Stone, {}, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
+{"Стрела", 2, 2 * CP, Wood, {}, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
+{"Болт", 3, 1 * CP, Iron, {}, {}, {}, {Amunitions}, NoSkill, {}, {}, NoItem, 20},
 //
-{"Кожанная броня", 1000, 5 * GP, Leather, {0, {}, 0, {2}}, {}, {Torso}, NoSkill, armor_effect},
-{"Клепанная броня", 1500, 15 * GP, Leather, {0, {}, 0, {3}}, {}, {Torso}, NoSkill, armor_effect},
-{"Чешуйчатый доспех", 2500, 30 * GP, Iron, {0, {}, 0, {5}}, {}, {Torso}, NoSkill, armor_effect},
-{"Кольчуга", 2600, 50 * GP, Iron, {0, {}, 0, {5, 1}}, {}, {Torso}, NoSkill, armor_effect},
-{"Бахрец", 3000, 200 * GP, Iron, {0, {}, 0, {6, 2}}, {}, {Torso}, NoSkill, armor_effect},
-{"Латы", 3500, 800 * GP, Iron, {0, {}, 0, {8, 3}}, {}, {Torso}, NoSkill, armor_effect},
+{"Кожанная броня", 1000, 5 * GP, Leather, {0, {}, 0, {2}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Клепанная броня", 1500, 15 * GP, Leather, {0, {}, 0, {3}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Чешуйчатый доспех", 2500, 30 * GP, Iron, {0, {}, 0, {5}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Кольчуга", 2600, 50 * GP, Iron, {0, {}, 0, {5, 1}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Бахрец", 3000, 200 * GP, Iron, {0, {}, 0, {6, 2}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Латы", 3500, 800 * GP, Iron, {0, {}, 0, {8, 3}}, {}, {}, {Torso}, NoSkill, armor_effect},
 //
-{"Щит", 1500, 20 * GP, Iron, {0, {}, {}, {2}}, {}, {OffHand}, NoSkill, armor_effect},
-{"Шлем", 300, 5 * GP, Iron, {0, {}, {}, {1}}, {}, {Head}, NoSkill, helm_effect},
-{"Наручи", 200, 3 * GP, Leather, {0, {}, {}, {1}}, {}, {Elbows}, NoSkill, bracers_effect},
-{"Наручи", 400, 8 * GP, Iron, {0, {}, {}, {1, 1}}, {}, {Elbows}, NoSkill, bracers_effect},
+{"Щит", 1500, 20 * GP, Iron, {0, {}, {}, {2}}, {}, {}, {OffHand}, NoSkill, armor_effect},
+{"Шлем", 300, 5 * GP, Iron, {0, {}, {}, {1}}, {}, {}, {Head}, NoSkill, helm_effect},
+{"Наручи", 200, 3 * GP, Leather, {0, {}, {}, {1}}, {}, {}, {Elbows}, NoSkill, bracers_effect},
+{"Наручи", 400, 8 * GP, Iron, {0, {}, {}, {1, 1}}, {}, {}, {Elbows}, NoSkill, bracers_effect},
 //
-{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
 //
-{"Сухпаек", 100, 3 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {5, 0, {1, 0, 1, 0, 0, 0}, 10 * Minute}},
-{"Яблоко", 10, 1 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {1, 0, {2, 0, 0, 0, 0, 0}, 2 * Minute}},
-{"Хлеб хоббитов", 20, 5 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {3, 0, {0, 3, 2, 0, 0, 0}, 4 * Minute, 10}},
-{"Хлеб эльфов", 20, 10 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {4, 0, {0, 4, 0, 1, 0, 0}, 5 * Minute, 20}},
-{"Хлеб гномов", 25, 2 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {2, 0, {1, 0, 4, 0, 0, 0}, 5 * Minute, 0, 10}},
-{"Печенье", 10, 1 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {1, 0, {0, 0, 0, 1, 0, 1}, Minute}},
-{"Колбаса", 40, 8 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {4, 0, {1, 1, 1, 0, 0, 0}, 5 * Minute}},
-{"Мясо", 50, 5 * SP, Organic, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {2, 0, {2, 0, 0, 0, 0, 0}, 3 * Minute}},
+{"Сухпаек", 100, 3 * SP, Organic, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {5, 0, {1, 0, 1, 0, 0, 0}, 10 * Minute}},
+{"Яблоко", 10, 1 * SP, Organic, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {1, 0, {2, 0, 0, 0, 0, 0}, 2 * Minute}},
+{"Хлеб хоббитов", 20, 5 * SP, Organic, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {3, 0, {0, 3, 2, 0, 0, 0}, 4 * Minute, 10}},
+{"Хлеб эльфов", 20, 10 * SP, Organic, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {4, 0, {0, 4, 0, 1, 0, 0}, 5 * Minute, 20}},
+{"Хлеб гномов", 25, 2 * SP, Organic, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {2, 0, {1, 0, 4, 0, 0, 0}, 5 * Minute, 0, 10}},
+{"Печенье", 10, 1 * SP, Organic, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {1, 0, {0, 0, 0, 1, 0, 1}, Minute}},
+{"Колбаса", 40, 8 * SP, Organic, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {4, 0, {1, 1, 1, 0, 0, 0}, 5 * Minute}},
+{"Мясо", 50, 5 * SP, Organic, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, {}, {2, 0, {2, 0, 0, 0, 0, 0}, 3 * Minute}},
 //
-{"Свиток", 10, 5 * GP, Paper, {}, {}, {}, NoSkill, {}, scroll_spells},
-{"Свиток", 10, 6 * GP, Paper, {}, {}, {}, NoSkill, {}, scroll_spells},
-{"Свиток", 10, 7 * GP, Paper, {}, {}, {}, NoSkill, {}, scroll_spells},
+{"Свиток", 10, 5 * GP, Paper, {}, {15, 5}, {Readable}, {}, NoSkill, {}, scroll_spells},
+{"Свиток", 10, 6 * GP, Paper, {}, {10, 10}, {Readable}, {}, NoSkill, {}, scroll_spells},
+{"Свиток", 10, 7 * GP, Paper, {}, {5, 10}, {Readable}, {}, NoSkill, {}, scroll_spells},
 //
-{"Палочка", 5, 50 * GP, Wood, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 20},
-{"Палочка", 5, 70 * GP, Wood, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 30},
-{"Палочка", 5, 90 * GP, Iron, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 40},
+{"Палочка", 5, 50 * GP, Wood, {}, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 20},
+{"Палочка", 5, 70 * GP, Wood, {}, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 30},
+{"Палочка", 5, 90 * GP, Iron, {}, {}, {}, {}, NoSkill, {}, wand_spells, NoItem, 0, 40},
 //
-{"Книга", 300, 70 * GP, Paper, {}, {}, {}, NoSkill, {}, wand_spells},
-{"Книга", 350, 90 * GP, Paper, {}, {}, {}, NoSkill, {}, wand_spells},
-{"Книга", 300, 110 * GP, Paper, {}, {}, {}, NoSkill, {}, wand_spells},
+{"Книга", 300, 70 * GP, Paper, {}, {20, 10}, {Readable}, {}, NoSkill, {}, wand_spells},
+{"Книга", 350, 90 * GP, Paper, {}, {15, 20}, {Readable}, {}, NoSkill, {}, wand_spells},
+{"Книга", 300, 110 * GP, Paper, {}, {10, 20}, {Readable}, {}, NoSkill, {}, wand_spells},
 //
-{"Зелье", 40, 20 * GP, Glass, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_red},
-{"Зелье", 40, 25 * GP, Glass, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_green},
-{"Зелье", 40, 30 * GP, Glass, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_blue},
+{"Зелье", 40, 20 * GP, Glass, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_red},
+{"Зелье", 40, 25 * GP, Glass, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_green},
+{"Зелье", 40, 30 * GP, Glass, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 0, 0, potion_blue},
 //
-{"Кольцо", 2, 60 * GP, Iron, {}, {}, {}, NoSkill, ring_effect},
-{"Кольцо", 2, 70 * GP, Iron, {}, {}, {}, NoSkill, ring_effect},
-{"Кольцо", 2, 80 * GP, Iron, {}, {}, {}, NoSkill, ring_effect},
+{"Кольцо", 2, 60 * GP, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+{"Кольцо", 2, 70 * GP, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+{"Кольцо", 2, 80 * GP, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
 //
 {"Ключ", 10, 0, Iron},
-{"Монета", 1, 1, Iron, {}, {}, {}, NoSkill, {}, {}, NoItem, 50},
+{"Монета", 1, 1, Iron, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 50},
 //
-{"Когти", 0, 0, Organic, {4, {1, 3, Slashing}}},
-{"Удар", 0, 0, Organic, {0, {2, 7}}},
-{"Укус", 0, 0, Organic, {2, {2, 5, Piercing}}},
+{"Когти", 0, 0, Organic, {4, {1, 3, Slashing}}, {}},
+{"Удар", 0, 0, Organic, {0, {2, 7}}, {}},
+{"Укус", 0, 0, Organic, {2, {2, 5, Piercing}}, {}},
 };
 assert_enum(item, Bite);
 getstr_enum(item);
@@ -273,6 +274,10 @@ enchantment_s item::geteffect() const {
 	return NoEffect;
 }
 
+specialinfo& item::getspecial() const {
+	return item_data[type].special;
+}
+
 int item::getbonus(enchantment_s value) const {
 	return (geteffect() == value) ? getquality() : 0;
 }
@@ -349,17 +354,7 @@ bool item::isdrinkable() const {
 }
 
 bool item::isreadable() const {
-	switch(type) {
-	case ScrollRed:
-	case ScrollBlue:
-	case ScrollGreen:
-	case Book1:
-	case Book2:
-	case Book3:
-		return true;
-	default:
-		return false;
-	}
+	return item_data[type].flags.is(Readable);
 }
 
 const foodinfo& item::getfood() const {

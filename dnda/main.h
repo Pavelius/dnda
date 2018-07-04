@@ -176,7 +176,7 @@ enum item_type_s : unsigned char {
 	Mundane, Cursed, Magical, Artifact,
 };
 enum item_flag_s : unsigned char {
-	TwoHanded, Versatile,
+	TwoHanded, Versatile, Readable,
 };
 enum attack_s : unsigned char {
 	Bludgeon, Slashing, Piercing,
@@ -226,6 +226,10 @@ struct foodinfo {
 	char			poision;
 	explicit operator bool() const { return hits != 0; }
 	int				get(int value) const { return value * 50; }
+};
+struct specialinfo {
+	char			malfunction;
+	char			side_effect;
 };
 struct effectinfo {
 	struct callback {
@@ -297,6 +301,7 @@ public:
 	int				getqualityraw() const { return quality; }
 	int				getsalecost() const;
 	spell_s			getspell() const;
+	specialinfo&	getspecial() const;
 	state_s			getstate() const;
 	item_s			gettype() const { return type; }
 	int				getweight() const;
@@ -441,8 +446,8 @@ struct creature {
 	bool			moveto(short unsigned index);
 	bool			moveaway(short unsigned index);
 	void			passturn(unsigned minutes);
-	static void		playturn();
-	bool			pickup(item value, bool interactive = true);
+	static void		play();
+	void			pickup(item& value, bool interactive = true);
 	void			raise(skill_s value);
 	void			raiseskills(int number);
 	void			rangeattack();
@@ -481,6 +486,7 @@ private:
 	creature*		party;
 	encumbrance_s	encumbrance;
 	friend struct archive;
+	static void		playturn();
 	void			updateweight();
 };
 struct location : rect {
@@ -542,7 +548,6 @@ bool				isvisible(short unsigned i);
 void				looktarget(short unsigned index);
 void				lookhere(short unsigned index);
 void				makewave(short unsigned index, bool(*proc)(short unsigned) = ispassabledoor);
-void				play();
 bool				serialize(bool writemode);
 void				set(short unsigned i, tile_s value);
 void				set(short unsigned i, tile_s value, int w, int h);

@@ -958,8 +958,7 @@ static void character_pickup(creature& e) {
 	auto result = logs::choose(e, source, count, temp);
 	if(!result)
 		return;
-	if(e.pickup(*result))
-		result->clear();
+	e.pickup(*result);
 }
 
 static void character_dropdown(creature& e) {

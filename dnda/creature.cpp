@@ -6,8 +6,10 @@ using namespace game;
 const int chance_loot = 40;
 const unsigned poison_update = Minute * 5;
 
+static unsigned short		exit_index;
 static creature*			current_player;
 static adat<creature, 1024>	creature_data;
+
 static unsigned	experience_level[] = {0,
 1000, 2000, 4000, 8000, 16000, 32000, 64000
 };
@@ -43,9 +45,9 @@ static enchantment_s ability_effects[] = {OfStrenght, OfDexterity, OfConstitutio
 static state_s ability_states[] = {Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic};
 
 static struct equipment_info {
-	race_s				race;
-	class_s				type;
-	item_s				equipment[8];
+	race_s			race;
+	class_s			type;
+	item_s			equipment[8];
 } equipment_data[] = {{Dwarf, Fighter, {AxeBattle, ScaleMail, Shield, BreadDwarven}},
 {NoRace, Cleric, {Mace}},
 {NoRace, Fighter, {SwordLong, LeatherArmour, Shield}},
@@ -69,12 +71,12 @@ assert_enum(race, Halfling);
 getstr_enum(race);
 
 static struct class_info {
-	const char*			name;
-	unsigned char		hp, mp;
-	unsigned char		attack;
-	ability_s			ability;
-	cflags<skill_s>		skills;
-	cflags<spell_s>		spells;
+	const char*		name;
+	unsigned char	hp, mp;
+	unsigned char	attack;
+	ability_s		ability;
+	cflags<skill_s>	skills;
+	cflags<spell_s>	spells;
 } class_data[] = {{"Клерик", 8, 8, 2, Wisdow, {Diplomacy, History, Healing}, {Bless, HealingSpell}},
 {"Воин", 10, 4, 1, Strenght, {Survival, WeaponFocusBlades, WeaponFocusAxes}},
 {"Маг", 4, 10, 4, Intellegence, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
@@ -86,11 +88,11 @@ assert_enum(class, Theif);
 getstr_enum(class);
 
 static struct attack_info {
-	const char*	name;
-	const char*	damage;
-	const char*	killed;
-	bool		ignore_armor;
-	skill_s		resist;
+	const char*		name;
+	const char*		damage;
+	const char*		killed;
+	bool			ignore_armor;
+	skill_s			resist;
 } attack_data[] = {{"Ударное", "%герой пропустил%а удар на %1i хитов", "и упал%а", false, NoSkill},
 {"Режущее", "%герой был%а ранен%а на %1i хитов", "и упал%а на землю", false, NoSkill},
 {"Колющее", "%герой получил%а рану на %1i хитов", "и упал%а на землю", false, NoSkill},
@@ -107,7 +109,7 @@ assert_enum(attack, WaterAttack);
 getstr_enum(attack);
 
 static struct material_info {
-	const char*			name;
+	const char*		name;
 } material_data[] = {{"Бумага"},
 {"Стекло"},
 {"Железо"},
@@ -472,7 +474,7 @@ int creature::getdiscount(creature* customer) const {
 	return 40 * delta / 100;
 }
 
-bool creature::pickup(item value, bool interactive) {
+void creature::pickup(item& value, bool interactive) {
 	char temp[260];
 	if(value.isforsale()) {
 		auto loc = getlocation(position);
@@ -481,7 +483,7 @@ bool creature::pickup(item value, bool interactive) {
 			cost -= cost * loc->owner->getdiscount(this) / 100;
 			if(interactive) {
 				if(!loc->owner->askyn(this, "Хотите купить за %1i монет?", value.getcost()))
-					return false;
+					return;
 			}
 			if(money < cost) {
 				static const char* text[] = {
@@ -491,7 +493,7 @@ bool creature::pickup(item value, bool interactive) {
 				};
 				if(interactive)
 					loc->owner->say(maprnd(text));
-				return false;
+				return;
 			}
 			money -= cost;
 			value.setsold();
@@ -501,8 +503,9 @@ bool creature::pickup(item value, bool interactive) {
 		if(interactive)
 			act("%герой собрал%а %1.", value.getname(temp, zendof(temp)));
 		money += value.getcount();
+		value.clear();
 		updateweight();
-		return true;
+		return;
 	}
 	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
 		if(wears[slot])
@@ -510,10 +513,13 @@ bool creature::pickup(item value, bool interactive) {
 		wears[slot] = value;
 		if(interactive)
 			act("%герой поднял%а %1.", value.getname(temp, zendof(temp)));
+		value.clear();
 		updateweight();
-		return true;
+		return;
 	}
-	return false;
+	drop(position, value);
+	value.clear();
+	updateweight();
 }
 
 void creature::dropdown(item& value) {
@@ -536,10 +542,9 @@ void creature::dropdown(item& value) {
 		money += cost;
 		value.setforsale();
 	}
-	auto itc = value;
-	value.clear();
-	drop(position, itc);
 	act("%герой положил%а %1.", value.getname(temp, zendof(temp)));
+	drop(position, value);
+	value.clear();
 	updateweight();
 }
 
@@ -1631,11 +1636,27 @@ bool creature::unequip(item& it) {
 		say(maprnd(text));
 		return false;
 	}
-	auto itc = it;
-	it.clear();
-	if(!pickup(itc, false))
-		game::drop(position, itc);
+	pickup(it, false);
 	return true;
+}
+
+void creature::play() {
+	while(true) {
+		exit_index = Blocked;
+		playturn();
+		segments++;
+		if(!getplayer()) {
+			// Все погибли
+			logs::add("Все ваши персонажи мертвы.");
+			logs::next();
+			break;
+		}
+		if(exit_index != Blocked) {
+			serialize(true);
+			// Кто-то активировал переход на другой уровень
+			// Загрузим карту следующего уровня и сохраним состояние этого
+		}
+	}
 }
 
 template<> void archive::set<creature>(creature& e) {

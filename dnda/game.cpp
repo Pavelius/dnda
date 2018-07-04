@@ -9,7 +9,6 @@ areainfo				game::statistic;
 int						isqrt(int num);
 static unsigned			start_year;
 unsigned				segments = 7 * Hour;
-static unsigned			exit_index;
 adat<location, 128>		locations;
 adat<groundinfo, 2048>	grounditems;
 tile_s					location_type;
@@ -387,25 +386,6 @@ creature* game::add(short unsigned index, creature* element) {
 		return 0;
 	element->move(index);
 	return element;
-}
-
-void game::play() {
-	while(true) {
-		exit_index = Blocked;
-		creature::playturn();
-		segments++;
-		if(!creature::getplayer()) {
-			// Все погибли
-			logs::add("Все ваши персонажи мертвы.");
-			logs::next();
-			break;
-		}
-		if(exit_index != Blocked) {
-			serialize(true);
-			// Кто-то активировал переход на другой уровень
-			// Загрузим карту следующего уровня и сохраним состояние этого
-		}
-	}
 }
 
 int game::distance(short unsigned i1, short unsigned i2) {
