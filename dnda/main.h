@@ -239,7 +239,7 @@ struct effectinfo {
 	skill_s			save;
 	callback		proc;
 	unsigned		duration;
-	cflags<state_s>	state;
+	state_s			state;
 	const char*		text;
 	damageinfo		damage;
 	unsigned		experience;
@@ -397,6 +397,7 @@ struct creature {
 	creature*		gethenchmen(int index) const;
 	int				gethits() const { return hp; }
 	unsigned		getitems(aref<item*> result, targetdesc ti) const;
+	creature*		getleader() const;
 	int				getlos() const;
 	int				getmana() const { return mp; }
 	int				getmaxhits() const;

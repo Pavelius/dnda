@@ -5,21 +5,22 @@ static struct role_info {
 	race_s			race;
 	gender_s		gender;
 	alignment_s		alignment;
+	class_s			type;
 	char			level;
 	char			abilities[Charisma + 1];
 	item_s			equipment[4];
-	cflags<skill_s> skills;
-} role_data[] = {{"Гоблин", Goblinoid, Male, Chaotic, 0, {8, 12, 8, 8, 8, 8}, {SwordShort}},
-{"Орк", Goblinoid, Male, Chaotic, 1, {13, 10, 10, 8, 8, 8}, {SwordLong}},
-{"Летучая мышь", Animal, Female, Chaotic, 0, {8, 12, 4, 3, 3, 3}, {Bite}},
-{"Крыса", Animal, Female, Chaotic, 0, {6, 10, 4, 3, 3, 3}, {Bite}},
-{"Крестьянин", Human, Male, Neutral, 0, {10, 10, 10, 10, 10, 10}, {}},
-{"Охранник", Human, Male, Neutral, 1, {15, 10, 10, 10, 10, 10}, {Spear}},
-{"Ребенок", Human, Male, Neutral, 0, {8, 8, 6, 6, 6, 10}},
-{"Крестьянка", Human, Male, Neutral, 0, {10, 10, 10, 10, 10, 10}},
-{"Владелец магазина", Human, Male, Neutral, 0, {10, 10, 10, 11, 10, 13}, {}, {Bargaining}},
-{"Кузнец", Dwarf, Male, Neutral, 0, {16, 10, 12, 10, 10, 10}, {HammerWar}},
-{"Бартендер", Dwarf, Male, Neutral, 0, {10, 10, 12, 10, 12, 10}},
+	adat<skill_s, 16> skills;
+} role_data[] = {{"Гоблин", Goblinoid, Male, Chaotic, Fighter, 0, {8, 12, 8, 8, 8, 8}, {SwordShort}},
+{"Орк", Goblinoid, Male, Chaotic, Fighter, 1, {13, 10, 10, 8, 8, 8}, {SwordLong}},
+{"Летучая мышь", Animal, Female, Chaotic, Fighter, 0, {8, 12, 4, 3, 3, 3}, {Bite}},
+{"Крыса", Animal, Female, Chaotic, Fighter, 0, {6, 10, 4, 3, 3, 3}, {Bite}},
+{"Крестьянин", Human, Male, Neutral, Fighter, 0, {10, 10, 10, 10, 10, 10}, {}},
+{"Охранник", Human, Male, Neutral, Fighter, 1, {15, 10, 10, 10, 10, 10}, {Spear}},
+{"Ребенок", Human, Male, Neutral, Fighter, 0, {8, 8, 6, 6, 6, 10}},
+{"Крестьянка", Human, Male, Neutral, Fighter, 0, {10, 10, 10, 10, 10, 10}},
+{"Владелец магазина", Human, Male, Neutral, Fighter, 0, {10, 10, 10, 11, 10, 13}, {}, {Bargaining}},
+{"Кузнец", Dwarf, Male, Neutral, Fighter, 0, {16, 10, 12, 10, 10, 10}, {HammerWar}},
+{"Бартендер", Dwarf, Male, Neutral, Fighter, 0, {10, 10, 12, 10, 12, 10}},
 };
 assert_enum(role, Bartender);
 getstr_enum(role);

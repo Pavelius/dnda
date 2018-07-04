@@ -1180,6 +1180,12 @@ int	creature::getlos() const {
 	return 6;
 }
 
+creature* creature::getleader() const {
+	if(charmer)
+		return charmer;
+	return party;
+}
+
 void creature::setlos() {
 	auto x0 = getx(position);
 	auto y0 = gety(position);
@@ -1443,8 +1449,10 @@ void creature::update() {
 	// Remove any links if target is invalid
 	if(horror && (!is(Scared) || !(*horror)))
 		horror = 0;
-	if(charmer && (!is(Charmed) || !(*charmer)))
+	if(charmer && (!is(Charmed) || !(*charmer))) {
+		remove(Charmed);
 		charmer = 0;
+	}
 	if(enemy && !(*enemy))
 		enemy = 0;
 	// RULE: Poison affect creature every short time interval.
