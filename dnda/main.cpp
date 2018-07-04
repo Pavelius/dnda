@@ -3,6 +3,7 @@
 using namespace game;
 
 int main(int argc, char* argv[]) {
+	static variant variants[] = {Bargaining, OfArmor, OfCharisma, Anger};
 	//return 0;
 	logs::initialize();
 	create(City, get(10, 10), 1, false, false);

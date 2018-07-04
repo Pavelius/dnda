@@ -1567,6 +1567,19 @@ static state_s get_ability_state(ability_s id) {
 	}
 }
 
+struct item_use_info {
+	unsigned char	chance;
+	void(*proc)(creature& player, item& it, item_use_info& e);
+	const char*		text;
+	damageinfo		damage;
+	variant			value;
+	unsigned		duration;
+	explicit operator bool() const { return proc != 0; }
+};
+static item_use_info fail_read_tome[] = {{1, 0, "Вы не смогли почерпнуть ничего нового для себя."},
+{1, 0, "Вы читали очень долго и в конце концов это навало вас злить.", {}, Anger, Hour},
+};
+
 void creature::use(item& it) {
 	if(it.isedible()) {
 		char temp[260]; grammar::what(temp, getstr(it.gettype()));

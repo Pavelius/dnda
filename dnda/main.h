@@ -187,12 +187,30 @@ enum encumbrance_s : unsigned char {
 	NoEncumbered,
 	Encumbered, HeavilyEncumbered,
 };
+enum variant_s : unsigned char {
+	NoVariant,
+	Ability, Skill, State, Enchantment,
+};
 struct attackinfo;
 struct creature;
 struct effectparam;
 struct location;
 struct targetdesc;
 class item;
+struct variant {
+	variant_s			type;
+	union {
+		ability_s		ability;
+		enchantment_s	enchantment;
+		skill_s			skill;
+		state_s			state;
+	};
+	constexpr variant() : type(NoVariant), skill(NoSkill) {}
+	constexpr variant(skill_s v) : type(Skill), skill(v) {}
+	constexpr variant(state_s v) : type(State), state(v) {}
+	constexpr variant(enchantment_s v) : type(Enchantment), enchantment(v) {}
+	constexpr variant(ability_s v) : type(Ability), ability(v) {}
+};
 struct skillvalue {
 	skill_s			id;
 	char			value;
