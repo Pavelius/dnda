@@ -229,7 +229,7 @@ struct foodinfo {
 };
 struct specialinfo {
 	char			malfunction;
-	char			side_effect;
+	char			sidestate;
 };
 struct effectinfo {
 	struct callback {
@@ -287,7 +287,7 @@ public:
 	unsigned		getcost() const;
 	int				getcount() const;
 	int				getdefence() const;
-	enchantment_s			geteffect() const;
+	enchantment_s	geteffect() const;
 	skill_s			getfocus() const;
 	const foodinfo& getfood() const;
 	identify_s		getidentify() const { return identify; }
