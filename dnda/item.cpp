@@ -278,7 +278,7 @@ enchantment_s item::geteffect() const {
 	return NoEffect;
 }
 
-specialinfo& item::getspecial() const {
+const specialinfo& item::getspecial() const {
 	return item_data[type].special;
 }
 

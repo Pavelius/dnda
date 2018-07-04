@@ -1,16 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="adat.h">
-      <Filter>collections</Filter>
-    </ClInclude>
     <ClInclude Include="archive.h">
-      <Filter>collections</Filter>
-    </ClInclude>
-    <ClInclude Include="aref.h">
-      <Filter>collections</Filter>
-    </ClInclude>
-    <ClInclude Include="cflags.h">
       <Filter>collections</Filter>
     </ClInclude>
     <ClInclude Include="collection.h">

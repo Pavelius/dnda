@@ -1,6 +1,4 @@
-#include "adat.h"
-#include "aref.h"
-#include "cflags.h"
+#include "collection.h"
 #include "crt.h"
 #include "grammar.h"
 #include "point.h"
@@ -301,7 +299,7 @@ public:
 	int				getqualityraw() const { return quality; }
 	int				getsalecost() const;
 	spell_s			getspell() const;
-	specialinfo&	getspecial() const;
+	const specialinfo& getspecial() const;
 	state_s			getstate() const;
 	item_s			gettype() const { return type; }
 	int				getweight() const;

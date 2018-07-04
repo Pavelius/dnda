@@ -118,11 +118,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="adat.h" />
     <ClInclude Include="archive.h" />
-    <ClInclude Include="aref.h" />
     <ClInclude Include="bitops.h" />
-    <ClInclude Include="cflags.h" />
     <ClInclude Include="collection.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="command.h" />
