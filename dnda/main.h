@@ -47,7 +47,7 @@ enum enchantment_s : unsigned char {
 	NoEffect,
 	OfArmor,
 	OfCharisma, OfCold, OfConstitution,
-	OfDefence, OfDestruction, OfDexterity,
+	OfDefence, OfDexterity,
 	OfFire,
 	OfIntellegence,
 	OfMana,
@@ -343,7 +343,7 @@ struct creature {
 	direction_s		direction;
 	unsigned short	name;
 	unsigned char	level;
-	unsigned		experience;
+	int				experience;
 	unsigned		money;
 	creature*		charmer;
 	creature*		enemy;
@@ -361,8 +361,8 @@ struct creature {
 	void			actv(const char* format, const char* param) const;
 	void			actv(creature& opponent, const char* format, const char* param) const;
 	void			actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
-	void			addexp(unsigned count);
-	void			apply(state_s state, unsigned duration, int quality, bool isartifact, bool interactive);
+	void			addexp(int count);
+	void			apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
 	bool			askyn(creature* opponent, const char* format, ...);
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);

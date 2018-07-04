@@ -10,8 +10,8 @@ static unsigned short		exit_index;
 static creature*			current_player;
 static adat<creature, 1024>	creature_data;
 
-static unsigned	experience_level[] = {0,
-1000, 2000, 4000, 8000, 16000, 32000, 64000
+static int experience_level[] = {0,
+1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000
 };
 static unsigned	experience_cost[] = {5,
 10, 20, 30, 50, 80, 100, 150,
@@ -1408,7 +1408,7 @@ unsigned creature::getitems(aref<item*> result, targetdesc ti) const {
 	return pb - result.data;
 }
 
-unsigned getexperiencelevel(unsigned value) {
+int getexperiencelevel(int value) {
 	if(!value)
 		return 1;
 	for(int i = 0; i < sizeof(experience_level) / sizeof(experience_level[0]); i++) {
@@ -1419,12 +1419,14 @@ unsigned getexperiencelevel(unsigned value) {
 }
 
 void creature::levelup() {
+	mhp += xrand(1, class_data[type].hp);
+	mmp += xrand(1, class_data[type].mp);
 	auto n = maptbl(int_checks, abilities[Intellegence]);
 	raiseskills(n);
 	level++;
 }
 
-void creature::addexp(unsigned count) {
+void creature::addexp(int count) {
 	if(!count)
 		return;
 	if(level == 0)

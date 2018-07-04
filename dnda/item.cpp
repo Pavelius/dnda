@@ -3,37 +3,37 @@
 static_assert(sizeof(item) == sizeof(int), "Invalid sizeof(item). Must be equal sizeof(int).");
 
 static struct enchantment_info {
-	const char*		id;
-	const char*		name;
-	char			cost;
+	const char*	id;
+	const char*	name;
+	const char*	name_cursed;
+	char		cost;
 } enchantment_data[] = {{"", ""},
-{"armor", "брони", 10},
-{"charisma", "харизмы", 5},
-{"cold", "холода", 5},
-{"constitution", "телосложения", 5},
-{"defence", "защиты", 7},
-{"destruction", "разрушения", 7},
-{"dexterity", "ловкости", 6},
-{"fire", "огня", 6},
-{"intellegene", "интеллекта", 6},
-{"mana", "маны", 9},
-{"precision", "точности", 7},
-{"regeneration", "регенерации", 10},
-{"sharping", "остроты", 5},
-{"smashing", "раскалывания", 5},
-{"speed", "скорости", 3},
-{"strenght", "силы", 8},
-{"sustenance", "питания", 4},
-{"vampirism", "вампиризма", 10},
-{"wisdow", "мудрости", 6},
+{"armor", "брони", "мягкости", 10},
+{"charisma", "харизмы", "уродства", 5},
+{"cold", "холода", "проклятия холода", 5},
+{"constitution", "телосложения", "болезненности", 5},
+{"defence", "защиты", "притягивания ударов", 7},
+{"dexterity", "ловкости", "неуклюжести", 6},
+{"fire", "огня", "проклятия огня", 6},
+{"intellegene", "интеллекта", "глупости", 6},
+{"mana", "маны", "проклятия маны", 9},
+{"precision", "точности", "косоглазия", 7},
+{"regeneration", "регенерации", "увядания", 10},
+{"sharping", "остроты", "тупости", 5},
+{"smashing", "раскалывания", "заботы", 5},
+{"speed", "скорости", "замедления", 3},
+{"strenght", "силы", "слабости", 8},
+{"sustenance", "питания", "пьявки", 4},
+{"vampirism", "вампиризма", "лечения врага", 10},
+{"wisdow", "мудрости", "беспечности", 6},
 //
-{"acid resistance", "сопротивления кислоте", 1},
-{"charm resistance", "сопротивления шарму", 1},
-{"cold resistance", "сопротивления холоду", 1},
-{"fire resistance", "сопротивления огня", 2},
-{"electricity resistance", "сопротивления электричеству", 1},
-{"poison resistance", "сопротивления яду", 1},
-{"waterproof", "водонепроницаемости", 1},
+{"acid resistance", "сопротивления кислоте", "уязвимости к кислоте", 1},
+{"charm resistance", "сопротивления шарму", "уязвимости к шарму", 1},
+{"cold resistance", "сопротивления холоду", "уязвимости к холоду", 1},
+{"fire resistance", "сопротивления огня", "уязвимости к огню", 2},
+{"electricity resistance", "сопротивления молнии", "уязвимости к молнии", 1},
+{"poison resistance", "сопротивления яду", "уязвимости к яду", 1},
+{"waterproof", "водонепроницаемости", "уязвимости к воде", 1},
 };
 assert_enum(enchantment, LastEnchantment);
 getstr_enum(enchantment);
@@ -51,8 +51,8 @@ static const char* key_names[][2] = {{"simple", "простой"},
 {"crystal", "кристальный"},
 };
 static enchantment_s swords_effect[] = {OfCold, OfDefence, OfDexterity, OfFire, OfSpeed, OfPrecision, OfSharping, OfVampirism};
-static enchantment_s axe_effect[] = {OfStrenght, OfDestruction, OfFire, OfSharping, OfSmashing};
-static enchantment_s bludgeon_effect[] = {OfConstitution, OfDestruction, OfFire, OfSmashing, OfStrenght};
+static enchantment_s axe_effect[] = {OfStrenght, OfFire, OfSharping, OfSmashing};
+static enchantment_s bludgeon_effect[] = {OfConstitution, OfFire, OfSmashing, OfStrenght};
 static enchantment_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
 static enchantment_s armor_effect[] = {OfDefence, OfArmor, OfCharisma, OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
 static enchantment_s helm_effect[] = {OfIntellegence, OfWisdow, OfCharisma};
@@ -414,7 +414,7 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 	auto identify = getidentify();
 	sc.prints(result, result_maximum, item_data[type].name);
 	if(effect && identify >= KnowEffect) {
-		sc.prints(zend(result), result_maximum, " %1%", getstr(effect));
+		sc.prints(zend(result), result_maximum, " %1%", iscursed() ? enchantment_data[effect].name_cursed : enchantment_data[effect].name);
 		if(forsale)
 			sc.prints(zend(result), result_maximum, "%+1i", bonus);
 	} else if(spell && identify >= KnowQuality)
