@@ -68,6 +68,56 @@ ability_s get_state_ability(state_s id) {
 	}
 }
 
+void creature::apply(state_s state, unsigned duration, int quality, bool isartifact, bool interactive) {
+	static damageinfo healing[] = {{5, 10}, {10, 20}, {15, 30}, {20, 40}};
+	bool iscursed = (quality < 0);
+	if(!iscursed)
+		duration += duration * quality;
+	switch(state) {
+	case Strenghted:
+	case Dexterious:
+	case Constitution:
+	case Intellegenced:
+	case Wisdowed:
+	case Charismatic:
+		if(true) {
+			auto ability = get_state_ability(state);
+			if(iscursed) {
+				abilities[ability] += quality;
+				if(abilities[ability] < 1)
+					abilities[ability] = 1;
+			} else if(isartifact)
+				abilities[ability] += quality;
+			else
+				set(state, duration + duration / 2);
+		}
+		break;
+	case HealState:
+		if(!iscursed) {
+			auto dice = maptbl(healing, quality);
+			if(isartifact) // Artifact permanently add health maximum
+				mhp += xrand(2, 8);
+			heal(dice.roll(), false);
+		} else {
+			auto dice = maptbl(healing, -quality);
+			damage(dice.roll(), Magic, false);
+		}
+		break;
+	case ExperienceState:
+		if(!quality)
+			experience += 500;
+		else
+			experience += quality * 1000;
+		break;
+	default:
+		if(iscursed && state_data[state].cursed_state)
+			set(state_data[state].cursed_state, duration);
+		else
+			set(state, duration);
+		break;
+	}
+}
+
 void creature::drink(item& it, bool interactive) {
 	static damageinfo healing[] = {{5, 10}, {10, 20}, {15, 30}, {20, 40}};
 	char temp[260]; it.getname(temp, zendof(temp), false); szlower(temp);

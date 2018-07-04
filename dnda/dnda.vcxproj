@@ -124,7 +124,6 @@
     <ClInclude Include="color.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="crt.h" />
-    <ClInclude Include="csort.h" />
     <ClInclude Include="draw.h" />
     <ClInclude Include="grammar.h" />
     <ClInclude Include="initializer_list.h" />
@@ -160,9 +159,6 @@
     <ClCompile Include="game_create.cpp" />
     <ClCompile Include="grammar.cpp" />
     <ClCompile Include="io.cpp" />
-    <ClCompile Include="io_strategy.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="item.cpp" />
     <ClCompile Include="location.cpp" />
     <ClCompile Include="logs_driver.cpp" />

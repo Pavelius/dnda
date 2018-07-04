@@ -362,6 +362,7 @@ struct creature {
 	void			actv(creature& opponent, const char* format, const char* param) const;
 	void			actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
 	void			addexp(unsigned count);
+	void			apply(state_s state, unsigned duration, int quality, bool isartifact, bool interactive);
 	bool			askyn(creature* opponent, const char* format, ...);
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);

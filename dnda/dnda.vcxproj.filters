@@ -61,9 +61,6 @@
     <ClInclude Include="surface.h">
       <Filter>ui</Filter>
     </ClInclude>
-    <ClInclude Include="csort.h">
-      <Filter>runtime</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="archive.cpp">
@@ -163,9 +160,6 @@
       <Filter>ui</Filter>
     </ClCompile>
     <ClCompile Include="io.cpp">
-      <Filter>runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="io_strategy.cpp">
       <Filter>runtime</Filter>
     </ClCompile>
     <ClCompile Include="logs_driver.cpp">
