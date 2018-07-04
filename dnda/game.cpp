@@ -51,10 +51,6 @@ bool game::isexplore(short unsigned i) {
 	return (mpflg[i] & (1 << Explored)) != 0;
 }
 
-bool game::isexperience(short unsigned i) {
-	return (mpflg[i] & (1 << Experience)) != 0;
-}
-
 void game::set(short unsigned i, map_flag_s type, bool value) {
 	if(value)
 		mpflg[i] |= (1 << type);

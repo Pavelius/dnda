@@ -29,6 +29,7 @@ static struct state_info {
 {"Мудрый", "мудрости", "мудрее", NoState},
 {"Красивый", "красоты", "красивее", NoState},
 //
+{"Опыт", "опыта", "опытнее", Sick},
 {"Лечение", "лечения", "здоровее", Sick},
 {"Исцелить болезнь", "исцеления болезни", "здоровее", Sick},
 {"Исцелить яд", "противоядия", "здоровее", Poisoned},
@@ -114,6 +115,12 @@ void creature::drink(item& it, bool interactive) {
 			auto dice = maptbl(healing, quality_raw);
 			damage(dice.roll(), Magic, false);
 		}
+		break;
+	case ExperienceState:
+		if(!quality)
+			experience += 500;
+		else
+			experience += quality * 1000;
 		break;
 	default:
 		if(it.iscursed() && state_data[state].cursed_state)

@@ -15,6 +15,8 @@ int main(int argc, char* argv[]) {
 	p1->setplayer();
 
 	p1->equip(Book1);
+	p1->equip(item(PotionRed, Magical, (enchantment_s)ExperienceState));
+	p1->equip(item(PotionRed, Magical, (enchantment_s)ExperienceState));
 	p1->equip(Fear);
 	p1->equip(Apple);
 	p1->equip(Rock);

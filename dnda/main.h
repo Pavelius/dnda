@@ -101,7 +101,7 @@ enum state_s : unsigned char {
 	Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic,
 	LastState = Charismatic,
 	// Instant effects
-	HealState, RemoveSick, RemovePoison,
+	ExperienceState, HealState, RemoveSick, RemovePoison,
 	LastEffectState = RemovePoison,
 };
 enum tile_s : unsigned char {
@@ -158,7 +158,7 @@ enum spell_s : unsigned char {
 	FirstSpell = Armor, LastSpell = Sleep
 };
 enum map_flag_s : unsigned char {
-	Visible, Hidden, Opened, Sealed, Explored, Experience,
+	Visible, Hidden, Opened, Sealed, Explored,
 };
 enum duration_s : unsigned {
 	Instant = 0,
@@ -351,13 +351,7 @@ struct creature {
 	unsigned short	position, guard;
 	item			wears[LastBackpack + 1];
 	//
-	constexpr creature() : race(NoRace), type(Cleric), gender(NoGender), role(Character), direction(Left),
-		abilities(), abilities_raise(), skills(), spells(), name(), level(),
-		wears(), states(),
-		hp(), mhp(), mp(), mmp(),
-		recoil(), restore_hits(), restore_mana(), experience(), money(),
-		charmer(0), enemy(0), horror(), party(),
-		position(), guard(), encumbrance(NoEncumbered) {}
+	creature() = default;
 	creature(role_s value);
 	creature(race_s race, gender_s gender, class_s type);
 	explicit operator bool() const { return hp > 0; }
@@ -473,6 +467,7 @@ struct creature {
 	void			wait(int segments = 0);
 	bool			walkaround();
 private:
+	friend struct archive;
 	char			abilities[Charisma + 1];
 	short			abilities_raise[Charisma + 1];
 	short			hp, mhp, mp, mmp;
@@ -483,7 +478,9 @@ private:
 	unsigned		recoil;
 	creature*		party;
 	encumbrance_s	encumbrance;
-	friend struct archive;
+	slot_s			action_slot;
+	unsigned char	action_stage;
+	//
 	static bool		playturn();
 	void			updateweight();
 };
@@ -535,7 +532,6 @@ inline unsigned char gety(short unsigned i) { return i / max_map_x; }
 void				initialize();
 bool				isdungeon();
 bool				isexplore(short unsigned i);
-bool				isexperience(short unsigned i);
 bool				ishidden(short unsigned i);
 bool				isopen(short unsigned i);
 bool				ispassable(short unsigned i);

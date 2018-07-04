@@ -1635,8 +1635,7 @@ void creature::play() {
 			return;
 		segments++;
 		// Speed up time if wait too match
-		if(current_player->recoil > segments
-			&& (current_player->recoil - segments) >= poison_update * 2) {
+		if(current_player->recoil > segments && (current_player->recoil - segments) >= poison_update * 2) {
 			unsigned new_segment = ((segments + poison_update - 1) / poison_update) * poison_update;
 			while(segments < new_segment) {
 				if(!playturn())

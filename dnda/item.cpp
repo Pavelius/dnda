@@ -65,9 +65,11 @@ static spell_s scroll_spells[] = {CharmPerson, Identify, Armor, ShieldSpell};
 static spell_s book_spells[] = {Bless, Armor, Fear, MagicMissile, HealingSpell, ShokingGrasp, Sleep, RemovePoisonSpell, RemoveSickSpell};
 static spell_s wand_spells[] = {Fear, MagicMissile, HealingSpell, ShokingGrasp, Sleep, RemovePoisonSpell, RemoveSickSpell};
 static spell_s staff_spells[] = {Fear, MagicMissile, ShokingGrasp, Sleep};
-static state_s potion_red[] = {Anger, Blessed, Goodwill, Dexterious, Healthy, Intellegenced, Charismatic};
-static state_s potion_blue[] = {Blessed, Goodwill, Hiding, Sleeped, HealState, RemovePoison, RemoveSick, Healthy, Wisdowed};
-static state_s potion_green[] = {Poisoned, PoisonedWeak, PoisonedStrong, Sleeped, Sick, RemovePoison, RemoveSick, Strenghted, Healthy};
+static state_s potion_state[] = {Anger, Armored, Blessed, Charmed, Hiding, Goodwill,
+Lighted, PoisonedWeak, Poisoned, PoisonedStrong,
+Shielded, Sick, Scared, Sleeped, Weaken,
+Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic,
+ExperienceState, HealState, RemoveSick, RemovePoison};
 static skill_s manual_skills[] = {Athletics, Acrobatics, Bargaining, Bluff, Diplomacy,
 Acrobatics, Alertness, Athletics, Concetration, DisarmTraps, HearNoises, HideInShadow, Lockpicking, PickPockets,
 Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival, Swimming,
@@ -166,9 +168,9 @@ static struct item_info {
 {"Мануал", 350, 90 * GP, Paper, {}, {15, 20}, {Readable, Tome}, {}, NoSkill, manual_skills},
 {"Книга", 300, 110 * GP, Paper, {}, {10, 20}, {Readable, Tome}, {}, NoSkill, wand_spells},
 //
-{"Зелье", 40, 20 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_red, NoItem},
-{"Зелье", 40, 25 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_red, NoItem},
-{"Зелье", 40, 30 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_red, NoItem},
+{"Зелье", 40, 20 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_state, NoItem},
+{"Зелье", 40, 25 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_state, NoItem},
+{"Зелье", 40, 30 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_state, NoItem},
 //
 {"Кольцо", 2, 60 * GP, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
 {"Кольцо", 2, 70 * GP, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
