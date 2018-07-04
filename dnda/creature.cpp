@@ -4,7 +4,7 @@
 using namespace game;
 
 const int chance_loot = 40;
-const unsigned poison_update = Minute * 5;
+const unsigned poison_update = Minute * 4;
 
 static unsigned short		exit_index;
 static creature*			current_player;
@@ -168,7 +168,7 @@ void creature::turnbegin() {
 	}
 }
 
-void creature::playturn() {
+bool creature::playturn() {
 	turnbegin();
 	for(auto& e : creature_data) {
 		if(!e)
@@ -180,6 +180,7 @@ void creature::playturn() {
 		if(e.recoil <= segments)
 			e.recoil = segments + 1;
 	}
+	return current_player != 0;
 }
 
 creature* creature::gethenchmen(int index) const {
@@ -1363,10 +1364,6 @@ bool creature::gettarget(targetinfo& result, const targetdesc ti) const {
 	return true;
 }
 
-static item** select_items(item** pb, item** pe, const item* source, unsigned count, target_s target) {
-	return pb;
-}
-
 unsigned creature::getitems(aref<item*> result, targetdesc ti) const {
 	auto pb = result.data;
 	auto pe = result.data + result.count;
@@ -1440,14 +1437,6 @@ int creature::get(spell_s value) const {
 
 void creature::set(spell_s value, int level) {
 	spells[value] = level;
-}
-
-void creature::passturn(unsigned minutes) {
-	wait(minutes*Minute);
-	while(recoil > segments) {
-		playturn();
-		segments += Minute;
-	}
 }
 
 void creature::update() {
@@ -1616,9 +1605,7 @@ void creature::use(item& it) {
 	} else {
 		it.set(KnowEffect);
 		auto spell = it.getspell();
-		if(!spell)
-			hint("Этот свиток пустой. Его нельзя прочитать.");
-		else {
+		if(spell) {
 			use(spell, 1 + it.getquality(), "%герой прочитал%а свиток.");
 			it.clear();
 			wait(Minute / 2);
@@ -1641,15 +1628,27 @@ bool creature::unequip(item& it) {
 }
 
 void creature::play() {
+	bool party_killed = false;
 	while(true) {
 		exit_index = Blocked;
-		playturn();
+		if(!playturn())
+			return;
 		segments++;
-		if(!getplayer()) {
-			// Все погибли
-			logs::add("Все ваши персонажи мертвы.");
-			logs::next();
-			break;
+		// Speed up time if wait too match
+		if(current_player->recoil > segments
+			&& (current_player->recoil - segments) >= poison_update * 2) {
+			unsigned new_segment = ((segments + poison_update - 1) / poison_update) * poison_update;
+			while(segments < new_segment) {
+				if(!playturn())
+					return;
+				segments++;
+			}
+			new_segment = (current_player->recoil / poison_update) * poison_update;
+			while(segments < new_segment) {
+				if(!playturn())
+					return;
+				segments += poison_update;
+			}
 		}
 		if(exit_index != Blocked) {
 			serialize(true);

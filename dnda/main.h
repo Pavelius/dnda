@@ -174,7 +174,7 @@ enum item_type_s : unsigned char {
 	Mundane, Cursed, Magical, Artifact,
 };
 enum item_flag_s : unsigned char {
-	TwoHanded, Versatile, Readable,
+	TwoHanded, Versatile, Readable, Tome,
 };
 enum attack_s : unsigned char {
 	Bludgeon, Slashing, Piercing,
@@ -298,6 +298,7 @@ public:
 	int				getquality() const;
 	int				getqualityraw() const { return quality; }
 	int				getsalecost() const;
+	skill_s			getskill() const;
 	spell_s			getspell() const;
 	const specialinfo& getspecial() const;
 	state_s			getstate() const;
@@ -443,7 +444,6 @@ struct creature {
 	bool			move(short unsigned index);
 	bool			moveto(short unsigned index);
 	bool			moveaway(short unsigned index);
-	void			passturn(unsigned minutes);
 	static void		play();
 	void			pickup(item& value, bool interactive = true);
 	void			raise(skill_s value);
@@ -484,7 +484,7 @@ private:
 	creature*		party;
 	encumbrance_s	encumbrance;
 	friend struct archive;
-	static void		playturn();
+	static bool		playturn();
 	void			updateweight();
 };
 struct location : rect {

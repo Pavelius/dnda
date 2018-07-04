@@ -1410,7 +1410,7 @@ void testweapon(creature& e);
 static void character_help(creature& e);
 
 static void character_passturn(creature& e) {
-	e.passturn(10);
+	e.wait(Turn*3);
 }
 
 static void ui_show_hide_panel(creature& e) {

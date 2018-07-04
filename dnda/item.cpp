@@ -68,6 +68,10 @@ static spell_s staff_spells[] = {Fear, MagicMissile, ShokingGrasp, Sleep};
 static state_s potion_red[] = {Anger, Blessed, Goodwill, Dexterious, Healthy, Intellegenced, Charismatic};
 static state_s potion_blue[] = {Blessed, Goodwill, Hiding, Sleeped, HealState, RemovePoison, RemoveSick, Healthy, Wisdowed};
 static state_s potion_green[] = {Poisoned, PoisonedWeak, PoisonedStrong, Sleeped, Sick, RemovePoison, RemoveSick, Strenghted, Healthy};
+static skill_s manual_skills[] = {Athletics, Acrobatics, Bargaining, Bluff, Diplomacy,
+Acrobatics, Alertness, Athletics, Concetration, DisarmTraps, HearNoises, HideInShadow, Lockpicking, PickPockets,
+Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival, Swimming,
+WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting};
 static struct item_info {
 	struct combat_info {
 		char			speed;
@@ -80,10 +84,12 @@ static struct item_info {
 		aref<enchantment_s>	effects;
 		aref<spell_s>		spells;
 		aref<state_s>		states;
+		aref<skill_s>		skills;
 		constexpr effect_info() : effects(), spells(), states() {}
-		template<unsigned N> constexpr effect_info(enchantment_s(&data)[N]) : effects({data, N}), spells(), states() {}
-		template<unsigned N> constexpr effect_info(spell_s(&data)[N]) : effects(), spells({data, N}), states() {}
-		template<unsigned N> constexpr effect_info(state_s(&data)[N]) : effects(), spells(), states({data, N}) {}
+		template<unsigned N> constexpr effect_info(enchantment_s(&data)[N]) : effects({data, N}), spells(), states(), skills() {}
+		template<unsigned N> constexpr effect_info(spell_s(&data)[N]) : effects(), spells({data, N}), states(), skills() {}
+		template<unsigned N> constexpr effect_info(state_s(&data)[N]) : effects(), spells(), states({data, N}), skills() {}
+		template<unsigned N> constexpr effect_info(skill_s(&data)[N]) : effects(), spells(), states(), skills({data, N}) {}
 	};
 	const char*			name;
 	int					weight;
@@ -156,9 +162,9 @@ static struct item_info {
 {"Палочка", 5, 70 * GP, Wood, {}, {}, {}, {}, NoSkill, wand_spells, NoItem, 0, 30},
 {"Палочка", 5, 90 * GP, Iron, {}, {}, {}, {}, NoSkill, wand_spells, NoItem, 0, 40},
 //
-{"Книга", 300, 70 * GP, Paper, {}, {20, 10}, {Readable}, {}, NoSkill, wand_spells},
-{"Мануал", 350, 90 * GP, Paper, {}, {15, 20}, {Readable}, {}, NoSkill, wand_spells},
-{"Книга", 300, 110 * GP, Paper, {}, {10, 20}, {Readable}, {}, NoSkill, wand_spells},
+{"Книга", 300, 70 * GP, Paper, {}, {20, 10}, {Readable, Tome}, {}, NoSkill, wand_spells},
+{"Мануал", 350, 90 * GP, Paper, {}, {15, 20}, {Readable, Tome}, {}, NoSkill, manual_skills},
+{"Книга", 300, 110 * GP, Paper, {}, {10, 20}, {Readable, Tome}, {}, NoSkill, wand_spells},
 //
 {"Зелье", 40, 20 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_red, NoItem},
 {"Зелье", 40, 25 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_red, NoItem},
@@ -209,6 +215,8 @@ item::item(item_s type, int chance_artifact, int chance_magic, int chance_cursed
 			effect = (enchantment_s)item_data[type].magic.spells.data[rand() % item_data[type].magic.spells.count];
 	} else if(item_data[type].magic.states)
 		effect = (enchantment_s)item_data[type].magic.states.data[rand() % item_data[type].magic.states.count];
+	else if(item_data[type].magic.skills)
+		effect = (enchantment_s)item_data[type].magic.skills.data[rand() % item_data[type].magic.skills.count];
 	// Set maximum item count in set
 	if(iscountable())
 		setcount(item_data[type].count);
@@ -264,6 +272,12 @@ spell_s item::getspell() const {
 	if(item_data[type].magic.spells.count)
 		return (spell_s)effect;
 	return NoSpell;
+}
+
+skill_s	item::getskill() const {
+	if(item_data[type].magic.skills.count)
+		return (skill_s)effect;
+	return NoSkill;
 }
 
 state_s item::getstate() const {
