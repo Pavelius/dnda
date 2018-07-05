@@ -1567,19 +1567,6 @@ static state_s get_ability_state(ability_s id) {
 	}
 }
 
-struct item_use_info {
-	unsigned char	chance;
-	void(*proc)(creature& player, item& it, item_use_info& e);
-	const char*		text;
-	damageinfo		damage;
-	variant			value;
-	unsigned		duration;
-	explicit operator bool() const { return proc != 0; }
-};
-static item_use_info fail_read_tome[] = {{1, 0, "¬ы не смогли почерпнуть ничего нового дл€ себ€."},
-{1, 0, "¬ы читали очень долго и в конце концов это навало вас злить.", {}, Anger, Hour},
-};
-
 void creature::use(item& it) {
 	if(it.isedible()) {
 		char temp[260]; grammar::what(temp, getstr(it.gettype()));
@@ -1625,13 +1612,17 @@ void creature::use(item& it) {
 			it.setcharges(it.getcharges() - 1);
 			wait(Minute / 4);
 		}
-	} else {
-		it.set(KnowEffect);
-		auto spell = it.getspell();
-		if(spell) {
-			use(spell, 1 + it.getquality(), "%герой прочитал%а свиток.");
-			it.clear();
-			wait(Minute / 2);
+	} else if(it.isreadable()) {
+		if(it.is(Tome))
+			readbook(it);
+		else {
+			it.set(KnowEffect);
+			auto spell = it.getspell();
+			if(spell) {
+				use(spell, 1 + it.getquality(), "%герой прочитал%а свиток.");
+				it.clear();
+				wait(Minute / 2);
+			}
 		}
 	}
 }

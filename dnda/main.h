@@ -244,8 +244,9 @@ struct foodinfo {
 	int				get(int value) const { return value * 50; }
 };
 struct specialinfo {
-	char			malfunction;
-	char			sidestate;
+	char			bonus;
+	char			chance_side;
+	char			disapear;
 };
 struct effectinfo {
 	struct callback {
@@ -272,6 +273,18 @@ struct effectparam : targetinfo, effectinfo {
 	void			apply();
 	void			apply(void(*proc)(effectparam& e));
 	bool			saving() const;
+};
+struct itemuse {
+	char			chance; // Usually from 1 to 10
+	const char*		text;
+	void(*proc)(creature& player, item& it, const itemuse& e);
+	damageinfo		damage;
+	variant			value;
+	unsigned		duration;
+	explicit operator bool() const { return chance != 0; }
+	void			apply(creature& player, item& it) const;
+	void			applyrnd(creature& player, item& it) const;
+	const itemuse*	random() const;
 };
 class item {
 	item_s			type;
@@ -381,6 +394,7 @@ struct creature {
 	void			actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
 	void			addexp(int count);
 	void			apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
+	void			apply(const itemuse& iu, item& it);
 	bool			askyn(creature* opponent, const char* format, ...);
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);
@@ -463,6 +477,7 @@ struct creature {
 	void			raise(skill_s value);
 	void			raiseskills(int number);
 	void			rangeattack();
+	void			readbook(item& it);
 	void			release(unsigned exeperience_cost) const;
 	void			remove(state_s value);
 	bool			roll(skill_s skill, int bonus = 0);

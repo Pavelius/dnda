@@ -141,6 +141,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="archive.cpp" />
+    <ClCompile Include="book.cpp" />
     <ClCompile Include="damageinfo.cpp" />
     <ClCompile Include="bitops.cpp" />
     <ClCompile Include="collection.cpp" />

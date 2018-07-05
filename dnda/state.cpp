@@ -69,7 +69,7 @@ ability_s get_state_ability(state_s id) {
 }
 
 void creature::apply(state_s state, item_type_s magic, int quality_raw, unsigned duration, bool interactive) {
-	static damageinfo healing[] = {{5, 10}, {10, 20}, {15, 30}, {20, 40}, {30, 50}, {40, 60}};
+	static damageinfo healing[] = {{1, 5}, {5, 10}, {10, 20}, {15, 30}, {20, 40}, {30, 50}, {40, 60}};
 	int quality = quality_raw + 1; // this get quality 1-4
 	bool iscursed = (magic == Cursed);
 	bool isartifact = (magic == Artifact);
