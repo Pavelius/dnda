@@ -1432,6 +1432,8 @@ void creature::addexp(int count) {
 	if(level == 0)
 		return;
 	experience += count;
+	if(experience < 0)
+		experience = 0;
 	while(true) {
 		if(getexperiencelevel(experience) <= level)
 			break;

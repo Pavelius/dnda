@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
 }
 
 int __stdcall WinMain(void* ci, void* pi, char* cmd, int sw) {
-	//srand(clock());
-	srand(1000);
+	srand((unsigned)time(0));
+	//srand(1000);
 	return main(0, 0);
 }

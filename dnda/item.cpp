@@ -164,9 +164,9 @@ static struct item_info {
 {"Палочка", 5, 70 * GP, Wood, {}, {}, {}, {}, NoSkill, wand_spells, NoItem, 0, 30},
 {"Палочка", 5, 90 * GP, Iron, {}, {}, {}, {}, NoSkill, wand_spells, NoItem, 0, 40},
 //
-{"Книга", 300, 100 * GP, Paper, {}, {-20, 15, 55}, {Readable, Tome}, {}, NoSkill, wand_spells},
-{"Мануал", 350, 100 * GP, Paper, {}, {-15, 20, 40}, {Readable, Tome}, {}, NoSkill, manual_skills},
-{"Книга", 300, 120 * GP, Paper, {}, {-10, 30, 45}, {Readable, Tome}, {}, NoSkill, wand_spells},
+{"Книга", 300, 100 * GP, Paper, {}, {-20, 15, 25}, {Readable, Tome}, {}, NoSkill, wand_spells},
+{"Мануал", 350, 100 * GP, Paper, {}, {-15, 20, 20}, {Readable, Tome}, {}, NoSkill, manual_skills},
+{"Книга", 300, 120 * GP, Paper, {}, {-10, 30, 15}, {Readable, Tome}, {}, NoSkill, wand_spells},
 //
 {"Зелье", 40, 20 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_state, NoItem},
 {"Зелье", 40, 25 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_state, NoItem},
