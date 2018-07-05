@@ -935,6 +935,8 @@ void creature::damage(int value, attack_s type, bool interactive) {
 			for(auto& e : wears) {
 				if(!e)
 					continue;
+				if(e.is(Natural))
+					continue;
 				if(party == current_player
 					|| (&e >= &wears[FirstBackpack])
 					|| (d100() < chance_loot)) {

@@ -176,6 +176,8 @@ static struct item_info {
 {"Книга", 300, 100 * GP, Paper, {}, {-20, 15, 25}, {Readable, Tome}, {}, NoSkill, wand_spells},
 {"Мануал", 350, 100 * GP, Paper, {}, {-15, 20, 20}, {Readable, Tome}, {}, NoSkill, manual_skills},
 {"Книга", 300, 120 * GP, Paper, {}, {-10, 30, 15}, {Readable, Tome}, {}, NoSkill, wand_spells},
+{"Книга", 300, 110 * GP, Paper, {}, {-15, 30, 15}, {Readable, Tome}, {}, NoSkill, wand_spells},
+{"Книга", 300, 130 * GP, Paper, {}, {-15, 30, 10}, {Readable, Tome}, {}, NoSkill, wand_spells},
 //
 {"Зелье", 40, 20 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_state, NoItem},
 {"Зелье", 40, 25 * GP, Glass, {}, {}, {}, {}, NoSkill, potion_state, NoItem},
@@ -188,9 +190,9 @@ static struct item_info {
 {"Ключ", 10, 0, Iron},
 {"Монета", 1, 1 * CP, Iron, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 50},
 //
-{"Когти", 0, 0, Organic, {4, {1, 3, Slashing}}, {}},
-{"Удар", 0, 0, Organic, {0, {2, 7}}, {}},
-{"Укус", 0, 0, Organic, {2, {2, 5, Piercing}}, {}},
+{"Когти", 0, 0, Organic, {4, {1, 3, Slashing}}, {}, {Natural}},
+{"Удар", 0, 0, Organic, {0, {2, 7}}, {}, {Natural}},
+{"Укус", 0, 0, Organic, {2, {2, 5, Piercing}}, {}, {Natural}},
 };
 assert_enum(item, Bite);
 getstr_enum(item);
@@ -385,7 +387,7 @@ bool item::isarmor() const {
 }
 
 bool item::isdrinkable() const {
-	return item_data[type].magic.states.count != 0;
+	return item_data[type].magic.type==effectlist::States;
 }
 
 bool item::isreadable() const {

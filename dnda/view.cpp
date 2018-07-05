@@ -1441,6 +1441,10 @@ static void character_eat(creature& e) {
 	character_use(e, {TargetItemEdible}, "Что хотите съесть?");
 }
 
+static void character_read(creature& e) {
+	e.use(Literacy);
+}
+
 static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {KeyHome, "Двигаться вверх и влево"},
 {KeyEnd, "Двигаться вниз и влево"},
@@ -1472,6 +1476,7 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {Alpha + 'Z', "Использовать палочку", character_wand},
 {Ctrl + Alpha + 'D', "Выпить что-то", character_drink},
 {Alpha + 'E', "Съесть что-то", character_eat},
+{Ctrl + Alpha + 'R', "Прочитать что-то", character_read},
 };
 
 int compare_hotkey(const void* p1, const void* p2) {

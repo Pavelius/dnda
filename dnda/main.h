@@ -28,7 +28,7 @@ enum item_s : unsigned char {
 	Ration, Apple, BreadHalflings, BreadEvlen, BreadDwarven, Cake, Sausage, Meat,
 	ScrollRed, ScrollGreen, ScrollBlue,
 	WandRed, WandGreen, WandBlue,
-	Book1, Book2, Book3,
+	Book1, Book2, Book3, Book4, Book5,
 	PotionRed, PotionGreen, PotionBlue,
 	RingRed, RingBlue, RingGreen,
 	DoorKey, Coin,
@@ -174,7 +174,7 @@ enum item_type_s : unsigned char {
 	Mundane, Cursed, Magical, Artifact,
 };
 enum item_flag_s : unsigned char {
-	TwoHanded, Versatile, Readable, Tome,
+	TwoHanded, Versatile, Readable, Tome, Natural,
 };
 enum attack_s : unsigned char {
 	Bludgeon, Slashing, Piercing,

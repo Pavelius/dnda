@@ -313,8 +313,10 @@
     <png input="...\item100"/>
     
     <png input="...\item88"/>
-    <png input="...\item200"/>
-    <png input="...\item514"/>
+    <png input="...\item200" ox="32" oy="50"/>
+    <png input="...\item514" ox="32" oy="50"/>
+    <png input="...\item680" ox="32" oy="50"/>
+    <png input="...\item649" ox="32" oy="50"/>
 
     <png input="...\item244"/>
     <png input="...\item482"/>
