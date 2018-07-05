@@ -274,17 +274,17 @@ struct effectparam : targetinfo, effectinfo {
 	void			apply(void(*proc)(effectparam& e));
 	bool			saving() const;
 };
-struct itemuse {
+struct action {
 	char			chance; // Usually from 1 to 10
 	const char*		text;
-	void(*proc)(creature& player, item& it, const itemuse& e);
+	void(*proc)(creature& player, item& it, const action& e);
 	damageinfo		damage;
 	variant			value;
 	unsigned		duration;
 	explicit operator bool() const { return chance != 0; }
 	void			apply(creature& player, item& it) const;
-	void			applyrnd(creature& player, item& it) const;
-	const itemuse*	random() const;
+	void			applyrnd(creature & player, item & it) const;
+	const action*	random() const;
 };
 class item {
 	item_s			type;
@@ -394,7 +394,6 @@ struct creature {
 	void			actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
 	void			addexp(int count);
 	void			apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
-	void			apply(const itemuse& iu, item& it);
 	bool			askyn(creature* opponent, const char* format, ...);
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);
@@ -513,8 +512,6 @@ private:
 	unsigned		recoil;
 	creature*		party;
 	encumbrance_s	encumbrance;
-	slot_s			action_slot;
-	unsigned char	action_stage;
 	//
 	static bool		playturn();
 	void			updateweight();

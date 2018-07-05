@@ -2,6 +2,27 @@
 
 static_assert(sizeof(item) == sizeof(int), "Invalid sizeof(item). Must be equal sizeof(int).");
 
+struct effectlist {
+	enum variant_s : unsigned char {
+		NoVariant,
+		Actions, Skills, States, Echantments, Spells,
+	};
+	variant_s				type;
+	union {
+		aref<skill_s>		skills;
+		aref<enchantment_s>	effects;
+		aref<state_s>		states;
+		aref<spell_s>		spells;
+		const action*		actions;
+	};
+	constexpr effectlist() : type(NoVariant), skills() {}
+	template<unsigned N> constexpr effectlist(spell_s(&data)[N]) : type(Spells), spells({data, N}) {}
+	template<unsigned N> constexpr effectlist(state_s(&data)[N]) : type(States), states({data, N}) {}
+	template<unsigned N> constexpr effectlist(skill_s(&data)[N]) : type(Skills), skills({data, N}) {}
+	template<unsigned N> constexpr effectlist(enchantment_s(&data)[N]) : type(Echantments), effects({data, N}) {}
+	constexpr effectlist(const action* data) : type(Echantments), actions(data) {}
+};
+
 static struct enchantment_info {
 	const char*	id;
 	const char*	name;
@@ -81,18 +102,6 @@ static struct item_info {
 		char			attack; // Melee or ranger attack bonus
 		char			armor[2]; // Bonus to hit and damage reduction
 	};
-	// Effect info is serial of arrays
-	struct effect_info {
-		aref<enchantment_s>	effects;
-		aref<spell_s>		spells;
-		aref<state_s>		states;
-		aref<skill_s>		skills;
-		constexpr effect_info() : effects(), spells(), states() {}
-		template<unsigned N> constexpr effect_info(enchantment_s(&data)[N]) : effects({data, N}), spells(), states(), skills() {}
-		template<unsigned N> constexpr effect_info(spell_s(&data)[N]) : effects(), spells({data, N}), states(), skills() {}
-		template<unsigned N> constexpr effect_info(state_s(&data)[N]) : effects(), spells(), states({data, N}), skills() {}
-		template<unsigned N> constexpr effect_info(skill_s(&data)[N]) : effects(), spells(), states(), skills({data, N}) {}
-	};
 	const char*			name;
 	int					weight;
 	int					cost;
@@ -102,7 +111,7 @@ static struct item_info {
 	cflags<item_flag_s>	flags;
 	cflags<slot_s>		slots;
 	skill_s				focus;
-	effect_info			magic;
+	effectlist			magic;
 	item_s				ammunition;
 	unsigned char		count;
 	unsigned char		charges;
@@ -209,16 +218,22 @@ item::item(item_s type, int chance_artifact, int chance_magic, int chance_cursed
 	else
 		quality = 3;
 	// Several effect types
-	if(item_data[type].magic.effects) {
+	switch(item_data[type].magic.type) {
+	case effectlist::Echantments:
 		if(magic != Mundane)
 			effect = item_data[type].magic.effects.data[rand() % item_data[type].magic.effects.count];
-	} else if(item_data[type].magic.spells) {
+		break;
+	case effectlist::Spells:
 		if((is(Melee) && magic != Mundane) || !is(Melee))
 			effect = (enchantment_s)item_data[type].magic.spells.data[rand() % item_data[type].magic.spells.count];
-	} else if(item_data[type].magic.states)
+		break;
+	case effectlist::States:
 		effect = (enchantment_s)item_data[type].magic.states.data[rand() % item_data[type].magic.states.count];
-	else if(item_data[type].magic.skills)
+		break;
+	case effectlist::Skills:
 		effect = (enchantment_s)item_data[type].magic.skills.data[rand() % item_data[type].magic.skills.count];
+		break;
+	}
 	// Set maximum item count in set
 	if(iscountable())
 		setcount(item_data[type].count);
@@ -271,25 +286,25 @@ int item::getquality() const {
 }
 
 spell_s item::getspell() const {
-	if(item_data[type].magic.spells.count)
+	if(item_data[type].magic.type== effectlist::Spells)
 		return (spell_s)effect;
 	return NoSpell;
 }
 
 skill_s	item::getskill() const {
-	if(item_data[type].magic.skills.count)
+	if(item_data[type].magic.type == effectlist::Skills)
 		return (skill_s)effect;
 	return NoSkill;
 }
 
 state_s item::getstate() const {
-	if(item_data[type].magic.states.count)
+	if(item_data[type].magic.type == effectlist::States)
 		return (state_s)effect;
 	return NoState;
 }
 
 enchantment_s item::geteffect() const {
-	if(item_data[type].magic.effects.count)
+	if(item_data[type].magic.type == effectlist::Echantments)
 		return effect;
 	return NoEffect;
 }
