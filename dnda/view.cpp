@@ -191,6 +191,18 @@ static int shortcut(int x, int y, int w, int index) {
 	return x + w;
 }
 
+static int headel(int x, int y, int width, const char* value) {
+	draw::state push;
+	draw::fore = colors::yellow;
+	return textl(x, y, width, value);
+}
+
+static int header(int x, int y, int width, const char* value) {
+	draw::state push;
+	draw::fore = colors::yellow;
+	return textr(x, y, width, value);
+}
+
 static bool getkey(int& id, unsigned count) {
 	unsigned result = 0;
 	if(id >= (Alpha + 'A') && id <= (Alpha + 'Z'))
@@ -1175,7 +1187,7 @@ bool logs::choose(creature& e, skill_s& result, bool can_escape) {
 	return choose(e, result, source, count, can_escape);
 }
 
-bool logs::choose(creature& e, spell_s& result, spell_s* source, unsigned count) {
+bool logs::choose(creature& e, spell_s& result, aref<spell_s> source) {
 	char temp[260];
 	const int width = 400;
 	const int height = 360;
@@ -1186,14 +1198,19 @@ bool logs::choose(creature& e, spell_s& result, spell_s* source, unsigned count)
 		point camera = getcamera(game::getx(e.position), game::gety(e.position));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, "Заклинания");
-		auto index = 0;
-		for(unsigned in = 0; in < count; in++) {
-			auto i = source[in];
+		auto x1 = x + 32;
+		x1 = headel(x1, y, 240, "Название");
+		x1 = header(x1, y, 60, "Уровень");
+		x1 = header(x1, y, 60, "Мана");
+		y += dy;
+		unsigned index = 0;
+		for(auto i : source) {
 			if(e.get(i) <= 0)
 				continue;
 			auto x1 = shortcut(x, y, 32, index++);
-			x1 = textl(x1, y, 308, szprints(temp, zendof(temp), getstr(i)));
-			x1 = textl(x1, y, 60, szprints(temp, zendof(temp), "%1i", e.getcost(i)));
+			x1 = textl(x1, y, 240, szprints(temp, zendof(temp), getstr(i)));
+			x1 = textr(x1, y, 60, szprints(temp, zendof(temp), "%1i", e.get(i)));
+			x1 = textr(x1, y, 60, szprints(temp, zendof(temp), "%1i", e.getcost(i)));
 			y += dy;
 		}
 		if(!index)
@@ -1203,7 +1220,7 @@ bool logs::choose(creature& e, spell_s& result, spell_s* source, unsigned count)
 		case KeyEscape:
 			return false;
 		default:
-			if(getkey(id, count)) {
+			if(getkey(id, index)) {
 				result = source[id];
 				return true;
 			}

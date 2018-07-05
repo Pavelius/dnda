@@ -118,7 +118,7 @@ static int compare(const void* p1, const void* p2) {
 }
 
 bool logs::choose(creature& e, spell_s& result) {
-	auto count = 0;
+	unsigned count = 0;
 	spell_s source[sizeof(spell_data) / sizeof(spell_data[0])];
 	for(auto i = FirstSpell; i <= LastSpell; i = (spell_s)(i + 1)) {
 		if(e.get(i) <= 0)
@@ -126,5 +126,5 @@ bool logs::choose(creature& e, spell_s& result) {
 		source[count++] = i;
 	}
 	qsort(source, count, sizeof(source[0]), compare);
-	return logs::choose(e, result, source, count);
+	return logs::choose(e, result, {source, count});
 }

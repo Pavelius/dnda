@@ -321,6 +321,7 @@ public:
 	const foodinfo& getfood() const;
 	identify_s		getidentify() const { return identify; }
 	static aref<item_s>	getitems(aref<item_s> result, aref<slot_s> source);
+	gender_s		getgender() const;
 	item_type_s		getmagic() const { return magic; }
 	material_s		getmaterial() const;
 	static const char* getname(spell_s value);
@@ -439,6 +440,7 @@ struct creature {
 	const char*		getname() const; // Name used predefined names array
 	static const char* getname(tile_s id);
 	static const char* getname(state_s id, bool cursed);
+	static const char* getname(skill_s id);
 	creature*		getnearest(targetdesc ti) const;
 	unsigned		getobjects(aref<short unsigned> result, targetdesc ti) const;
 	creature*		getparty() const;
@@ -483,7 +485,7 @@ struct creature {
 	void			say(const char* format, ...);
 	bool			sayv(const char* format, const char* param);
 	static void		select(creature** result, rect rc);
-	void			set(state_s value, unsigned segments);
+	void			set(state_s value, unsigned segments, bool after_recoil = false);
 	void			set(spell_s value, int level);
 	static void		setblocks(short unsigned* movements, short unsigned value);
 	void			setplayer();
@@ -591,6 +593,7 @@ struct driver : stringcreator {
 	const char*		name;
 	const char*		name_opponent;
 	constexpr driver() : gender(Male), gender_opponent(Male), name(""), name_opponent("") {}
+	constexpr driver(const char* name_param, gender_s gender_param) : name(name_param), gender(gender_param), name_opponent(""), gender_opponent(Male) {}
 	void			parseidentifier(char* result, const char* result_max, const char* identifier) override;
 };
 void				add(const char* format, ...);
@@ -602,7 +605,7 @@ short unsigned		choose(const creature& e, short unsigned* source, int count);
 item*				choose(const creature& e, item** source, unsigned count, const char* title);
 bool				choose(creature& e, skill_s& result, skill_s* source, unsigned count, bool can_escape = true);
 bool				choose(creature& e, skill_s& result, bool can_escape = true);
-bool				choose(creature& e, spell_s& result, spell_s* source, unsigned count);
+bool				choose(creature& e, spell_s& result, aref<spell_s> source);
 bool				choose(creature& e, spell_s& result);
 bool				chooseyn();
 void				focusing(short unsigned index);

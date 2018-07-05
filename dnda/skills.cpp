@@ -86,52 +86,57 @@ static void failgamble(effectparam& e) {
 
 static struct skill_info {
 	const char*		name;
+	const char*		nameof;
 	ability_s		ability[2];
 	effectinfo		effect;
 	unsigned char	koef[2];
 	enchantment_s	enchant;
 	bool			deny_ability;
 } skill_data[] = {{"Нет навыка"},
-{"Торговля", {Charisma, Intellegence}},
-{"Блеф", {Charisma, Dexterity}},
-{"Дипломатия", {Charisma, Wisdow}, {{TargetFriendlySelf, 1}, {}, {setstate}, Turn / 2, {Goodwill}, "%герой одобрил%а предложение."}},
+{"Торговля", "торговли", {Charisma, Intellegence}},
+{"Блеф", "обмана", {Charisma, Dexterity}},
+{"Дипломатия", "дипломатии", {Charisma, Wisdow}, {{TargetFriendlySelf, 1}, {}, {setstate}, Turn / 2, {Goodwill}, "%герой одобрил%а предложение."}},
 //
-{"Акробатика", {Dexterity, Dexterity}},
-{"Внимательность", {Wisdow, Dexterity}},
-{"Атлетика", {Strenght, Dexterity}},
-{"Концентрация", {Wisdow, Constitution}},
-{"Обезвредить ловушки", {Dexterity, Intellegence}, {{TargetTrap, 1}, {}, {removetrap}, Instant, {}, "%герой обезвредил%а ловушку.", {}, 30}},
-{"Слышать звуки", {Wisdow, Intellegence}},
-{"Прятаться в тени", {Dexterity, Dexterity}, {{TargetSelf}, {}, {setstate}, Turn / 2, {Hiding}, "%герой внезапно изчез%ла из поля зрения."}},
-{"Открыть замок", {Dexterity, Intellegence}, {{TargetDoor, 1}, {}, {removelock}, Instant, {}, "%герой вскрыл%а замок.", {}, 50}},
-{"Очистить карманы", {Dexterity, Charisma}, {{TargetFriendlySelf, 1}, {}, {pickpockets, 0, test_pickpockets}, Instant, {}, 0, {}, 25}},
-{"Алхимия", {Intellegence, Intellegence}},
-{"Танцы", {Dexterity, Charisma}, {{TargetSelf}, {}, {dance}, Instant, {}, "%герой станевал%а отличный танец.", {}, 10}},
-{"Инженерное дело", {Intellegence, Intellegence}},
-{"Азартные игры", {Charisma, Dexterity}, {{TargetFriendlySelf, 1}, {}, {gamble, failgamble, test_gamble}, Instant, {}, 0, {}, 25}, {0, 2}},
-{"История", {Intellegence, Intellegence}},
-{"Лечение", {Wisdow, Intellegence}, {{TargetFriendlySelf, 1}, {}, {healdamage}, Instant, {}, "%герой перевязал%а раны.", 5}},
-{"Грамотность", {Intellegence, Intellegence}, {{TargetItemReadable}, {}, {literacy, literacy}, Minute / 2, {}, 0, {}, 25}},
-{"Шахтерское дело", {Strenght, Intellegence}},
-{"Кузнечное дело", {Strenght, Intellegence}},
-{"Выживание", {Wisdow, Constitution}},
-{"Плавание", {Strenght, Constitution}},
+{"Акробатика", "акробатики", {Dexterity, Dexterity}},
+{"Внимательность", "внимательности", {Wisdow, Dexterity}},
+{"Атлетика", "атлетики", {Strenght, Dexterity}},
+{"Концентрация", "концетрации", {Wisdow, Constitution}},
+{"Обезвредить ловушки", "ловушек", {Dexterity, Intellegence}, {{TargetTrap, 1}, {}, {removetrap}, Instant, {}, "%герой обезвредил%а ловушку.", {}, 30}},
+{"Слышать звуки", "слуха", {Wisdow, Intellegence}},
+{"Прятаться в тени", "скрытности", {Dexterity, Dexterity}, {{TargetSelf}, {}, {setstate}, Turn / 2, {Hiding}, "%герой внезапно изчез%ла из поля зрения."}},
+{"Открыть замок", "взлома", {Dexterity, Intellegence}, {{TargetDoor, 1}, {}, {removelock}, Instant, {}, "%герой вскрыл%а замок.", {}, 50}},
+{"Очистить карманы", "воровства", {Dexterity, Charisma}, {{TargetFriendlySelf, 1}, {}, {pickpockets, 0, test_pickpockets}, Instant, {}, 0, {}, 25}},
+{"Алхимия", "алхимии", {Intellegence, Intellegence}},
+{"Танцы", "танцев", {Dexterity, Charisma}, {{TargetSelf}, {}, {dance}, Instant, {}, "%герой станевал%а отличный танец.", {}, 10}},
+{"Инженерное дело", "инженерии", {Intellegence, Intellegence}},
+{"Азартные игры", "азартных игр", {Charisma, Dexterity}, {{TargetFriendlySelf, 1}, {}, {gamble, failgamble, test_gamble}, Instant, {}, 0, {}, 25}, {0, 2}},
+{"История", "истории", {Intellegence, Intellegence}},
+{"Лечение", "лечения", {Wisdow, Intellegence}, {{TargetFriendlySelf, 1}, {}, {healdamage}, Instant, {}, "%герой перевязал%а раны.", 5}},
+{"Грамотность", "письма и чтения", {Intellegence, Intellegence}, {{TargetItemReadable}, {}, {literacy, literacy}, Minute / 2, {}, 0, {}, 25}},
+{"Шахтерское дело", "шахтерского дела", {Strenght, Intellegence}},
+{"Кузнечное дело", "кузнечного дела", {Strenght, Intellegence}},
+{"Выживание", "выживания", {Wisdow, Constitution}},
+{"Плавание", "плавания", {Strenght, Constitution}},
 //
-{"Владение луком", {Dexterity, Dexterity}},
-{"Владение мечом", {Strenght, Dexterity}},
-{"Владение топором", {Strenght, Constitution}},
-{"Сражение двумя оружиями", {Strenght, Dexterity}},
+{"Владение луком", "стрельбы из лука", {Dexterity, Dexterity}},
+{"Владение мечом", "сражения на мечах", {Strenght, Dexterity}},
+{"Владение топором", "сражения на топорах", {Strenght, Constitution}},
+{"Сражение двумя оружиями", "ужасного оружия", {Strenght, Dexterity}},
 //
-{"Сопротивление кислоте", {Dexterity, Constitution}, {}, {}, OfAcidResistance, true},
-{"Сопротивление шарму", {Wisdow, Wisdow}, {}, {}, OfCharmResistance},
-{"Сопротивление холоду", {Constitution, Strenght}, {}, {}, OfColdResistance, true},
-{"Сопротивление электричеству", {Dexterity, Dexterity}, {}, {}, OfElectricityResistance, true},
-{"Сопротивление огню", {Constitution, Dexterity}, {}, {}, OfFireResistance, true},
-{"Сопротивление яду", {Constitution, Constitution}, {}, {}, OfPoisonResistance},
-{"Дыхание водой", {Strenght, Constitution}, {}, {}, OfWaterproof, true},
+{"Сопротивление кислоте", "кислоты", {Dexterity, Constitution}, {}, {}, OfAcidResistance, true},
+{"Сопротивление шарму", "красоты и любви", {Wisdow, Wisdow}, {}, {}, OfCharmResistance},
+{"Сопротивление холоду", "холода", {Constitution, Strenght}, {}, {}, OfColdResistance, true},
+{"Сопротивление электричеству", "молнии", {Dexterity, Dexterity}, {}, {}, OfElectricityResistance, true},
+{"Сопротивление огню", "огня", {Constitution, Dexterity}, {}, {}, OfFireResistance, true},
+{"Сопротивление яду", "яда", {Constitution, Constitution}, {}, {}, OfPoisonResistance},
+{"Дыхание водой", "воды", {Strenght, Constitution}, {}, {}, OfWaterproof, true},
 };
 assert_enum(skill, ResistWater);
 getstr_enum(skill);
+
+const char* creature::getname(skill_s id) {
+	return skill_data[id].nameof;
+}
 
 void creature::raise(skill_s value) {
 	skills[value] += xrand(3, 9);

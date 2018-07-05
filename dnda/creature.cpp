@@ -1323,7 +1323,7 @@ void creature::remove(state_s value) {
 		states[value] = segments;
 }
 
-void creature::set(state_s value, unsigned segments_count) {
+void creature::set(state_s value, unsigned segments_count, bool after_recoil) {
 	switch(value) {
 	case HealState:
 		heal(xrand(10, 20), false);
@@ -1339,7 +1339,7 @@ void creature::set(state_s value, unsigned segments_count) {
 		break;
 	default:
 		if(value <= LastState) {
-			unsigned stop = segments + segments_count;
+			unsigned stop = ((after_recoil && recoil) ? recoil : segments) + segments_count;
 			if(states[value] < stop)
 				states[value] = stop;
 		}

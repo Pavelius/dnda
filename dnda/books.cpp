@@ -33,7 +33,7 @@ void action::applyrnd(creature& player, item& it) const {
 
 static void setstate(creature& player, item& it, const action& e) {
 	if(e.value.type == State)
-		player.set(e.value.state, e.duration);
+		player.set(e.value.state, e.duration, true);
 }
 
 static void waitmore(creature& player, item& it, const action& e) {
@@ -70,7 +70,7 @@ static const action spell_tome_fail[] = {{2, "Книга истощила вас физически.", de
 
 void creature::readbook(item& it) {
 	static char chance_learn_spell[] = {100, 70, 40, 30, 20, 10, 5, 2};
-	char temp[260]; it.getname(temp, zendof(temp), false);
+	char tem2[260]; char temp[260]; it.getname(tem2, zendof(tem2), false); grammar::what(temp, tem2);
 	auto& ri = it.getspecial();
 	wait(Hour);
 	act("%герой начал%а изучать %L1.", temp);
@@ -99,11 +99,11 @@ void creature::readbook(item& it) {
 			raise(skill);
 		}
 	} else
-		hint("В конце-концов вам неудалось почерпнуть для себя ничего нового.");
+		hint("Вы ничего не поняли.");
 	if(!it)
 		return;
 	if(d100() < ri.disapear) {
-		act("Волшебным образом %L1 исчез.", temp);
+		it.act("Волшебным образом %герой исчез%ла.");
 		it.clear();
 	}
 }
