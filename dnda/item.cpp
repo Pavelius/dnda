@@ -150,11 +150,11 @@ static struct item_info {
 {"Наручи", 200, 3 * GP, Leather, {0, {}, {}, {1}}, {}, {}, {Elbows}, NoSkill, bracers_effect},
 {"Наручи", 400, 8 * GP, Iron, {0, {}, {}, {1, 1}}, {}, {}, {Elbows}, NoSkill, bracers_effect},
 //
-{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 1}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Leather, {0, {}, {}, {1, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
 //
 {"Сухпаек", 100, 3 * SP, Organic, {}, {}, {}, {}, NoSkill, {}, NoItem, 0, 0, {5, 0, {1, 0, 1, 0, 0, 0}, 10 * Minute}},
 {"Яблоко", 10, 1 * SP, Organic, {}, {}, {}, {}, NoSkill, {}, NoItem, 0, 0, {1, 0, {2, 0, 0, 0, 0, 0}, 2 * Minute}},

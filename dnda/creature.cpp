@@ -3,7 +3,6 @@
 
 using namespace game;
 
-const int chance_loot = 40;
 const unsigned poison_update = Minute * 4;
 
 static unsigned short		exit_index;
@@ -932,10 +931,13 @@ void creature::damage(int value, attack_s type, bool interactive) {
 			act(".");
 		damagewears(value, type);
 		if(hp <= 0) {
+			const int chance_loot = 40;
 			for(auto& e : wears) {
 				if(!e)
 					continue;
-				if(party == current_player || (d100() < chance_loot)) {
+				if(party == current_player
+					|| (&e >= &wears[FirstBackpack])
+					|| (d100() < chance_loot)) {
 					e.loot();
 					drop(position, e);
 				}

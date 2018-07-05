@@ -3,10 +3,9 @@
 using namespace game;
 
 int main(int argc, char* argv[]) {
-	static variant variants[] = {Bargaining, OfArmor, OfCharisma, Anger};
 	//return 0;
 	logs::initialize();
-	create(City, get(10, 10), 1, false, false);
+	create(Floor, get(10, 10), 1, true, true);
 	auto p1 = add(get(8, 5), new creature(Human, Female, Mage));
 	auto p2 = add(get(8, 5), new creature(Dwarf, Male, Fighter));
 	auto p3 = add(get(2, 2), new creature(Elf, Male, Theif));
@@ -20,9 +19,7 @@ int main(int argc, char* argv[]) {
 	p1->equip(item(PotionRed, Magical, (enchantment_s)ExperienceState));
 	p1->equip(Fear);
 	p1->equip(Apple);
-	p1->equip(Rock);
-	p1->equip(Sling);
-	p1->equip(Cloack1);
+	p1->equip(item(Cloack1, 4, 30, 20, 50));
 
 	p2->equip(Cloack5);
 

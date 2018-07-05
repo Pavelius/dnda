@@ -583,7 +583,7 @@ static void create_room(short unsigned index, direction_s dir) {
 	auto h = xrand(3, 6);
 	auto h1 = h;
 	auto w1 = w;
-	auto start = 0xFFFF;
+	auto start = Blocked;
 	while(h >= 0) {
 		index = to(index, dir);
 		if(!isvalidindex(index))
@@ -593,23 +593,22 @@ static void create_room(short unsigned index, direction_s dir) {
 		if(gettile(to(index, dir)) != NoTile)
 			break;
 		set(index, Floor);
-		if(start == 0xFFFF)
+		if(start == Blocked)
 			start = index;
 		place_tiles(index, turn(dir, Left), Floor, w, Right);
 		place_tiles(index, turn(dir, Right), Floor, w, Left);
 		h--;
 	}
 	statistic.rooms++;
-	if(start != 0xFFFF) {
+	if(start != Blocked)
 		put_block(index, dir);
-	}
 }
 
 static void create_dungeon(int x, int y, int w, int h, bool visualize) {
 	if(statistic.level < 1)
 		statistic.level = 1;
 	put_block(get(10, 10), Right);
-	put_block(get(80, 70), Left);
+	put_block(get(70, 70), Left);
 	while(stack_get != stack_put) {
 		auto& e = get_block();
 		if(isvalidroom(e.index, e.dir) && d100() < chance_generate_room)
