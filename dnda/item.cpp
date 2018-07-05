@@ -96,7 +96,7 @@ Acrobatics, Alertness, Athletics, Concetration, DisarmTraps, HearNoises, HideInS
 Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival, Swimming,
 WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting};
 static struct item_info {
-	struct combat_info {
+	struct combatinfo {
 		char			speed;
 		damageinfo		damage;
 		char			attack; // Melee or ranger attack bonus
@@ -107,7 +107,7 @@ static struct item_info {
 	int					cost;
 	gender_s			gender;
 	material_s			material;
-	combat_info			combat;
+	combatinfo			combat;
 	specialinfo			special;
 	cflags<item_flag_s>	flags;
 	cflags<slot_s>		slots;

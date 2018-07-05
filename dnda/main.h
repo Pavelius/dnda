@@ -396,6 +396,7 @@ struct creature {
 	void			addexp(int count);
 	void			apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
 	bool			askyn(creature* opponent, const char* format, ...);
+	void			athletics();
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);
 	void			choosebestability();

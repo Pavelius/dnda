@@ -192,6 +192,9 @@
     <ClCompile Include="books.cpp">
       <Filter>logic</Filter>
     </ClCompile>
+    <ClCompile Include="ability.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="collections">

@@ -1422,7 +1422,20 @@ int getexperiencelevel(int value) {
 	return sizeof(experience_level) / sizeof(experience_level[0]);
 }
 
+void creature::athletics() {
+	static ability_s list[] = {Strenght, Dexterity, Constitution};
+	for(auto i : list) {
+		auto b = (8 - abilities[i]) * 7;
+		if(roll(Athletics, b)) {
+			abilities[i]++;
+			hint("Ваш атрибут %1 вырос до %2i.", getstr(i), abilities[i]);
+		}
+	}
+}
+
 void creature::levelup() {
+	hint("Вы получили новый уровень. Теперь вы [%1] уровня [%2i].", getstr(type), level + 1);
+	athletics();
 	mhp += xrand(1, class_data[type].hp);
 	mmp += xrand(1, class_data[type].mp);
 	auto n = maptbl(int_checks, abilities[Intellegence]);
