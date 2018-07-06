@@ -31,6 +31,7 @@ enum item_s : unsigned char {
 	Book1, Book2, Book3, Book4, Book5,
 	PotionRed, PotionGreen, PotionBlue,
 	RingRed, RingBlue, RingGreen,
+	Amulet1, Amulet2, Amulet3, Amulet4, Amulet5,
 	DoorKey, Coin,
 	Claws, Slam, Bite,
 	ManyItems
@@ -145,7 +146,7 @@ enum img_s : unsigned char {
 };
 enum target_s : unsigned char {
 	NoTarget,
-	TargetSelf, TargetFriendly, TargetFriendlySelf, TargetHostile,
+	TargetSelf, TargetFriendly, TargetFriendlySelf, TargetAnyCreature, TargetHostile,
 	TargetItem, TargetItemUnidentified, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
 	TargetDoor, TargetDoorSealed,
 	TargetTrap,
@@ -253,6 +254,7 @@ struct effectinfo {
 		void(*success)(effectparam& e);
 		void(*fail)(effectparam& e);
 		bool(*test)(effectparam& e);
+		bool(*validate)(effectparam& e);
 	};
 	targetdesc		type;
 	skill_s			save;
@@ -394,6 +396,7 @@ struct creature {
 	void			actv(creature& opponent, const char* format, const char* param) const;
 	void			actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
 	void			addexp(int count);
+	bool			aiskill();
 	void			apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
 	bool			askyn(creature* opponent, const char* format, ...);
 	void			athletics();

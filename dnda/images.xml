@@ -250,7 +250,7 @@
       <png input="...\c_SW"/>
     </group>
   </library>
-  <library output="...\items" input="...\items" count="64" ox="32" oy="24">
+  <library output="...\items" input="...\items" count="128" ox="32" oy="24">
     <png input="...\item-1"/>
 
     <png input="...\item5"/>
@@ -325,6 +325,12 @@
     <png input="...\item204"/>
     <png input="...\item44"/>
     <png input="...\item48"/>
+    
+    <png input="...\item166"/>
+    <png input="...\item167"/>
+    <png input="...\item168"/>
+    <png input="...\item170"/>
+    <png input="...\item174"/>
     
     <png input="...\item354"/>
     <png input="...\items37"/>

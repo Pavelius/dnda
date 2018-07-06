@@ -189,3 +189,37 @@ void creature::use(skill_s value) {
 	else
 		ep.apply();
 }
+
+static bool isvalid(effectparam& ep) {
+	if(ep.proc.validate) {
+		if(!ep.proc.validate(ep))
+			return false;
+	}
+}
+
+static aref<creature*> filter(aref<creature*> result, aref<creature*> source, creature& player, skill_info& e) {
+	effectparam ep(e.effect, player, false);
+	auto pb = result.data;
+	auto pe = result.data + result.count;
+	for(auto p : source) {
+		ep.cre = p;
+		if(!isvalid(ep))
+			continue;
+		if(pb < pe)
+			*pb++ = p;
+	}
+	return result;
+}
+
+bool creature::aiskill() {
+	creature* creature_data[32];
+	adat<skill_s, LastSkill+1> recomended;
+	auto creatures = getcreatures(creature_data, {TargetAnyCreature});
+	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
+		if(!skills[i])
+			continue;
+		if(skill_data[i].effect.type.target == NoTarget)
+			continue;
+	}
+	return false;
+}

@@ -18,6 +18,7 @@ int main(int argc, char* argv[]) {
 	p1->equip(item(PotionRed, Magical, (enchantment_s)ExperienceState));
 	p1->equip(item(PotionRed, Magical, (enchantment_s)ExperienceState));
 	p1->equip(Fear);
+	p1->equip(DoorKey);
 	p1->equip(Apple);
 	p1->equip(item(Cloack1, 4, 30, 20, 50));
 

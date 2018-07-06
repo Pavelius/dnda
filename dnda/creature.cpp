@@ -707,7 +707,7 @@ void creature::makemove() {
 	if(!enemy)
 		enemy = getnearest({TargetHostile});
 	// Make move depends on conditions
-	if(horror)
+	if(horror && distance(horror->position, position)<=10)
 		moveaway(horror->position);
 	else if(enemy)
 		moveto(enemy->position);

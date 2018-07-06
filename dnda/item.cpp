@@ -188,6 +188,12 @@ static struct item_info {
 {"Кольцо", 2, 70 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
 {"Кольцо", 2, 80 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
 //
+{"Амулет", 2, 50 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+{"Амулет", 2, 50 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+{"Амулет", 2, 50 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+{"Амулет", 2, 50 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+{"Амулет", 2, 50 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+//
 {"Ключ", 10, 0, Male, Iron},
 {"Монета", 1, 1 * CP, Female, Iron, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 50},
 //

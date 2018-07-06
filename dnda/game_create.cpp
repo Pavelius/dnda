@@ -20,7 +20,8 @@ static slot_s slots_weapons_armor[] = {Melee, Ranged, OffHand, Head, Elbows, Leg
 static item_s item_treasure[] = {Coin, Coin, Coin, Coin, RingRed};
 static item_s item_potion_scrolls[] = {ScrollRed, ScrollRed, ScrollRed,
 ScrollGreen, ScrollGreen, ScrollBlue,
-Book1, Book2, Book3,
+Book1, Book2, Book3, Book4, Book5,
+Amulet1, Amulet2, Amulet3, Amulet4, Amulet5,
 PotionRed, PotionGreen, PotionBlue,
 WandRed, WandGreen, WandBlue,
 RingRed, RingGreen, RingBlue};
