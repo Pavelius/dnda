@@ -195,7 +195,7 @@ static struct item_info {
 {"Амулет", 2, 50 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
 //
 {"Ключ", 10, 0, Male, Iron},
-{"Монета", 1, 1 * CP, Female, Iron, {}, {}, {}, {}, NoSkill, {}, {}, NoItem, 50},
+{"Монета", 1, 1 * CP, Female, Iron, {}, {}, {}, {}, NoSkill, {}, NoItem, 50},
 //
 {"Когти", 0, 0, NoGender, Organic, {4, {1, 3, Slashing}}, {}, {Natural}},
 {"Удар", 0, 0, Male, Organic, {0, {2, 7}}, {}, {Natural}},
@@ -217,15 +217,14 @@ item::item(item_s type, int chance_artifact, int chance_magic, int chance_cursed
 		magic = Mundane;
 	// Quality depend on level
 	auto r = d100();
-	auto m = 100 - chance_quality;
-	if(r < m)
-		quality = 0;
-	else if(r < m + chance_quality / 2)
-		quality = 1;
-	else if(r < m + (chance_quality * 3) / 4)
-		quality = 2;
-	else
+	if(r < chance_quality/8)
 		quality = 3;
+	else if(r < chance_quality / 3)
+		quality = 2;
+	else if(r < chance_quality)
+		quality = 1;
+	else
+		quality = 0;
 	// Several effect types
 	switch(item_data[type].magic.type) {
 	case effectlist::Echantments:

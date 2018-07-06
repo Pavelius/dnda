@@ -247,8 +247,12 @@ static void create_item(short unsigned index, item_s type, int level, bool forsa
 	auto chance_curse = 20;
 	auto it = item(type, chance_artifact, chance_magic, chance_curse, chance_quality);
 	it.set(identify);
-	if(it.gettype() == Coin)
-		it.setcount(xrand(1, 5) * level);
+	if(it.gettype() == Coin) {
+		auto count = xrand(1, 5) * level;
+		if(count > 64)
+			count = 64;
+		it.setcount(count);
+	}
 	if(forsale)
 		it.setforsale();
 	drop(index, it);

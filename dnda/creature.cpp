@@ -258,15 +258,17 @@ void creature::raiseskills(int number) {
 		if(skills[i])
 			*pb++ = i;
 	}
-	auto count = pb - source;
+	unsigned count = pb - source;
 	if(!count)
 		return;
 	zshuffle(source, count);
-	auto index = 0;
+	unsigned index = 0;
 	while(number >= 0) {
+		auto result = NoSkill;
 		if(index >= count)
 			index = 0;
-		raise(source[index++]);
+		result = source[index++];
+		raise(result);
 		number--;
 	}
 }
@@ -707,7 +709,7 @@ void creature::makemove() {
 	if(!enemy)
 		enemy = getnearest({TargetHostile});
 	// Make move depends on conditions
-	if(horror && distance(horror->position, position)<=10)
+	if(horror && distance(horror->position, position) <= 10)
 		moveaway(horror->position);
 	else if(enemy)
 		moveto(enemy->position);
@@ -1422,24 +1424,34 @@ int getexperiencelevel(int value) {
 	return sizeof(experience_level) / sizeof(experience_level[0]);
 }
 
-void creature::athletics() {
+void creature::athletics(bool interactive) {
 	static ability_s list[] = {Strenght, Dexterity, Constitution};
 	for(auto i : list) {
 		auto b = (8 - abilities[i]) * 7;
 		if(roll(Athletics, b)) {
 			abilities[i]++;
-			hint("Ваш атрибут %1 вырос до %2i.", getstr(i), abilities[i]);
+			if(interactive) {
+				logs::add("Ваш атрибут %1 вырос до %2i.", getstr(i), abilities[i]);
+				logs::next();
+			}
 		}
 	}
 }
 
 void creature::levelup() {
-	hint("Вы получили новый уровень. Теперь вы [%1] уровня [%2i].", getstr(type), level + 1);
-	athletics();
+	bool interactive = isplayer();
+	if(interactive) {
+		logs::add("%1 теперь %2 уровня %3i.", getname(), getstr(type), level + 1);
+		logs::next();
+	}
+	athletics(interactive);
 	mhp += xrand(1, class_data[type].hp);
 	mmp += xrand(1, class_data[type].mp);
 	auto n = maptbl(int_checks, abilities[Intellegence]);
-	raiseskills(n);
+	if(interactive)
+		logs::raise(*this, n);
+	else
+		raiseskills(n);
 	level++;
 }
 

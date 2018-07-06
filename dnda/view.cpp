@@ -1134,7 +1134,62 @@ static int compare_skills(const void* p1, const void* p2) {
 	return strcmp(getstr(e1), getstr(e2));
 }
 
-bool logs::choose(creature& e, skill_s& result, skill_s* source, unsigned count, bool can_escape) {
+void logs::raise(creature& e, int left) {
+	skill_s source_data[LastSkill + 1];
+	char source_checks[LastSkill + 1]; memset(source_checks, 2, sizeof(source_checks));
+	aref<skill_s> source;
+	auto pb = source_data;
+	for(auto i = Bargaining; i <= LastSkill; i = (skill_s)(i + 1)) {
+		if(e.getbasic(i))
+			*pb++ = i;
+	}
+	source.data = source_data;
+	source.count = pb - source.data;
+	if(!source)
+		return;
+	char temp[260];
+	const int width = 400;
+	const int height = 360;
+	const int dy = 20;
+	unsigned real_count = 0;
+	while(true) {
+		int x = (draw::getwidth() - width) / 2;
+		int y = (draw::getheight() - height) / 2;
+		point camera = getcamera(game::getx(e.position), game::gety(e.position));
+		view_zone(&e, camera);
+		y += view_dialog({x, y, x + width, y + height}, szprints(temp, zendof(temp), "Повышение навыков (осталось %1i)", left));
+		auto index = 0;
+		auto x1 = x + 32;
+		x1 = headel(x1, y, 250, "Название");
+		x1 = header(x + 340, y, 20, "Чеки");
+		x1 = header(x + 360, y, 40, "Шанс");
+		y += dy;
+		auto old_fore = draw::fore;
+		for(auto i : source) {
+			x1 = shortcut(x, y, 32, index++);
+			draw::fore = (source_checks[i] > 0) ? colors::text : colors::text.mix(colors::form, 80);
+			x1 = textl(x1, y, 250, getstr(i));
+			x1 = textr(x + 340, y, 20, szprints(temp, zendof(temp), "%1i", source_checks[i]));
+			x1 = textr(x + 360, y, 40, szpercent(temp, zendof(temp), e.get(i)));
+			y += dy;
+			real_count++;
+		}
+		draw::fore = old_fore;
+		if(!index)
+			textl(x, y, width, "У вас нет подходящих навыков");
+		auto id = draw::input();
+		if(getkey(id, real_count)) {
+			if(source_checks[source[id]]) {
+				source_checks[source[id]]--;
+				e.raise(source[id]);
+				if(--left <= 0)
+					return;
+			}
+		}
+	}
+}
+
+bool logs::choose(creature& e, skill_s& result, aref<skill_s> source, bool can_escape) {
 	char temp[260];
 	const int width = 400;
 	const int height = 360;
@@ -1147,13 +1202,10 @@ bool logs::choose(creature& e, skill_s& result, skill_s* source, unsigned count,
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, "Навыки");
 		auto index = 0;
-		for(unsigned in = 0; in < count; in++) {
-			auto i = source[in];
-			if(e.getbasic(i) <= 0)
-				continue;
+		for(auto i : source) {
 			auto x1 = shortcut(x, y, 32, index++);
 			x1 = textl(x1, y, 308, getstr(i));
-			x1 = textl(x1, y, 60, szpercent(temp, zendof(temp), e.get(i)));
+			x1 = textr(x + 340, y, 60, szpercent(temp, zendof(temp), e.get(i)));
 			y += dy;
 			real_count++;
 		}
@@ -1176,7 +1228,7 @@ bool logs::choose(creature& e, skill_s& result, skill_s* source, unsigned count,
 }
 
 bool logs::choose(creature& e, skill_s& result, bool can_escape) {
-	auto count = 0;
+	unsigned count = 0;
 	skill_s source[TwoWeaponFighting + 1];
 	for(auto i = Bargaining; i <= TwoWeaponFighting; i = (skill_s)(i + 1)) {
 		if(e.getbasic(i) <= 0)
@@ -1184,7 +1236,7 @@ bool logs::choose(creature& e, skill_s& result, bool can_escape) {
 		source[count++] = i;
 	}
 	qsort(source, count, sizeof(source[0]), compare_skills);
-	return choose(e, result, source, count, can_escape);
+	return choose(e, result, {source, count}, can_escape);
 }
 
 bool logs::choose(creature& e, spell_s& result, aref<spell_s> source) {
@@ -1427,7 +1479,7 @@ void testweapon(creature& e);
 static void character_help(creature& e);
 
 static void character_passturn(creature& e) {
-	e.wait(Turn*3);
+	e.wait(Turn * 3);
 }
 
 static void ui_show_hide_panel(creature& e) {

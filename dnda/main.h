@@ -399,7 +399,7 @@ struct creature {
 	bool			aiskill();
 	void			apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
 	bool			askyn(creature* opponent, const char* format, ...);
-	void			athletics();
+	void			athletics(bool interactive);
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);
 	void			choosebestability();
@@ -607,7 +607,7 @@ void				addv(const char* format, const char* param, int letter = 0);
 void				addv(stringcreator& driver, const char* format, const char* param, int letter = 0);
 short unsigned		choose(const creature& e, short unsigned* source, int count);
 item*				choose(const creature& e, item** source, unsigned count, const char* title);
-bool				choose(creature& e, skill_s& result, skill_s* source, unsigned count, bool can_escape = true);
+bool				choose(creature& e, skill_s& result, aref<skill_s> source, bool can_escape = true);
 bool				choose(creature& e, skill_s& result, bool can_escape = true);
 bool				choose(creature& e, spell_s& result, aref<spell_s> source);
 bool				choose(creature& e, spell_s& result);
@@ -620,6 +620,7 @@ void				initialize();
 int					input();
 void				minimap(creature& e);
 void				next();
+void				raise(creature& e, int left);
 void				turn(creature& e);
 }
 extern adat<location, 128>		locations;
