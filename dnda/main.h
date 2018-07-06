@@ -407,6 +407,7 @@ struct creature {
 	void			athletics(bool interactive);
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);
+	bool			choose(targetinfo& result, targetdesc td, aref<creature*> creatures, bool interactive) const;
 	void			choosebestability();
 	void			clear();
 	void			clear(state_s value) { states[value] = 0; }
@@ -456,7 +457,7 @@ struct creature {
 	static creature* getplayer();
 	short unsigned	getposition() const { return position; }
 	damageinfo		getraise(skill_s id) const;
-	bool			gettarget(targetinfo& result, const targetdesc td) const;
+	bool			gettarget(targetinfo& result, targetdesc td) const;
 	int				getweight() const;
 	int				getweight(encumbrance_s id) const;
 	void			heal(int value, bool interactive) { damage(-value, Magic, interactive); }

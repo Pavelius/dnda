@@ -111,3 +111,30 @@ bool targetdesc::isallow(const creature& player, aref<creature*> creatures) cons
 	}
 	return false;
 }
+
+//bool creature::choose(targetinfo& result, const targetdesc ti, aref<creature*> creatures, effectparam& ep, bool interactive) const {
+//	auto& e = target_data[ti.target];
+//	if(e.proc.cre) {
+//		if(e.self) {
+//			if(e.proc.cre(*this, this)) {
+//				result.cre = (creature*)this;
+//				return true;
+//			}
+//			return false;
+//		}
+//		creature* creature_data[256];
+//		auto array = getcreatures(creature_data, ti);
+//		//for(auto p : creatures) {
+//		//	if(e.proc.cre(player, p))
+//		//		return true;
+//		//}
+//	} else if(e.proc.itm) {
+//		if(e.target_all_match) {
+//			for(auto& it : wears) {
+//				if(it && e.proc.itm(*this, it))
+//					return true;
+//			}
+//		}
+//	}
+//	return false;
+//}

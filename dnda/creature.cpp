@@ -1359,7 +1359,7 @@ void creature::set(state_s value, unsigned segments_count, bool after_recoil) {
 	}
 }
 
-bool creature::gettarget(targetinfo& result, const targetdesc ti) const {
+bool creature::gettarget(targetinfo& result, targetdesc ti) const {
 	if(ti.target >= TargetFriendly && ti.target <= TargetHostile) {
 		if(!logs::getcreature(*this, &result.cre, ti))
 			return false;
