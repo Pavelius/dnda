@@ -227,6 +227,7 @@ struct targetdesc {
 	target_s		target;
 	unsigned char	range;
 	unsigned char	area;
+	bool			isallow(const creature& player, aref<creature*> creatures) const;
 };
 struct damageinfo {
 	char			min;

@@ -16,6 +16,10 @@ static void removelock(effectparam& e) {
 	game::set(e.pos, Sealed, false);
 }
 
+static bool isundead(effectparam& e) {
+	return e.cre->is(Undead);
+}
+
 static bool test_pickpockets(effectparam& e) {
 	static const char* talk[] = {
 		"Слушай смешной анекдот. Так ... как же он начинается? ... Забыл. Ладно, давай в другой раз расскажу.",
@@ -171,15 +175,13 @@ int creature::get(skill_s value) const {
 
 void creature::use(skill_s value) {
 	if(is(Anger)) {
-		if(isplayer())
-			logs::add("Вам надо немного прийти в себя и успокоится.");
+		hint("Вам надо немного прийти в себя и успокоится.");
 		return;
 	}
 	auto& e = skill_data[value];
 	effectparam ep(e.effect, *this, true);
 	if(e.effect.type.target == NoTarget) {
-		if(isplayer())
-			logs::add("Навык %1 не используется подобным образом", getstr(value));
+		hint("Навык %1 не используется подобным образом", getstr(value));
 		return;
 	} else {
 		if(!gettarget(ep, ep.type))
@@ -203,28 +205,9 @@ void creature::use(skill_s value) {
 		ep.apply();
 }
 
-static bool isvalid(effectparam& ep) {
-	if(ep.proc.validate) {
-		if(!ep.proc.validate(ep))
-			return false;
-	}
-}
-
-static aref<creature*> filter(aref<creature*> result, aref<creature*> source, creature& player, skill_info& e) {
-	effectparam ep(e.effect, player, false);
-	auto pb = result.data;
-	auto pe = result.data + result.count;
-	for(auto p : source) {
-		ep.cre = p;
-		if(!isvalid(ep))
-			continue;
-		if(pb < pe)
-			*pb++ = p;
-	}
-	return result;
-}
-
 bool creature::aiskill() {
+	if(is(Anger))
+		return false;
 	creature* creature_data[32];
 	adat<skill_s, LastSkill + 1> recomended;
 	auto creatures = getcreatures(creature_data, {TargetAnyCreature});
@@ -233,6 +216,14 @@ bool creature::aiskill() {
 			continue;
 		if(skill_data[i].effect.type.target == NoTarget)
 			continue;
+		if(!skill_data[i].effect.type.isallow(*this, creatures))
+			continue;
+		recomended.add(i);
+	}
+	if(recomended.count > 0) {
+		auto skill = recomended.data[rand() % recomended.count];
+		use(skill);
+		return true;
 	}
 	return false;
 }

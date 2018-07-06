@@ -195,6 +195,9 @@
     <ClCompile Include="ability.cpp">
       <Filter>logic</Filter>
     </ClCompile>
+    <ClCompile Include="target.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="collections">

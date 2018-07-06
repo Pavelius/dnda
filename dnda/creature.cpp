@@ -612,8 +612,13 @@ void creature::wait(int segments) {
 }
 
 bool creature::walkaround() {
-	if(d100() < 40)
+	if(d100() < 40) {
 		return false;
+	}
+	if(d100() < 50) {
+		aiskill();
+		return false;
+	}
 	auto d = xrand(Left, RightDown);
 	return move(to(position, d));
 }

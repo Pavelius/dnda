@@ -473,11 +473,14 @@ bool logs::getcreature(const creature& e, creature** result, targetdesc ti) {
 	short unsigned source_index[64];
 	for(unsigned i = 0; i < count; i++)
 		source_index[i] = source[i]->position;
-	auto pn = logs::choose(e, source_index, count);
-	auto pi = zfind(source_index, pn);
-	if(pi == -1)
-		return false;
-	*result = source[pi];
+	if(e.isplayer()) {
+		auto pn = logs::choose(e, source_index, count);
+		auto pi = zfind(source_index, pn);
+		if(pi == -1)
+			return false;
+		*result = source[pi];
+	} else
+		*result = source[rand()%count];
 	return true;
 }
 
