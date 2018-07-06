@@ -407,6 +407,8 @@
     <files input="...\84.png"/>
     <files input="...\95.png"/>
     <files input="...\130.png"/>
+    <files input="...\8.png" ox="34"/>
+    <files input="...\16.png"/>
   </library>
   <library output="...\ammo" count="6">
     <files input="...\missiles\*.png"/>

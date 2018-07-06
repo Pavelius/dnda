@@ -74,7 +74,7 @@ enum gender_s : unsigned char {
 enum role_s : unsigned char {
 	GoblinWarrior, OrcWarrior, LargeBat, GiantRat,
 	HumanMale, HumanGuard, HumanChild, HumanFemale,
-	Shopkeeper, DwarvenSmith, Bartender,
+	Shopkeeper, DwarvenSmith, Bartender, Skeleton, Zombie,
 	Character
 };
 enum alignment_s : unsigned char {
@@ -92,6 +92,10 @@ enum skill_s : unsigned char {
 	LastSkill = TwoWeaponFighting,
 	ResistAcid, ResistCharm, ResistCold, ResistElectricity, ResistFire, ResistPoison, ResistWater,
 	LastResist = ResistWater,
+};
+enum special_s : unsigned char {
+	NoSpecial,
+	Undead,
 };
 enum state_s : unsigned char {
 	NoState,
@@ -459,6 +463,7 @@ struct creature {
 	static void		initialize();
 	bool			interact(short unsigned index);
 	bool			is(state_s value) const;
+	bool			is(special_s value) const;
 	bool			is(encumbrance_s value) const { return encumbrance == value; }
 	bool			isagressive() const;
 	static bool		isbooming();

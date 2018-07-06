@@ -209,9 +209,10 @@ static creature* create_bartender(location& e, short unsigned index) {
 }
 
 static creature* create_monster(short unsigned index) {
+	static role_s monsters[] = {GoblinWarrior, OrcWarrior, GiantRat, Skeleton, Zombie};
 	if(creature::isbooming())
 		return 0;
-	return game::add(index, new creature((role_s)xrand(0, GiantRat)));
+	return game::add(index, new creature((role_s)(maprnd(monsters))));
 }
 
 static creature* create_priest(location& e, short unsigned index) {

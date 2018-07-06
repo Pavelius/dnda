@@ -10,6 +10,7 @@ static struct role_info {
 	char			abilities[Charisma + 1];
 	item_s			equipment[4];
 	adat<skill_s, 16> skills;
+	adat<special_s>	specail;
 } role_data[] = {{"Гоблин", Goblinoid, Male, Chaotic, Fighter, 0, {8, 12, 8, 8, 8, 8}, {SwordShort}},
 {"Орк", Goblinoid, Male, Chaotic, Fighter, 1, {13, 10, 10, 8, 8, 8}, {SwordLong}},
 {"Летучая мышь", Animal, Female, Chaotic, Fighter, 0, {8, 12, 4, 3, 3, 3}, {Bite}},
@@ -21,9 +22,17 @@ static struct role_info {
 {"Владелец магазина", Human, Male, Neutral, Fighter, 0, {10, 10, 10, 11, 10, 13}, {}, {Bargaining}},
 {"Кузнец", Dwarf, Male, Neutral, Fighter, 0, {16, 10, 12, 10, 10, 10}, {HammerWar}},
 {"Бартендер", Dwarf, Male, Neutral, Fighter, 0, {10, 10, 12, 10, 12, 10}},
+{"Скелет", Human, Male, Chaotic, Fighter, 1, {10, 13, 10, 10, 10, 10}, {Spear}},
+{"Зомби", Human, Male, Chaotic, Fighter, 2, {15, 10, 16, 10, 10, 10}, {Dagger}},
 };
-assert_enum(role, Bartender);
+assert_enum(role, Character-1);
 getstr_enum(role);
+
+bool creature::is(special_s value) const {
+	if(role == Character)
+		return false;
+	return role_data[role].specail.is(value);
+}
 
 bool creature::isagressive() const {
 	return role_data[role].alignment == Chaotic;
