@@ -276,6 +276,7 @@ struct effectparam : targetinfo, effectinfo {
 		effectinfo(effect_param), player(player), interactive(interactive), param(0), level(1) {}
 	void			apply();
 	void			apply(void(*proc)(effectparam& e));
+	bool			apply(aref<creature*> creatures, bool interactive);
 	bool			saving() const;
 };
 struct action {

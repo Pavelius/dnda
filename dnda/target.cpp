@@ -112,29 +112,35 @@ bool targetdesc::isallow(const creature& player, aref<creature*> creatures) cons
 	return false;
 }
 
-//bool creature::choose(targetinfo& result, const targetdesc ti, aref<creature*> creatures, effectparam& ep, bool interactive) const {
-//	auto& e = target_data[ti.target];
-//	if(e.proc.cre) {
-//		if(e.self) {
-//			if(e.proc.cre(*this, this)) {
-//				result.cre = (creature*)this;
-//				return true;
-//			}
-//			return false;
-//		}
-//		creature* creature_data[256];
-//		auto array = getcreatures(creature_data, ti);
-//		//for(auto p : creatures) {
-//		//	if(e.proc.cre(player, p))
-//		//		return true;
-//		//}
-//	} else if(e.proc.itm) {
-//		if(e.target_all_match) {
-//			for(auto& it : wears) {
-//				if(it && e.proc.itm(*this, it))
-//					return true;
-//			}
-//		}
-//	}
-//	return false;
-//}
+bool effectparam::apply(aref<creature*> creatures, bool interactive) {
+	auto& e = target_data[type.target];
+	if(e.proc.cre) {
+		if(e.self) {
+			if(e.proc.cre(player, &player)) {
+				cre = (creature*)&player;
+				return true;
+			}
+			return false;
+		}
+		creature* creature_data[256];
+		auto creatures = player.getcreatures(creature_data, type);
+		if(target_data[type.target].target_all_match) {
+			for(auto p : creatures) {
+				if(e.proc.cre(player, p)) {
+					cre = p;
+					if(saving())
+						continue;
+					apply();
+				}
+			}
+		}
+	} else if(e.proc.itm) {
+		if(e.target_all_match) {
+			for(auto& it : player.wears) {
+				if(it && e.proc.itm(player, it))
+					return true;
+			}
+		}
+	}
+	return false;
+}
