@@ -103,7 +103,9 @@ void creature::readbook(item& it) {
 	if(!it)
 		return;
 	if(d100() < ri.disapear) {
-		it.act("Волшебным образом %герой исчез%ла.");
-		it.clear();
+		if(it.damageb()) {
+			it.act("Волшебным образом %герой исчез%ла.");
+			it.clear();
+		}
 	}
 }

@@ -1666,6 +1666,7 @@ bool creature::unequip(item& it) {
 			"Мое сокровище! Моя прелесть!",
 		};
 		say(maprnd(text));
+		it.set(KnowEffect);
 		return false;
 	}
 	pickup(it, false);

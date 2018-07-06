@@ -238,13 +238,12 @@ static item_s random(aref<slot_s> source) {
 	return random(item::getitems(result, source));
 }
 
-static void create_item(short unsigned index, item_s type, int level, bool forsale, identify_s identify = Unknown) {
+static void create_item(short unsigned index, item_s type, int level, bool forsale, identify_s identify = Unknown, char chance_curse = 20) {
 	if(type == NoItem)
 		return;
 	auto chance_artifact = imax(0, level/4);
 	auto chance_quality = imax(0, 40 + level);
 	auto chance_magic = imax(0, 5 + level);
-	auto chance_curse = 20;
 	auto it = item(type, chance_artifact, chance_magic, chance_curse, chance_quality);
 	it.set(identify);
 	if(it.gettype() == Coin) {
@@ -272,7 +271,7 @@ static void create_shop(int x0, int y0, int w, int h, int chance, unsigned char 
 			if(x < 0 || x >= max_map_x)
 				continue;
 			if(d100() < chance)
-				create_item(get(x, y), source.data[rand() % source.count], level, forsale, KnowEffect);
+				create_item(get(x, y), source.data[rand() % source.count], level, forsale, KnowEffect, 0);
 		}
 	}
 }

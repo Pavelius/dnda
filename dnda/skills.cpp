@@ -138,8 +138,21 @@ const char* creature::getname(skill_s id) {
 	return skill_data[id].nameof;
 }
 
+damageinfo creature::getraise(skill_s id) const {
+	auto value = skills[id];
+	if(value < 30)
+		return {3, 12};
+	else if(value < 50)
+		return {3, 9};
+	else if(value < 70)
+		return {2, 6};
+	else
+		return {1, 4};
+}
+
 void creature::raise(skill_s value) {
-	skills[value] += xrand(3, 9);
+	auto dice = getraise(value);
+	skills[value] += dice.roll();
 }
 
 int	creature::getbasic(skill_s value) const {
@@ -213,7 +226,7 @@ static aref<creature*> filter(aref<creature*> result, aref<creature*> source, cr
 
 bool creature::aiskill() {
 	creature* creature_data[32];
-	adat<skill_s, LastSkill+1> recomended;
+	adat<skill_s, LastSkill + 1> recomended;
 	auto creatures = getcreatures(creature_data, {TargetAnyCreature});
 	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
 		if(!skills[i])

@@ -174,11 +174,11 @@ static struct item_info {
 {"Палочка", 5, 70 * GP, Female, Wood, {}, {}, {}, {}, NoSkill, wand_spells, NoItem, 0, 30},
 {"Палочка", 5, 90 * GP, Female, Iron, {}, {}, {}, {}, NoSkill, wand_spells, NoItem, 0, 40},
 //
-{"Книга", 300, 80 * GP, Female, Paper, {}, {-20, 65, 30}, {Readable, Tome}, {}, NoSkill, wand_spells},
-{"Мануал", 350, 100 * GP, Male, Paper, {}, {-15, 50, 25}, {Readable, Tome}, {}, NoSkill, manual_skills},
-{"Книга", 300, 110 * GP, Female, Paper, {}, {-10, 55, 20}, {Readable, Tome}, {}, NoSkill, wand_spells},
-{"Книга", 300, 90 * GP, Female, Paper, {}, {-15, 50, 20}, {Readable, Tome}, {}, NoSkill, wand_spells},
-{"Том", 300, 130 * GP, Male, Paper, {}, {-15, 35, 15}, {Readable, Tome}, {}, NoSkill, wand_spells},
+{"Книга", 300, 80 * GP, Female, Paper, {}, {-20, 65, 80}, {Readable, Tome}, {}, NoSkill, wand_spells},
+{"Мануал", 350, 100 * GP, Male, Paper, {}, {-15, 50, 55}, {Readable, Tome}, {}, NoSkill, manual_skills},
+{"Книга", 300, 110 * GP, Female, Paper, {}, {-10, 55, 70}, {Readable, Tome}, {}, NoSkill, wand_spells},
+{"Книга", 300, 90 * GP, Female, Paper, {}, {-15, 50, 75}, {Readable, Tome}, {}, NoSkill, wand_spells},
+{"Том", 300, 130 * GP, Male, Paper, {}, {-15, 35, 60}, {Readable, Tome}, {}, NoSkill, wand_spells},
 //
 {"Зелье", 40, 20 * GP, NoGender, Glass, {}, {}, {}, {}, NoSkill, potion_state, NoItem},
 {"Зелье", 40, 25 * GP, NoGender, Glass, {}, {}, {}, {}, NoSkill, potion_state, NoItem},
@@ -502,9 +502,12 @@ material_s item::getmaterial() const {
 	return item_data[type].material;
 }
 
-void item::damage() {
+bool item::damageb() {
 	if(damaged < 3)
 		damaged++;
+	else
+		return true;
+	return false;
 }
 
 void item::act(const char* format, ...) const {

@@ -1161,16 +1161,16 @@ void logs::raise(creature& e, int left) {
 		auto index = 0;
 		auto x1 = x + 32;
 		x1 = headel(x1, y, 250, "Название");
-		x1 = header(x + 340, y, 20, "Чеки");
-		x1 = header(x + 360, y, 40, "Шанс");
+		x1 = headel(x + 300, y, 30, "Шанс");
 		y += dy;
 		auto old_fore = draw::fore;
 		for(auto i : source) {
 			x1 = shortcut(x, y, 32, index++);
-			draw::fore = (source_checks[i] > 0) ? colors::text : colors::text.mix(colors::form, 80);
+			auto dice = e.getraise(i);
 			x1 = textl(x1, y, 250, getstr(i));
-			x1 = textr(x + 340, y, 20, szprints(temp, zendof(temp), "%1i", source_checks[i]));
-			x1 = textr(x + 360, y, 40, szpercent(temp, zendof(temp), e.get(i)));
+			x1 = textr(x + 300, y, 30, szpercent(temp, zendof(temp), e.get(i)));
+			if(source_checks[i] > 0)
+				x1 = textl(x + 335, y, 40, szprints(temp, zendof(temp), "+ %1i-%2i%%", dice.min, dice.max));
 			y += dy;
 			real_count++;
 		}

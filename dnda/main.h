@@ -309,7 +309,8 @@ public:
 	operator bool() const { return type != NoItem; }
 	void			act(const char* format, ...) const;
 	void			clear();
-	void			damage();
+	bool			damageb();
+	void			damage() { damageb(); }
 	void			get(attackinfo& e) const;
 	item_s			getammo() const;
 	int				getarmor() const;
@@ -450,6 +451,7 @@ struct creature {
 	creature*		getparty() const;
 	static creature* getplayer();
 	short unsigned	getposition() const { return position; }
+	damageinfo		getraise(skill_s id) const;
 	bool			gettarget(targetinfo& result, const targetdesc td) const;
 	int				getweight() const;
 	int				getweight(encumbrance_s id) const;
