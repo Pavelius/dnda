@@ -2,6 +2,10 @@
 
 static_assert(sizeof(item) == sizeof(int), "Invalid sizeof(item). Must be equal sizeof(int).");
 
+enum item_flag_s : unsigned char {
+	TwoHanded, Versatile, Readable, Tome, Natural,
+};
+
 struct effectlist {
 	enum variant_s : unsigned char {
 		NoVariant,
@@ -380,12 +384,20 @@ bool item::is(slot_s value) const {
 	return item_data[type].slots.is(value);
 }
 
-bool item::is(item_flag_s value) const {
-	return item_data[type].flags.is(value);
-}
-
 bool item::istwohanded() const {
 	return item_data[type].flags.is(TwoHanded);
+}
+
+bool item::isversatile() const {
+	return item_data[type].flags.is(Versatile);
+}
+
+bool item::istome() const {
+	return item_data[type].flags.is(Tome);
+}
+
+bool item::isnatural() const {
+	return item_data[type].flags.is(Natural);
 }
 
 gender_s item::getgender() const {

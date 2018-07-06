@@ -937,7 +937,7 @@ void creature::damage(int value, attack_s type, bool interactive) {
 			for(auto& e : wears) {
 				if(!e)
 					continue;
-				if(e.is(Natural))
+				if(e.isnatural())
 					continue;
 				if(party == current_player
 					|| (&e >= &wears[FirstBackpack])
@@ -1254,6 +1254,11 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 			auto fs = get(focus);
 			result.bonus += fs / 30;
 			result.damage.max += fs / 40;
+		}
+		// RULE: Versatile weapon if used two-handed made more damage.
+		if(slot == Melee && weapon.isversatile() && !wears[OffHand]) {
+			result.damage.min += 1;
+			result.damage.max += 1;
 		}
 	} else
 		result.damage.max = 2;
@@ -1641,10 +1646,14 @@ void creature::use(item& it) {
 			grammar::what(temp, getstr(it.gettype()));
 			use(spell, 1 + it.getquality(), "%герой выставил%а вперед %L1.", temp);
 			it.setcharges(it.getcharges() - 1);
+			if(it && it.getcharges() == 0) {
+				hint("%1 рассыпалась в прах.", it.getname(temp, zendof(temp), false));
+				it.clear();
+			}
 			wait(Minute / 4);
 		}
 	} else if(it.isreadable()) {
-		if(it.is(Tome))
+		if(it.istome())
 			readbook(it);
 		else {
 			it.set(KnowEffect);

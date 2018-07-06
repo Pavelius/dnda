@@ -174,9 +174,6 @@ enum identify_s : unsigned char {
 enum item_type_s : unsigned char {
 	Mundane, Cursed, Magical, Artifact,
 };
-enum item_flag_s : unsigned char {
-	TwoHanded, Versatile, Readable, Tome, Natural,
-};
 enum attack_s : unsigned char {
 	Bludgeon, Slashing, Piercing,
 	Acid, Cold, Electricity, Fire, Magic, Poison, WaterAttack
@@ -341,7 +338,6 @@ public:
 	int				getweight() const;
 	int				getweightsingle() const;
 	bool			is(slot_s value) const;
-	bool			is(item_flag_s value) const;
 	bool			isarmor() const;
 	bool			isartifact() const { return magic == Artifact; }
 	bool			ischargeable() const;
@@ -350,8 +346,11 @@ public:
 	bool			isdrinkable() const;
 	bool			isedible() const;
 	bool			isforsale() const { return forsale != 0; }
+	bool			isnatural() const;
 	bool			isreadable() const;
+	bool			istome() const;
 	bool			istwohanded() const;
+	bool			isversatile() const;
 	void			loot();
 	void			setcharges(int count);
 	void			setcount(int count);
