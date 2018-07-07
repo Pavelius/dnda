@@ -5,7 +5,7 @@ using namespace game;
 int main(int argc, char* argv[]) {
 	//return 0;
 	logs::initialize();
-	create(Floor, get(10, 10), 1, false, false);
+	create(City, get(10, 10), 1, false, false);
 	auto p1 = add(get(8, 5), new creature(Human, Female, Mage));
 	auto p2 = add(get(8, 5), new creature(Dwarf, Male, Fighter));
 	auto p3 = add(get(2, 2), new creature(Elf, Male, Theif));
@@ -16,8 +16,7 @@ int main(int argc, char* argv[]) {
 
 	p1->equip(item(Book1, 4, 20, 20, 40));
 	p1->equip(item(PotionRed, Magical, (enchantment_s)ExperienceState));
-	p1->equip(item(PotionRed, Magical, (enchantment_s)ExperienceState));
-	p1->equip(Fear);
+	p1->equip(DetectMagic);
 	p1->equip(DoorKey);
 	p1->equip(Apple);
 	p1->equip(item(Cloack1, 4, 30, 20, 50));
