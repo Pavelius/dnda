@@ -1375,9 +1375,10 @@ void logs::minimap(creature& e) {
 }
 
 static void character_chat(creature& e) {
-	creature* opponent = 0;
-	if(!logs::getcreature(e, &opponent, {TargetFriendlySelf, 1}))
-		return;
+	creature* creature_data[256];
+	auto source = e.getcreatures(creature_data, e.position, 1);
+	source = e.select(creature_data, source, TargetFriendly, 0, e.position, &e);
+	auto opponent = e.choose(source, true);
 	e.chat(opponent);
 }
 
@@ -1491,9 +1492,13 @@ static void character_ranged_attack(creature& e) {
 }
 
 static void character_use(creature& e, targetdesc ti, const char* title) {
-	item* result = 0;
-	if(!logs::getitem(e, &result, ti, title))
+	item* source_data[256];
+	auto source = e.select(source_data, ti.target);
+	if(!source) {
+		e.hint("У вас нет подходящео предмета.");
 		return;
+	}
+	auto result = logs::choose(e, source.data, source.count, "Выбирайте предмет");
 	if(result)
 		e.use(*result);
 }

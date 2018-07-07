@@ -93,22 +93,19 @@ bool creature::use(spell_s value) {
 		return false;
 	}
 	auto result = use(value, 1, "%герой прокричал%а мистическую формулу.");
-	mp -= cost;
+	if(result)
+		mp -= cost;
 	return result;
 }
 
 bool creature::use(spell_s value, int level, const char* format, ...) {
-	effectparam ep(spell_data[value].effect, *this, true);
+	creature* source_data[256];
+	auto creatures = getcreatures(source_data, position, getlos());
+	effectparam ep(spell_data[value].effect, *this, creatures, isplayer());
 	if(level < 1)
 		level = 1;
 	ep.level = level;
-	if(ep.type.target && !gettarget(ep, ep.type))
-		return false;
-	actv(format, xva_start(format));
-	if(ep.saving())
-		return true;
-	ep.apply();
-	return true;
+	return ep.applyv(format, xva_start(format));
 }
 
 static int compare(const void* p1, const void* p2) {

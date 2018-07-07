@@ -141,6 +141,55 @@ static void start_equipment(creature& e) {
 	e.money += xrand(3, 18)*GP;
 }
 
+static bool linelossv(int x0, int y0, int x1, int y1) {
+	int dx = iabs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+	int dy = iabs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+	int err = (dx > dy ? dx : -dy) / 2, e2;
+	for(;;) {
+		if(x0 >= 0 && x0 < max_map_x && y0 >= 0 && y0 < max_map_y) {
+			auto i = get(x0, y0);
+			set(i, Visible, true);
+			set(i, Explored, true);
+			if(!ispassablelight(i))
+				return false;
+		}
+		if(x0 == x1 && y0 == y1)
+			return true;
+		e2 = err;
+		if(e2 > -dx) {
+			err -= dy;
+			x0 += sx;
+		}
+		if(e2 < dy) {
+			err += dx;
+			y0 += sy;
+		}
+	}
+}
+
+static bool linelos(int x0, int y0, int x1, int y1) {
+	int dx = iabs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+	int dy = iabs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+	int err = (dx > dy ? dx : -dy) / 2, e2;
+	for(;;) {
+		if(x0 >= 0 && x0 < max_map_x && y0 >= 0 && y0 < max_map_y) {
+			if(!ispassablelight(get(x0, y0)))
+				return false;
+		}
+		if(x0 == x1 && y0 == y1)
+			return true;
+		e2 = err;
+		if(e2 > -dx) {
+			err -= dy;
+			x0 += sx;
+		}
+		if(e2 < dy) {
+			err += dx;
+			y0 += sy;
+		}
+	}
+}
+
 void creature::initialize() {
 	creature_data.clear();
 }
@@ -225,6 +274,46 @@ creature* creature::getcreature(short unsigned index) {
 			return &e;
 	}
 	return 0;
+}
+
+static int isqrt(int num) {
+	int res = 0;
+	int bit = 1 << 30;
+	// "bit" starts at the highest power of four <= the argument.
+	while(bit > num)
+		bit >>= 2;
+	while(bit != 0) {
+		if(num >= res + bit) {
+			num -= res + bit;
+			res = (res >> 1) + bit;
+		} else
+			res >>= 1;
+		bit >>= 2;
+	}
+	return res;
+}
+
+aref<creature*> creature::getcreatures(aref<creature*> result, short unsigned start, int range) {
+	auto pb = result.data;
+	auto pe = result.data + result.count;
+	auto x = game::getx(start);
+	auto y = game::gety(start);
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		auto dx = x - game::getx(e.position);
+		auto dy = y - game::gety(e.position);
+		auto d = isqrt(dx*dx + dy * dy);
+		if(d > range)
+			continue;
+		if(!linelos(x, y, game::getx(e.position), game::gety(e.position)))
+			continue;
+		if(pb < pe)
+			*pb++ = &e;
+		else
+			break;
+	}
+	return aref<creature*>(result.data, pb - result.data);
 }
 
 bool creature::isbooming() {
@@ -711,8 +800,6 @@ void creature::makemove() {
 		logs::turn(*this);
 		return;
 	}
-	if(!enemy)
-		enemy = getnearest({TargetHostile});
 	// Make move depends on conditions
 	if(horror && distance(horror->position, position) <= 10)
 		moveaway(horror->position);
@@ -1024,10 +1111,8 @@ void creature::rangeattack() {
 			}
 		}
 	}
-	auto enemy = getnearest({TargetHostile});
 	if(!enemy) {
-		if(isplayer())
-			logs::add("Вокруг нет подходящей цели", getstr(ammo));
+		hint("Вокруг нет подходящей цели", getstr(ammo));
 		return;
 	}
 	if(!enemy->enemy)
@@ -1088,102 +1173,19 @@ unsigned creature::getobjects(aref<short unsigned> result, targetdesc ti) const 
 	return pb - result.data;
 }
 
-static bool linelossv(int x0, int y0, int x1, int y1) {
-	int dx = iabs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-	int dy = iabs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-	int err = (dx > dy ? dx : -dy) / 2, e2;
-	for(;;) {
-		if(x0 >= 0 && x0 < max_map_x && y0 >= 0 && y0 < max_map_y) {
-			auto i = get(x0, y0);
-			set(i, Visible, true);
-			set(i, Explored, true);
-			if(!ispassablelight(i))
-				return false;
-		}
-		if(x0 == x1 && y0 == y1)
-			return true;
-		e2 = err;
-		if(e2 > -dx) {
-			err -= dy;
-			x0 += sx;
-		}
-		if(e2 < dy) {
-			err += dx;
-			y0 += sy;
-		}
-	}
-}
+//aref<creature*> creature::getcreatures(aref<creature*> result, targetdesc ti) const {
+//	if(!ti.range)
+//		ti.range = getlos();
+//	const creature* exclude = 0;
+//	if(ti.target == TargetFriendlySelf)
+//		exclude = this;
+//	return getcreatures(result, ti, position, this, exclude);
+//}
 
-static bool linelos(int x0, int y0, int x1, int y1) {
-	int dx = iabs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-	int dy = iabs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-	int err = (dx > dy ? dx : -dy) / 2, e2;
-	for(;;) {
-		if(x0 >= 0 && x0 < max_map_x && y0 >= 0 && y0 < max_map_y) {
-			if(!ispassablelight(get(x0, y0)))
-				return false;
-		}
-		if(x0 == x1 && y0 == y1)
-			return true;
-		e2 = err;
-		if(e2 > -dx) {
-			err -= dy;
-			x0 += sx;
-		}
-		if(e2 < dy) {
-			err += dx;
-			y0 += sy;
-		}
-	}
-}
-
-aref<creature*> creature::getcreatures(aref<creature*> result, targetdesc ti, short unsigned position, const creature* player, const creature* exclude) {
-	auto pb = result.data;
-	auto pe = pb + result.count;
-	auto x = game::getx(position);
-	auto y = game::gety(position);
-	for(auto& e : creature_data) {
-		if(!e)
-			continue;
-		if(&e == exclude)
-			continue;
-		switch(ti.target) {
-		case TargetFriendly:
-		case TargetFriendlySelf:
-			if(e.isenemy(player))
-				continue;
-			break;
-		case TargetHostile:
-			if(!e.isenemy(player))
-				continue;
-			break;
-		}
-		if(game::distance(position, e.position) > ti.range)
-			continue;
-		if(!linelos(x, y, game::getx(e.position), game::gety(e.position)))
-			continue;
-		if(pb < pe) {
-			*pb++ = &e;
-			if(pb >= pe)
-				break;
-		}
-	}
-	return aref<creature*>(result.data, pb - result.data);
-}
-
-aref<creature*> creature::getcreatures(aref<creature*> result, targetdesc ti) const {
-	if(!ti.range)
-		ti.range = getlos();
-	const creature* exclude = 0;
-	if(ti.target == TargetFriendlySelf)
-		exclude = this;
-	return getcreatures(result, ti, position, this, exclude);
-}
-
-creature* creature::getnearest(targetdesc ti) const {
-	creature* source[128];
-	return game::getnearest(getcreatures(source, ti), position);
-}
+//creature* creature::getnearest(targetdesc ti) const {
+//	creature* source[256];
+//	return game::getnearest(getcreatures(source, ti), position);
+//}
 
 int	creature::getlos() const {
 	if(game::isdungeon())
@@ -1357,71 +1359,6 @@ void creature::set(state_s value, unsigned segments_count, bool after_recoil) {
 		}
 		break;
 	}
-}
-
-bool creature::gettarget(targetinfo& result, targetdesc ti) const {
-	if(ti.target >= TargetFriendly && ti.target <= TargetHostile) {
-		if(!logs::getcreature(*this, &result.cre, ti))
-			return false;
-	} else if(ti.target >= TargetItem && ti.target <= TargetItemChargeable) {
-		if(!logs::getitem(*this, &result.itm, ti))
-			return false;
-	} else {
-		switch(ti.target) {
-		case TargetSelf:
-			result.cre = (creature*)this;
-			break;
-		case TargetDoor:
-		case TargetDoorSealed:
-			if(!logs::getindex(*this, result.pos, ti))
-				return false;
-			break;
-		case TargetInvertory:
-			// All invertory of caster
-			break;
-		default:
-			return false;
-		}
-	}
-	return true;
-}
-
-unsigned creature::getitems(aref<item*> result, targetdesc ti) const {
-	auto pb = result.data;
-	auto pe = result.data + result.count;
-	for(auto& it : wears) {
-		if(!it)
-			continue;
-		switch(ti.target) {
-		case TargetItemUnidentified:
-			if(it.getidentify() >= KnowEffect)
-				continue;
-			break;
-		case TargetItemWeapon:
-			if(!(it.is(Melee) || it.is(Ranged)))
-				continue;
-			break;
-		case TargetItemChargeable:
-			if(!it.ischargeable())
-				continue;
-			break;
-		case TargetItemReadable:
-			if(!it.isreadable())
-				continue;
-			break;
-		case TargetItemDrinkable:
-			if(!it.isdrinkable())
-				continue;
-			break;
-		case TargetItemEdible:
-			if(!it.isedible())
-				continue;
-			break;
-		}
-		if(pb < pe)
-			*pb++ = (item*)&it;
-	}
-	return pb - result.data;
 }
 
 int getexperiencelevel(int value) {

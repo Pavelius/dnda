@@ -217,17 +217,12 @@ struct skillvalue {
 	skill_s			id;
 	char			value;
 };
-struct targetinfo {
-	constexpr targetinfo() : cre(0), itm(0), pos(Blocked) {}
-	creature*		cre;
-	item*			itm;
-	short unsigned	pos;
-};
 struct targetdesc {
 	target_s		target;
 	unsigned char	range;
 	unsigned char	area;
 	bool			isallow(const creature& player, aref<creature*> creatures) const;
+	int				getrange(const creature& player) const;
 };
 struct damageinfo {
 	char			min;
@@ -267,16 +262,25 @@ struct effectinfo {
 	damageinfo		damage;
 	unsigned		experience;
 };
-struct effectparam : targetinfo, effectinfo {
+struct effectparam : effectinfo {
 	creature&		player;
 	bool			interactive;
+	creature*		cre;
+	item*			itm;
+	short unsigned	pos;
 	int				param;
 	int				level;
-	constexpr effectparam(const effectinfo& effect_param, creature& player, bool interactive) :
-		effectinfo(effect_param), player(player), interactive(interactive), param(0), level(1) {}
-	void			apply();
-	void			apply(void(*proc)(effectparam& e));
-	bool			apply(aref<creature*> creatures, bool interactive);
+	int				skill_roll;
+	int				skill_value;
+	int				skill_bonus;
+	aref<creature*>	creatures;
+	constexpr effectparam(const effectinfo& effect_param, creature& player, aref<creature*>	p_creatures, bool interactive) :
+		effectinfo(effect_param), player(player), interactive(interactive),
+		cre(0), itm(0), pos(Blocked),
+		param(0), level(1), creatures(p_creatures),
+		skill_roll(0), skill_value(0), skill_bonus(0) {}
+	bool			applyfull();
+	int				applyv(const char* format, const char* format_param);
 	bool			saving() const;
 };
 struct action {
@@ -408,7 +412,7 @@ struct creature {
 	void			athletics(bool interactive);
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);
-	bool			choose(targetinfo& result, targetdesc td, aref<creature*> creatures, bool interactive) const;
+	creature*		choose(aref<creature*> source, bool interactive) const;
 	void			choosebestability();
 	void			clear();
 	void			clear(state_s value) { states[value] = 0; }
@@ -432,15 +436,13 @@ struct creature {
 	int				getcost(spell_s value) const;
 	unsigned		getcostexp() const;
 	static creature* getcreature(short unsigned index);
-	aref<creature*> getcreatures(aref<creature*> result, targetdesc ti) const;
-	static aref<creature*> getcreatures(aref<creature*> result, targetdesc ti, short unsigned position, const creature* player, const creature* exclude);
+	static aref<creature*> getcreatures(aref<creature*> result, short unsigned start, int range);
 	int				getdefence() const;
 	int				getdiscount(creature* customer) const;
 	encumbrance_s	getencumbrance() const { return encumbrance; }
 	char*			getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
 	creature*		gethenchmen(int index) const;
 	int				gethits() const { return hp; }
-	unsigned		getitems(aref<item*> result, targetdesc ti) const;
 	creature*		getleader() const;
 	int				getlos() const;
 	int				getmana() const { return mp; }
@@ -458,7 +460,6 @@ struct creature {
 	static creature* getplayer();
 	short unsigned	getposition() const { return position; }
 	damageinfo		getraise(skill_s id) const;
-	bool			gettarget(targetinfo& result, targetdesc td) const;
 	int				getweight() const;
 	int				getweight(encumbrance_s id) const;
 	void			heal(int value, bool interactive) { damage(-value, Magic, interactive); }
@@ -498,6 +499,8 @@ struct creature {
 	void			say(const char* format, ...);
 	bool			sayv(const char* format, const char* param);
 	static void		select(creature** result, rect rc);
+	aref<item*>		select(aref<item*> result, target_s target) const;
+	aref<creature*> select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const;
 	void			set(state_s value, unsigned segments, bool after_recoil = false);
 	void			set(spell_s value, int level);
 	static void		setblocks(short unsigned* movements, short unsigned value);
@@ -622,9 +625,7 @@ bool				choose(creature& e, spell_s& result, aref<spell_s> source);
 bool				choose(creature& e, spell_s& result);
 bool				chooseyn();
 void				focusing(short unsigned index);
-bool				getcreature(const creature& e, creature** result, targetdesc ti);
 bool				getindex(const creature& e, short unsigned& result, targetdesc ti);
-bool				getitem(const creature& e, item** result, targetdesc ti, const char* title = 0);
 void				initialize();
 int					input();
 void				minimap(creature& e);

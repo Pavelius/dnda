@@ -463,26 +463,26 @@ short unsigned game::getmovement(short unsigned index) {
 	return movements[index];
 }
 
-bool logs::getcreature(const creature& e, creature** result, targetdesc ti) {
-	creature* source[64];
-	auto count = e.getcreatures(source, ti).count;
-	if(!count) {
-		e.hint("Вокруг никого нет.");
-		return false;
-	}
-	short unsigned source_index[64];
-	for(unsigned i = 0; i < count; i++)
-		source_index[i] = source[i]->position;
-	if(e.isplayer()) {
-		auto pn = logs::choose(e, source_index, count);
-		auto pi = zfind(source_index, pn);
-		if(pi == -1)
-			return false;
-		*result = source[pi];
-	} else
-		*result = source[rand()%count];
-	return true;
-}
+//bool logs::getcreature(const creature& e, creature** result, targetdesc ti) {
+//	creature* source[64];
+//	auto count = e.getcreatures(source, ti).count;
+//	if(!count) {
+//		e.hint("Вокруг никого нет.");
+//		return false;
+//	}
+//	short unsigned source_index[64];
+//	for(unsigned i = 0; i < count; i++)
+//		source_index[i] = source[i]->position;
+//	if(e.isplayer()) {
+//		auto pn = logs::choose(e, source_index, count);
+//		auto pi = zfind(source_index, pn);
+//		if(pi == -1)
+//			return false;
+//		*result = source[pi];
+//	} else
+//		*result = source[rand()%count];
+//	return true;
+//}
 
 bool logs::getindex(const creature& e, short unsigned& result, targetdesc ti) {
 	short unsigned source[7 * 7];
@@ -495,22 +495,6 @@ bool logs::getindex(const creature& e, short unsigned& result, targetdesc ti) {
 	if(r == Blocked)
 		return false;
 	result = r;
-	return true;
-}
-
-bool logs::getitem(const creature& e, item** result, targetdesc ti, const char* title) {
-	item* source[64];
-	auto count = e.getitems(source, ti);
-	if(!count) {
-		e.hint("У вас нет предметов нужного вида.");
-		return false;
-	}
-	if(!title)
-		title = "Выбирайте предмет";
-	auto pn = logs::choose(e, source, count, title);
-	if(!pn)
-		return false;
-	*result = pn;
 	return true;
 }
 

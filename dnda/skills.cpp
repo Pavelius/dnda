@@ -179,38 +179,30 @@ void creature::use(skill_s value) {
 		return;
 	}
 	auto& e = skill_data[value];
-	effectparam ep(e.effect, *this, true);
+	creature* source_data[256];
+	auto creatures = getcreatures(source_data, position, getlos());
+	effectparam ep(e.effect, *this, creatures, isplayer());
 	if(e.effect.type.target == NoTarget) {
 		hint("Ќавык %1 не используетс€ подобным образом", getstr(value));
 		return;
-	} else {
-		if(!gettarget(ep, ep.type))
-			return;
 	}
 	if(!ep.proc.fail)
 		ep.proc.fail = failskill;
-	if(ep.proc.test) {
-		if(!ep.proc.test(ep))
-			return;
-	}
-	auto r = d100();
-	auto v = get(value);
+	ep.skill_roll = d100();
+	ep.skill_value = get(value);
 	if(e.koef[0])
-		v = v / e.koef[0];
-	if(e.koef[1] && ep.cre)
-		v = v - ep.cre->get(value) / e.koef[1];
-	if(r >= v)
-		ep.apply(ep.proc.fail);
-	else
-		ep.apply();
+		ep.skill_value = ep.skill_value / e.koef[0];
+	ep.applyv(0, 0);
+	//if(e.koef[1] && ep.cre)
+	//	v = v - ep.cre->get(value) / e.koef[1];
 }
 
 bool creature::aiskill() {
 	if(is(Anger))
 		return false;
-	creature* creature_data[32];
+	creature* creature_data[256];
 	adat<skill_s, LastSkill + 1> recomended;
-	auto creatures = getcreatures(creature_data, {TargetAnyCreature});
+	auto creatures = getcreatures(creature_data, position, getlos());
 	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
 		if(!skills[i])
 			continue;
