@@ -99,7 +99,7 @@ enum special_s : unsigned char {
 };
 enum state_s : unsigned char {
 	NoState,
-	Anger, Armored, Blessed, Charmed, Hiding, Goodwill,
+	Anger, Armored, Blessed, Charmed, Drunken, Hiding, Goodwill,
 	Lighted, PoisonedWeak, Poisoned, PoisonedStrong,
 	Shielded, Sick, Scared, Sleeped, Weaken,
 	// Ability boost effect
@@ -607,7 +607,7 @@ void				set(short unsigned i, map_object_s value);
 void				set(short unsigned i, map_flag_s type, bool value);
 void				set(short unsigned i, unsigned char value);
 extern areainfo		statistic;
-short unsigned		to(short unsigned index, int id);
+short unsigned		to(short unsigned index, direction_s side);
 direction_s			turn(direction_s from, direction_s side);
 };
 namespace logs {

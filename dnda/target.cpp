@@ -4,8 +4,8 @@ static bool you(const creature& player, const creature* opponent) {
 	return opponent == &player;
 }
 
-static bool ally(const creature& player, const creature* opponent) {
-	return player.getparty() == opponent->getparty();
+static bool friendly(const creature& player, const creature* opponent) {
+	return !player.isenemy(opponent);
 }
 
 static bool enemy(const creature& player, const creature* opponent) {
@@ -73,8 +73,8 @@ static struct target_info {
 } target_data[] = {{"Нет"},
 //
 {"Вы", you, true},
-{"Союзник", ally},
-{"Вы или Союзник", ally, false, true},
+{"Союзник", friendly},
+{"Вы или Союзник", friendly, false, true},
 {"Враг", enemy},
 //
 {"Неопознанный предмет", undefined_item},

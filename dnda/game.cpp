@@ -289,6 +289,30 @@ direction_s game::turn(direction_s from, direction_s side) {
 	switch(side) {
 	case Up:
 		return from;
+	case RightUp:
+		switch(from) {
+		case Left: return LeftUp;
+		case LeftUp: return Up;
+		case Up: return RightUp;
+		case RightUp: return Right;
+		case Right: return RightDown;
+		case RightDown: return Down;
+		case Down: return LeftDown;
+		case LeftDown: return Left;
+		default: return Center;
+		}
+	case LeftUp:
+		switch(from) {
+		case Left: return LeftDown;
+		case LeftDown: return Down;
+		case Down: return RightDown;
+		case RightDown: return Right;
+		case Right: return RightUp;
+		case RightUp: return Up;
+		case Up: return LeftUp;
+		case LeftUp: return Left;
+		default: return Center;
+		}
 	case Down:
 		switch(from) {
 		case Left: return Right;
@@ -317,7 +341,7 @@ direction_s game::turn(direction_s from, direction_s side) {
 	}
 }
 
-short unsigned game::to(short unsigned index, int id) {
+short unsigned game::to(short unsigned index, direction_s id) {
 	switch(id) {
 	case Left:
 		if((index%max_map_x) == 0)

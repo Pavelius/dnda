@@ -714,7 +714,7 @@ bool creature::walkaround() {
 			use(spell);
 		return false;
 	}
-	auto d = xrand(Left, RightDown);
+	auto d = (direction_s)xrand(Left, RightDown);
 	return move(to(position, d));
 }
 
@@ -737,6 +737,22 @@ void creature::trapeffect() {
 bool creature::move(short unsigned i) {
 	if(i == Blocked)
 		return false;
+	if(is(Drunken)) {
+		auto n = getdirection({(short)getx(position), (short)gety(position)}, {(short)getx(i), (short)gety(i)});
+		if(d100() < 45) {
+			n = turn(n, (d100() < 50) ? LeftUp : RightUp);
+			i = to(position, n);
+			if(d100() < 70) {
+				static const char* talk[] = {"Простите.",
+					"Извините.",
+					"Ой! Не туда...",
+					"Да чтоб тебя!",
+					"Хик!"
+				};
+				say(maprnd(talk));
+			}
+		}
+	}
 	if(position != Blocked) {
 		auto n = getdirection({(short)getx(position), (short)gety(position)}, {(short)getx(i), (short)gety(i)});
 		switch(n) {

@@ -22,6 +22,7 @@ int main(int argc, char* argv[]) {
 	p1->equip(item(Cloack1, 4, 30, 20, 50));
 
 	p2->equip(Cloack5);
+	p2->equip(item(PotionRed, Mundane, (enchantment_s)Drunken));
 
 	p3->equip(BowLong);
 	p3->equip(Arrow);
