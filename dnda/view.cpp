@@ -155,7 +155,7 @@ static int textl(int x, int y, int width, item& value) {
 	char temp[260]; value.getname(temp, zendof(temp));
 	draw::state push;
 	switch(value.getidentify()) {
-	case KnowMagic:
+	case KnowHistory:
 	case KnowEffect:
 		switch(value.getmagic()) {
 		case Artifact: draw::fore = draw::fore.mix(colors::yellow, 128); break;

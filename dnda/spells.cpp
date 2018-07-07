@@ -33,9 +33,9 @@ static void detect_evil(effectparam& e) {
 	char temp[260];
 	if(e.param >= e.level)
 		return;
-	if(e.itm->getidentify() < KnowMagic && e.itm->iscursed()) {
+	if(e.itm->getidentify() < KnowEffect && e.itm->iscursed()) {
 		e.player.act(e.text, e.itm->getname(temp, zendof(temp)));
-		e.itm->set(KnowMagic);
+		e.itm->set(KnowEffect);
 		e.param++;
 	}
 }

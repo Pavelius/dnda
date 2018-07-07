@@ -174,7 +174,7 @@ enum duration_s : unsigned {
 	Permanent = 100 * Year
 };
 enum identify_s : unsigned char {
-	Unknown, KnowQuality, KnowMagic, KnowEffect,
+	Unknown, KnowQuality, KnowEffect, KnowHistory
 };
 enum item_type_s : unsigned char {
 	Mundane, Cursed, Magical, Artifact,
