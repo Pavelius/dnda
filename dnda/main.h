@@ -253,11 +253,14 @@ struct effectinfo {
 		bool(*test)(effectparam& e);
 		bool(*validate)(effectparam& e);
 	};
+	struct stateinfo {
+		state_s		type;
+		unsigned	duration;
+	};
 	targetdesc		type;
 	skill_s			save;
 	callback		proc;
-	unsigned		duration;
-	state_s			state;
+	stateinfo		state;
 	const char*		text;
 	damageinfo		damage;
 	unsigned		experience;
@@ -357,6 +360,7 @@ public:
 	bool			isedible() const;
 	bool			isforsale() const { return forsale != 0; }
 	bool			isnatural() const;
+	bool			ismagical() const { return magic != Mundane; }
 	bool			isreadable() const;
 	bool			istome() const;
 	bool			istwohanded() const;
