@@ -701,11 +701,17 @@ void creature::wait(int segments) {
 }
 
 bool creature::walkaround() {
-	if(d100() < 40) {
+	if(d100() < 40)
 		return false;
-	}
 	if(d100() < 50) {
-		aiskill();
+		creature* creature_data[256];
+		auto creatures = getcreatures(creature_data, position, getlos());
+		auto skill = aiskill(creatures);
+		if(skill)
+			use(skill);
+		auto spell = aiskill(creatures);
+		if(spell)
+			use(spell);
 		return false;
 	}
 	auto d = xrand(Left, RightDown);
@@ -1509,6 +1515,16 @@ static state_s get_ability_state(ability_s id) {
 	case Charisma: return Charismatic;
 	default: return Strenghted;
 	}
+}
+
+bool creature::apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value) {
+	creature* source_data[256];
+	auto creatures = getcreatures(source_data, position, getlos());
+	effectparam ep(effect, *this, creatures, isplayer());
+	ep.level = level;
+	ep.skill_roll = skill_roll;
+	ep.skill_value = skill_value;
+	return ep.apply(format, format_param);
 }
 
 void creature::use(item& it) {

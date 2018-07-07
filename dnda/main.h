@@ -150,8 +150,9 @@ enum img_s : unsigned char {
 };
 enum target_s : unsigned char {
 	NoTarget,
-	TargetSelf, TargetFriendly, TargetFriendlySelf, TargetAnyCreature, TargetHostile,
-	TargetItem, TargetItemUnidentified, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
+	TargetSelf, TargetFriendly, TargetFriendlySelf, TargetHostile,
+	TargetItemUnidentified, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
+	TargetObject,
 	TargetDoor, TargetDoorSealed,
 	TargetTrap,
 };
@@ -405,8 +406,10 @@ struct creature {
 	void			actv(creature& opponent, const char* format, const char* param) const;
 	void			actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
 	void			addexp(int count);
-	bool			aiskill();
+	skill_s			aiskill(aref<creature*> creatures);
+	spell_s			aispell(aref<creature*> creatures);
 	void			apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
+	bool			apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value);
 	bool			askyn(creature* opponent, const char* format, ...);
 	void			athletics(bool interactive);
 	bool			canhear(short unsigned index) const;

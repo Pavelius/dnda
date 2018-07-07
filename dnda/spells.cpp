@@ -95,17 +95,14 @@ bool creature::use(spell_s value) {
 	auto result = use(value, 1, "%герой прокричал%а мистическую формулу.");
 	if(result)
 		mp -= cost;
+	wait(Minute);
 	return result;
 }
 
 bool creature::use(spell_s value, int level, const char* format, ...) {
-	creature* source_data[256];
-	auto creatures = getcreatures(source_data, position, getlos());
-	effectparam ep(spell_data[value].effect, *this, creatures, isplayer());
 	if(level < 1)
 		level = 1;
-	ep.level = level;
-	return ep.apply(format, xva_start(format));
+	return apply(spell_data[value].effect, level, isplayer(), format, xva_start(format), 0, 0);
 }
 
 static int compare(const void* p1, const void* p2) {
@@ -124,4 +121,23 @@ bool logs::choose(creature& e, spell_s& result) {
 	}
 	qsort(source, count, sizeof(source[0]), compare);
 	return logs::choose(e, result, {source, count});
+}
+
+spell_s creature::aispell(aref<creature*> creatures) {
+	adat<spell_s, LastSpell + 1> recomended;
+	auto mana = getmana();
+	for(auto i = (spell_s)1; i <= LastSpell; i = (spell_s)(i + 1)) {
+		if(!spells[i])
+			continue;
+		if(spell_data[i].effect.type.target == NoTarget)
+			continue;
+		if(getcost(i)>mana)
+			continue;
+		if(!spell_data[i].effect.type.isallow(*this, creatures))
+			continue;
+		recomended.add(i);
+	}
+	if(recomended.count > 0)
+		return recomended.data[rand() % recomended.count];
+	return NoSpell;
 }

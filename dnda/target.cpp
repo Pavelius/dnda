@@ -12,10 +12,6 @@ static bool enemy(const creature& player, const creature* opponent) {
 	return player.isenemy(opponent);
 }
 
-static bool any_creature(const creature& player, const creature* opponent) {
-	return true;
-}
-
 static bool edible(const creature& player, const item& it) {
 	return it.isedible();
 }
@@ -36,10 +32,6 @@ static bool undefined_item(const creature& player, const item& it) {
 	return it.getidentify() < KnowEffect;
 }
 
-static bool any_item(const creature& player, const item& it) {
-	return true;
-}
-
 static bool visible_trap(const creature& player, short unsigned index) {
 	return !game::ishidden(index) && game::gettrap(index) != NoTrap;
 }
@@ -50,6 +42,17 @@ static bool door(const creature& player, short unsigned index) {
 
 static bool door_locked(const creature& player, short unsigned index) {
 	return game::getobject(index) == Door && game::isseal(index);
+}
+
+static bool any_item(const creature& player, const item& it) {
+	return true;
+}
+
+static bool any_object(const creature& player, short unsigned index) {
+	if(game::ishidden(index))
+		return false;
+	auto value = game::getobject(index);
+	return value == NoTileObject;
 }
 
 static struct target_info {
@@ -72,18 +75,17 @@ static struct target_info {
 {"Вы", you, true},
 {"Союзник", ally},
 {"Вы или Союзник", ally, false, true},
-{"Существо", any_creature},
 {"Враг", enemy},
 //
-{"Предмет", any_item},
 {"Неопознанный предмет", undefined_item},
 {"Съедобный предмет", edible},
 {"Зелье или другая жидкость", drinkable},
 {"Книга или свиток", readable},
-{"Оружие", any_item},
+{"Оружие", readable},
 {"Жезл или Посох", chargeable},
 {"Все предметы из инвентаря", any_item, false, false, true},
 //
+{"Объект", any_object},
 {"Дверь", door},
 {"Закрытая дверь", door_locked},
 {"Ловушка", visible_trap},
@@ -192,7 +194,7 @@ aref<short unsigned> creature::select(aref<short unsigned> result, target_s targ
 			for(auto x1 = x - range; x1 <= x + range; x1++) {
 				if(x1 < 0 || x1 >= max_map_x)
 					continue;
-				auto index = game::get(x, y);
+				auto index = game::get(x1, y1);
 				if(!ti.proc.ind(*this, index))
 					continue;
 				if(pb < pe)

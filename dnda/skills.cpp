@@ -107,7 +107,7 @@ static struct skill_info {
 {"Обезвредить ловушки", "ловушек", {Dexterity, Intellegence}, {{TargetTrap, 1}, {}, {removetrap}, Instant, {}, "%герой обезвредил%а ловушку.", {}, 30}},
 {"Слышать звуки", "слуха", {Wisdow, Intellegence}},
 {"Прятаться в тени", "скрытности", {Dexterity, Dexterity}, {{TargetSelf}, {}, {setstate}, Turn / 2, {Hiding}, "%герой внезапно изчез%ла из поля зрения."}},
-{"Открыть замок", "взлома", {Dexterity, Intellegence}, {{TargetDoor, 1}, {}, {removelock}, Instant, {}, "%герой вскрыл%а замок.", {}, 50}},
+{"Открыть замок", "взлома", {Dexterity, Intellegence}, {{TargetDoorSealed, 1}, {}, {removelock}, Instant, {}, "%герой вскрыл%а замок.", {}, 50}},
 {"Очистить карманы", "воровства", {Dexterity, Charisma}, {{TargetFriendlySelf, 1}, {}, {pickpockets, 0, test_pickpockets}, Instant, {}, 0, {}, 25}},
 {"Алхимия", "алхимии", {Intellegence, Intellegence}},
 {"Танцы", "танцев", {Dexterity, Charisma}, {{TargetSelf}, {}, {dance}, Instant, {}, "%герой станевал%а отличный танец.", {}, 10}},
@@ -178,26 +178,18 @@ void creature::use(skill_s value) {
 		return;
 	}
 	auto& e = skill_data[value];
-	creature* source_data[256];
-	auto creatures = getcreatures(source_data, position, getlos());
-	effectparam ep(e.effect, *this, creatures, isplayer());
 	if(e.effect.type.target == NoTarget) {
 		hint("Навык %1 не используется подобным образом", getstr(value));
 		return;
 	}
-	if(!ep.proc.fail)
-		ep.proc.fail = failskill;
-	ep.skill_roll = d100();
-	ep.skill_value = get(value);
-	ep.apply(0, 0);
+	apply(e.effect, 0, isplayer(), 0, 0, d100(), get(value));
+	wait(Minute * 2);
 }
 
-bool creature::aiskill() {
+skill_s creature::aiskill(aref<creature*> creatures) {
 	if(is(Anger))
-		return false;
-	creature* creature_data[256];
+		return NoSkill;
 	adat<skill_s, LastSkill + 1> recomended;
-	auto creatures = getcreatures(creature_data, position, getlos());
 	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
 		if(!skills[i])
 			continue;
@@ -207,10 +199,7 @@ bool creature::aiskill() {
 			continue;
 		recomended.add(i);
 	}
-	if(recomended.count > 0) {
-		auto skill = recomended.data[rand() % recomended.count];
-		use(skill);
-		return true;
-	}
-	return false;
+	if(recomended.count > 0)
+		return recomended.data[rand() % recomended.count];
+	return NoSkill;
 }
