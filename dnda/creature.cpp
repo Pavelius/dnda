@@ -1139,40 +1139,6 @@ void creature::meleeattack(creature* enemy) {
 	wait(getattacktime(Melee));
 }
 
-unsigned creature::getobjects(aref<short unsigned> result, targetdesc ti) const {
-	int x1 = game::getx(position);
-	int y1 = game::gety(position);
-	auto pb = result.data;
-	auto pe = pb + result.count;
-	for(auto y = y1 - ti.range; y <= y1 + ti.range; y++) {
-		if(y < 0 || y >= max_map_y)
-			continue;
-		for(auto x = x1 - ti.range; x <= x1 + ti.range; x++) {
-			if(x < 0 || x >= max_map_x)
-				continue;
-			auto index = game::get(x, y);
-			auto type = game::getobject(index);
-			if(type == NoTileObject)
-				continue;
-			switch(ti.target) {
-			case TargetDoor:
-				if(type != Door)
-					continue;
-				break;
-			case TargetDoorSealed:
-				if(type != Door)
-					continue;
-				if(!isseal(index))
-					continue;
-				break;
-			}
-			if(pb < pe)
-				*pb++ = index;
-		}
-	}
-	return pb - result.data;
-}
-
 //aref<creature*> creature::getcreatures(aref<creature*> result, targetdesc ti) const {
 //	if(!ti.range)
 //		ti.range = getlos();

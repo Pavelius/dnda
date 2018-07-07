@@ -222,7 +222,6 @@ struct targetdesc {
 	unsigned char	range;
 	unsigned char	area;
 	bool			isallow(const creature& player, aref<creature*> creatures) const;
-	int				getrange(const creature& player) const;
 };
 struct damageinfo {
 	char			min;
@@ -279,8 +278,8 @@ struct effectparam : effectinfo {
 		cre(0), itm(0), pos(Blocked),
 		param(0), level(1), creatures(p_creatures),
 		skill_roll(0), skill_value(0), skill_bonus(0) {}
+	int				apply(const char* format, const char* format_param);
 	bool			applyfull();
-	int				applyv(const char* format, const char* format_param);
 	bool			saving() const;
 };
 struct action {
@@ -412,7 +411,9 @@ struct creature {
 	void			athletics(bool interactive);
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);
+	item*			choose(aref<item*> source, bool interactive) const;
 	creature*		choose(aref<creature*> source, bool interactive) const;
+	short unsigned	choose(aref<short unsigned> source, bool interactive) const;
 	void			choosebestability();
 	void			clear();
 	void			clear(state_s value) { states[value] = 0; }
@@ -455,7 +456,6 @@ struct creature {
 	static const char* getname(state_s id, bool cursed);
 	static const char* getname(skill_s id);
 	creature*		getnearest(targetdesc ti) const;
-	unsigned		getobjects(aref<short unsigned> result, targetdesc ti) const;
 	creature*		getparty() const;
 	static creature* getplayer();
 	short unsigned	getposition() const { return position; }
@@ -501,6 +501,7 @@ struct creature {
 	static void		select(creature** result, rect rc);
 	aref<item*>		select(aref<item*> result, target_s target) const;
 	aref<creature*> select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const;
+	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start) const;
 	void			set(state_s value, unsigned segments, bool after_recoil = false);
 	void			set(spell_s value, int level);
 	static void		setblocks(short unsigned* movements, short unsigned value);

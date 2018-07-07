@@ -105,7 +105,7 @@ bool creature::use(spell_s value, int level, const char* format, ...) {
 	if(level < 1)
 		level = 1;
 	ep.level = level;
-	return ep.applyv(format, xva_start(format));
+	return ep.apply(format, xva_start(format));
 }
 
 static int compare(const void* p1, const void* p2) {

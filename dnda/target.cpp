@@ -115,6 +115,26 @@ static bool islos(int x0, int y0, int x1, int y1) {
 	}
 }
 
+bool targetdesc::isallow(const creature& player, aref<creature*> creatures) const {
+	auto& e = target_data[target];
+	if(e.proc.cre) {
+		if(e.self_only)
+			return true;
+		creature* source[1];
+		if(player.select(source, creatures, target, range, player.position, e.include_self ? 0 : &player))
+			return true;
+	} else if(e.proc.itm) {
+		item* source[1];
+		if(player.select(source, target))
+			return true;
+	} else if(e.proc.ind) {
+		short unsigned source[1];
+		if(player.select(source, target, range, player.position))
+			return true;
+	}
+	return false;
+}
+
 aref<creature*> creature::select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const {
 	auto& ti = target_data[target];
 	auto pb = result.data;
@@ -157,13 +177,13 @@ aref<item*> creature::select(aref<item*> result, target_s target) const {
 	return aref<item*>(result.data, pb - result.data);
 }
 
-static aref<short unsigned> choose(const creature& player, aref<short unsigned> result, target_s target, char range, short unsigned start) {
+aref<short unsigned> creature::select(aref<short unsigned> result, target_s target, char range, short unsigned start) const {
 	auto& ti = target_data[target];
 	auto pb = result.data;
 	auto pe = result.data + result.count;
 	if(ti.proc.ind) {
 		if(!range)
-			range = player.getlos();
+			range = getlos();
 		auto x = game::getx(start);
 		auto y = game::gety(start);
 		for(auto y1 = y - range; y1 <= y + range; y1++) {
@@ -173,7 +193,7 @@ static aref<short unsigned> choose(const creature& player, aref<short unsigned> 
 				if(x1 < 0 || x1 >= max_map_x)
 					continue;
 				auto index = game::get(x, y);
-				if(!ti.proc.ind(player, index))
+				if(!ti.proc.ind(*this, index))
 					continue;
 				if(pb < pe)
 					*pb++ = index;
@@ -185,49 +205,23 @@ static aref<short unsigned> choose(const creature& player, aref<short unsigned> 
 	return aref<short unsigned>(result.data, pb - result.data);
 }
 
-bool targetdesc::isallow(const creature& player, aref<creature*> creatures) const {
-	auto& e = target_data[target];
-	if(e.proc.cre) {
-		if(e.self_only)
-			return true;
-		creature* source[1];
-		if(player.select(source, creatures, target, range, player.position, e.include_self ? 0 : &player))
-			return true;
-	} else if(e.proc.itm) {
-		item* source[1];
-		if(player.select(source, target))
-			return true;
-	} else if(e.proc.ind) {
-		short unsigned source[1];
-		if(choose(player, source, target, range, player.position))
-			return true;
-	}
-	return false;
-}
-
-int	targetdesc::getrange(const creature& player) const {
-	if(!range)
-		return player.getlos();
-	return range;
-}
-
-static item* choose_single(effectparam& ep, aref<item*> source, bool interactive) {
+item* creature::choose(aref<item*> source, bool interactive) const {
 	if(!source) {
-		ep.player.hint("У вас нет подходящео предмета.");
+		hint("У вас нет подходящео предмета.");
 		return 0;
 	}
 	if(interactive)
-		return logs::choose(ep.player, source.data, source.count, "Выбирайте предмет");
+		return logs::choose(*this, source.data, source.count, "Выбирайте предмет");
 	return source.data[rand() % source.count];
 }
 
-static short unsigned choose_single(effectparam& ep, aref<short unsigned> source, bool interactive) {
+short unsigned creature::choose(aref<short unsigned> source, bool interactive) const {
 	if(!source) {
-		ep.player.hint("Вокруг нет подходящей цели.");
+		hint("Вокруг нет подходящей цели.");
 		return Blocked;
 	}
 	if(interactive)
-		return logs::choose(ep.player, source.data, source.count);
+		return logs::choose(*this, source.data, source.count);
 	return source.data[rand() % source.count];
 }
 
@@ -288,7 +282,7 @@ bool effectparam::applyfull() {
 	return true;
 }
 
-int effectparam::applyv(const char* format, const char* format_param) {
+int effectparam::apply(const char* format, const char* format_param) {
 	auto& ti = target_data[type.target];
 	if(format)
 		player.actv(format, format_param);
@@ -328,7 +322,7 @@ int effectparam::applyv(const char* format, const char* format_param) {
 				affected++;
 			}
 		} else {
-			itm = choose_single(*this, source, interactive);
+			itm = player.choose(source, interactive);
 			if(itm) {
 				applyfull();
 				affected++;
@@ -336,7 +330,7 @@ int effectparam::applyv(const char* format, const char* format_param) {
 		}
 	} else if(ti.proc.ind) {
 		short unsigned source_data[256];
-		auto source = choose(player, source_data, type.target, type.range, player.position);
+		auto source = player.select(source_data, type.target, type.range, player.position);
 		if(ti.target_all_match) {
 			for(auto p : source) {
 				if(!ti.proc.ind(player, p))
@@ -346,7 +340,7 @@ int effectparam::applyv(const char* format, const char* format_param) {
 				affected++;
 			}
 		} else {
-			pos = choose_single(*this, source, interactive);
+			pos = player.choose(source, interactive);
 			if(pos != Blocked) {
 				applyfull();
 				affected++;

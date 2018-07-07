@@ -93,7 +93,6 @@ static struct skill_info {
 	const char*		nameof;
 	ability_s		ability[2];
 	effectinfo		effect;
-	unsigned char	koef[2];
 	enchantment_s	enchant;
 	bool			deny_ability;
 } skill_data[] = {{"Нет навыка"},
@@ -113,7 +112,7 @@ static struct skill_info {
 {"Алхимия", "алхимии", {Intellegence, Intellegence}},
 {"Танцы", "танцев", {Dexterity, Charisma}, {{TargetSelf}, {}, {dance}, Instant, {}, "%герой станевал%а отличный танец.", {}, 10}},
 {"Инженерное дело", "инженерии", {Intellegence, Intellegence}},
-{"Азартные игры", "азартных игр", {Charisma, Dexterity}, {{TargetFriendlySelf, 1}, {}, {gamble, failgamble, test_gamble}, Instant, {}, 0, {}, 25}, {0, 2}},
+{"Азартные игры", "азартных игр", {Charisma, Dexterity}, {{TargetFriendlySelf, 1}, {}, {gamble, failgamble, test_gamble}, Instant, {}, 0, {}, 25}},
 {"История", "истории", {Intellegence, Intellegence}},
 {"Лечение", "лечения", {Wisdow, Intellegence}, {{TargetFriendlySelf, 1}, {}, {healdamage}, Instant, {}, "%герой перевязал%а раны.", 5}},
 {"Грамотность", "письма и чтения", {Intellegence, Intellegence}, {{TargetItemReadable}, {}, {literacy, literacy}, Minute / 2, {}, 0, {}, 25}},
@@ -127,13 +126,13 @@ static struct skill_info {
 {"Владение топором", "сражения на топорах", {Strenght, Constitution}},
 {"Сражение двумя оружиями", "ужасного оружия", {Strenght, Dexterity}},
 //
-{"Сопротивление кислоте", "кислоты", {Dexterity, Constitution}, {}, {}, OfAcidResistance, true},
-{"Сопротивление шарму", "красоты и любви", {Wisdow, Wisdow}, {}, {}, OfCharmResistance},
-{"Сопротивление холоду", "холода", {Constitution, Strenght}, {}, {}, OfColdResistance, true},
-{"Сопротивление электричеству", "молнии", {Dexterity, Dexterity}, {}, {}, OfElectricityResistance, true},
-{"Сопротивление огню", "огня", {Constitution, Dexterity}, {}, {}, OfFireResistance, true},
-{"Сопротивление яду", "яда", {Constitution, Constitution}, {}, {}, OfPoisonResistance},
-{"Дыхание водой", "воды", {Strenght, Constitution}, {}, {}, OfWaterproof, true},
+{"Сопротивление кислоте", "кислоты", {Dexterity, Constitution}, {}, OfAcidResistance, true},
+{"Сопротивление шарму", "красоты и любви", {Wisdow, Wisdow}, {}, OfCharmResistance},
+{"Сопротивление холоду", "холода", {Constitution, Strenght}, {}, OfColdResistance, true},
+{"Сопротивление электричеству", "молнии", {Dexterity, Dexterity}, {}, OfElectricityResistance, true},
+{"Сопротивление огню", "огня", {Constitution, Dexterity}, {}, OfFireResistance, true},
+{"Сопротивление яду", "яда", {Constitution, Constitution}, {}, OfPoisonResistance},
+{"Дыхание водой", "воды", {Strenght, Constitution}, {}, OfWaterproof, true},
 };
 assert_enum(skill, ResistWater);
 getstr_enum(skill);
@@ -190,11 +189,7 @@ void creature::use(skill_s value) {
 		ep.proc.fail = failskill;
 	ep.skill_roll = d100();
 	ep.skill_value = get(value);
-	if(e.koef[0])
-		ep.skill_value = ep.skill_value / e.koef[0];
-	ep.applyv(0, 0);
-	//if(e.koef[1] && ep.cre)
-	//	v = v - ep.cre->get(value) / e.koef[1];
+	ep.apply(0, 0);
 }
 
 bool creature::aiskill() {

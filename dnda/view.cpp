@@ -1383,13 +1383,13 @@ static void character_chat(creature& e) {
 }
 
 static void character_use(creature& e) {
-	short unsigned source[3 * 3 + 1];
-	auto count = e.getobjects(source, {NoTarget, 1});
-	if(!count) {
+	short unsigned source_data[3 * 3 + 1];
+	auto source = e.select(source_data, NoTarget, 1, e.position);
+	if(!source) {
 		logs::add("Вокруг вас нету ничего, что можно было бы использовать.");
 		return;
 	}
-	e.manipulate(logs::choose(e, source, count));
+	e.manipulate(logs::choose(e, source.data, source.count));
 }
 
 void logs::focusing(short unsigned index) {
