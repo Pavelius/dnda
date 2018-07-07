@@ -1517,13 +1517,17 @@ static state_s get_ability_state(ability_s id) {
 	}
 }
 
-bool creature::apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value) {
+bool creature::apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value, void(*fail_proc)(effectparam& e)) {
 	creature* source_data[256];
 	auto creatures = getcreatures(source_data, position, getlos());
 	effectparam ep(effect, *this, creatures, isplayer());
 	ep.level = level;
 	ep.skill_roll = skill_roll;
 	ep.skill_value = skill_value;
+	if(fail_proc) {
+		if(!ep.proc.fail)
+			ep.proc.fail = fail_proc;
+	}
 	return ep.apply(format, format_param);
 }
 

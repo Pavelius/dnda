@@ -268,14 +268,16 @@ bool effectparam::applyfull() {
 	}
 	if(saving())
 		return false;
-	if(text) {
-		if(cre)
-			cre->actvs(player, text);
-	}
 	if(skill_roll && skill_roll >= skill_value - skill_bonus) {
 		if(proc.fail)
 			proc.fail(*this);
 		return false;
+	}
+	if(text) {
+		if(cre)
+			cre->actvs(player, text);
+		else
+			player.act(text);
 	}
 	if(proc.success)
 		proc.success(*this);

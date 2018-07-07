@@ -413,7 +413,7 @@ struct creature {
 	skill_s			aiskill(aref<creature*> creatures);
 	spell_s			aispell(aref<creature*> creatures);
 	void			apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
-	bool			apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value);
+	bool			apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value, void(*fail_proc)(effectparam& e) = 0);
 	bool			askyn(creature* opponent, const char* format, ...);
 	void			athletics(bool interactive);
 	bool			canhear(short unsigned index) const;

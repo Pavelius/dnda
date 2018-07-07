@@ -182,7 +182,7 @@ void creature::use(skill_s value) {
 		hint("Ќавык %1 не используетс€ подобным образом", getstr(value));
 		return;
 	}
-	apply(e.effect, 0, isplayer(), 0, 0, d100(), get(value));
+	apply(e.effect, 0, isplayer(), 0, 0, d100(), get(value), failskill);
 	wait(Minute * 2);
 }
 
