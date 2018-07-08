@@ -114,8 +114,6 @@ void logs::addv(const char* format, const char* vl) {
 	addv(sc, format, vl);
 }
 
-void __cdecl dlgerr(char const* title, char const* format, ...) {}
-
 static direction_s getdirection(unsigned id) {
 	switch(id) {
 	case KeyDown: return Down;

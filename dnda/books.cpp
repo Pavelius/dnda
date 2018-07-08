@@ -102,7 +102,7 @@ void creature::readbook(item& it) {
 		hint("Вы ничего не поняли.");
 	if(!it)
 		return;
-	if(d100() < ri.disapear) {
+	if(d100() < ri.chance_broke) {
 		if(it.damageb()) {
 			it.act("Волшебным образом %герой исчез%ла.");
 			it.clear();

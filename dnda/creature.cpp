@@ -1011,6 +1011,18 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 		for(auto i = ai.multiplier; i > 0; i--)
 			damage.max += step;
 	}
+	if(ai.weapon) {
+		// RULE: artifact is unbreakable
+		if(!ai.weapon->isartifact()) {
+			if(d100() < ai.weapon->getspecial().chance_broke) {
+				if(ai.weapon->damageb()) {
+					attacker->act("%1 сломался.");
+					ai.weapon->clear();
+				} else
+					attacker->act("%1 треснул.");
+			}
+		}
+	}
 	auto value = damage.roll();
 	defender->damage(value, damage.type, true);
 	switch(ai.effect) {
@@ -1286,6 +1298,8 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 			result.damage.min += 1;
 			result.damage.max += 1;
 		}
+		if(!weapon.isnatural())
+			result.weapon = (item*)&weapon;
 	} else
 		result.damage.max = 2;
 	switch(slot) {

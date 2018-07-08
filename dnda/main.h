@@ -255,9 +255,9 @@ struct foodinfo {
 	int				get(int value) const { return value * 50; }
 };
 struct specialinfo {
+	char			chance_broke;
 	char			bonus;
 	char			chance_side;
-	char			disapear;
 };
 struct effectinfo {
 	struct callback {
@@ -395,8 +395,9 @@ struct attackinfo {
 	char			bonus; // Percent bonus to hit
 	char			critical;
 	char			multiplier;
-	enchantment_s			effect;
+	enchantment_s	effect;
 	char			quality;
+	item*			weapon;
 };
 struct creature {
 	race_s			race;
