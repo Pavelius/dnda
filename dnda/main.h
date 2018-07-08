@@ -52,9 +52,9 @@ enum enchantment_s : unsigned char {
 	OfFire,
 	OfIntellegence,
 	OfMana,
-	OfPrecision,
+	OfPoison, OfPrecision,
 	OfRegeneration,
-	OfSharping, OfSmashing, OfSpeed, OfStrenght, OfSustenance,
+	OfSickness, OfSharping, OfSmashing, OfSpeed, OfStrenght, OfSustenance,
 	OfVampirism, OfWisdow,
 	// Resistances
 	OfAcidResistance, OfCharmResistance, OfColdResistance, OfFireResistance, OfElectricityResistance, OfPoisonResistance, OfWaterproof,
@@ -193,6 +193,9 @@ enum encumbrance_s : unsigned char {
 enum variant_s : unsigned char {
 	NoVariant,
 	Ability, Skill, State, Enchantment,
+};
+enum speech_s : unsigned char {
+	Answer, Speech,
 };
 struct attackinfo;
 struct creature;

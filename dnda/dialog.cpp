@@ -2,10 +2,6 @@
 
 struct dialog;
 
-enum speech_s : unsigned char {
-	Answer, Speech,
-};
-
 struct speech {
 	speech_s		type;
 	bool(*proc)(dialog& e, const speech& a, bool run);

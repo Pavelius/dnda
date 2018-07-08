@@ -983,6 +983,8 @@ bool creature::interact(short unsigned index) {
 }
 
 static void attack(creature* attacker, creature* defender, const attackinfo& ai, int bonus = 0) {
+	if(!defender->enemy)
+		defender->enemy = attacker;
 	auto s = d20();
 	auto r = s + ai.bonus + bonus - defender->getdefence();
 	if(s == 1 || (r < 10)) {
@@ -1012,6 +1014,23 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 		break;
 	case OfVampirism:
 		attacker->heal(-(xrand(1, 4) + ai.quality), false);
+		break;
+	case OfSickness:
+		// RULE: sickness effect are long
+		if(!defender->roll(ResistPoison, 10 - value))
+			defender->set(PoisonedWeak, Hour);
+		break;
+	case OfPoison:
+		// RULE: chance be poisoned depends on damage deal
+		if(!defender->roll(ResistPoison, 10 - value)) {
+			if(ai.quality < 0)
+				defender->set(PoisonedWeak, Minute*poison_update * 2);
+			else {
+				// RULE: power of poison depends on magical bonus
+				static state_s quality_state[] = {PoisonedWeak, PoisonedWeak, PoisonedWeak, Poisoned, Poisoned, PoisonedStrong};
+				defender->set(maptbl(quality_state, ai.quality), Minute*poison_update * 5);
+			}
+		}
 		break;
 	}
 }
@@ -1133,7 +1152,7 @@ void creature::rangeattack() {
 	if(ammo) {
 		if(wears[Amunitions].gettype() != ammo) {
 			if(isplayer()) {
-				logs::add("Для стрельбы необходим %1", getstr(ammo));
+				logs::add("Для стрельбы необходимо %1", getstr(ammo));
 				return;
 			}
 		}
@@ -1142,8 +1161,6 @@ void creature::rangeattack() {
 		hint("Вокруг нет подходящей цели", getstr(ammo));
 		return;
 	}
-	if(!enemy->enemy)
-		enemy->enemy = this;
 	if(wears[Ranged])
 		attack(this, enemy, getattackinfo(Ranged));
 	wait(getattacktime(Ranged));
@@ -1154,8 +1171,6 @@ void creature::rangeattack() {
 void creature::meleeattack(creature* enemy) {
 	if(!(*enemy))
 		return;
-	if(!enemy->enemy)
-		enemy->enemy = this;
 	if(wears[Melee].is(Melee) && wears[OffHand].is(Melee)) {
 		attack(this, enemy, getattackinfo(Melee), -4);
 		attack(this, enemy, getattackinfo(OffHand), -6);
@@ -1165,20 +1180,6 @@ void creature::meleeattack(creature* enemy) {
 		attack(this, enemy, getattackinfo(Melee));
 	wait(getattacktime(Melee));
 }
-
-//aref<creature*> creature::getcreatures(aref<creature*> result, targetdesc ti) const {
-//	if(!ti.range)
-//		ti.range = getlos();
-//	const creature* exclude = 0;
-//	if(ti.target == TargetFriendlySelf)
-//		exclude = this;
-//	return getcreatures(result, ti, position, this, exclude);
-//}
-
-//creature* creature::getnearest(targetdesc ti) const {
-//	creature* source[256];
-//	return game::getnearest(getcreatures(source, ti), position);
-//}
 
 int	creature::getlos() const {
 	if(game::isdungeon())
