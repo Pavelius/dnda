@@ -114,9 +114,6 @@
     <ClCompile Include="creature.cpp">
       <Filter>logic</Filter>
     </ClCompile>
-    <ClCompile Include="creature_chat.cpp">
-      <Filter>logic</Filter>
-    </ClCompile>
     <ClCompile Include="game.cpp">
       <Filter>logic</Filter>
     </ClCompile>
@@ -177,9 +174,6 @@
     <ClCompile Include="traps.cpp">
       <Filter>logic</Filter>
     </ClCompile>
-    <ClCompile Include="effect.cpp">
-      <Filter>logic</Filter>
-    </ClCompile>
     <ClCompile Include="damageinfo.cpp">
       <Filter>logic</Filter>
     </ClCompile>
@@ -196,6 +190,9 @@
       <Filter>logic</Filter>
     </ClCompile>
     <ClCompile Include="target.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="dialog.cpp">
       <Filter>logic</Filter>
     </ClCompile>
   </ItemGroup>

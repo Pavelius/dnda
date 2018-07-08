@@ -92,7 +92,7 @@ void creature::apply(state_s state, item_type_s magic, int quality_raw, unsigned
 		if(true) {
 			auto ability = get_state_ability(state);
 			if(iscursed) {
-				abilities[ability] -= 1 + quality_raw;
+				abilities[ability] += quality;
 				if(abilities[ability] < 1)
 					abilities[ability] = 1;
 			} else if(isartifact)

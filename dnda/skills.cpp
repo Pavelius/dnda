@@ -143,14 +143,12 @@ const char* creature::getname(skill_s id) {
 
 damageinfo creature::getraise(skill_s id) const {
 	auto value = skills[id];
-	if(value < 30)
+	if(value < 20)
 		return {3, 12};
-	else if(value < 50)
+	else if(value < 40)
 		return {3, 9};
-	else if(value < 70)
-		return {2, 6};
 	else
-		return {1, 4};
+		return {2, 6};
 }
 
 void creature::raise(skill_s value) {

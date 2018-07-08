@@ -13,7 +13,7 @@ void logs::driver::parseidentifier(char* result, const char* result_max, const c
 	if(strcmp(identifier, "דונמי") == 0)
 		zcpy(result, name);
 	else if(strcmp(identifier, "ֳֵ׀־ֹ") == 0)
-		zcpy(result, name);
+		zcpy(result, name_opponent);
 	else if(strcmp(identifier, "דונמÿ") == 0)
 		grammar::of(result, name);
 	else if(strcmp(identifier, "ֳֵ׀־ß") == 0)
@@ -21,7 +21,7 @@ void logs::driver::parseidentifier(char* result, const char* result_max, const c
 	else if(strcmp(identifier, "דונמול") == 0)
 		grammar::of(result, name);
 	else if(strcmp(identifier, "ֳֵ׀־ֵּ") == 0)
-		grammar::of(result, name);
+		grammar::of(result, name_opponent);
 	else if(strcmp(identifier, "אסü") == 0)
 		msg(*this, gender, result, result_max, "סÿ", identifier, "מסÿ");
 	else if(strcmp(identifier, "א") == 0)

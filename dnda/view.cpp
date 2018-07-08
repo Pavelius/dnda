@@ -1147,6 +1147,7 @@ void logs::raise(creature& e, int left) {
 	source.count = pb - source.data;
 	if(!source)
 		return;
+	qsort(source.data, source.count, sizeof(source.data[0]), compare_skills);
 	char temp[260];
 	const int width = 400;
 	const int height = 360;
@@ -1379,7 +1380,8 @@ static void character_chat(creature& e) {
 	auto source = e.getcreatures(creature_data, e.position, 1);
 	source = e.select(creature_data, source, TargetFriendly, 0, e.position, &e);
 	auto opponent = e.choose(source, true);
-	e.chat(opponent);
+	if(opponent)
+		e.chat(opponent);
 }
 
 static void character_use(creature& e) {

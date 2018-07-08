@@ -504,15 +504,23 @@ bool creature::canhear(short unsigned index) const {
 }
 
 void creature::say(const char* format, ...) {
-	sayv(format, xva_start(format));
+	sayv(format, xva_start(format), 0);
 }
 
-bool creature::sayv(const char* format, const char* param) {
+void creature::sayvs(creature& opponent, const char* format, ...) {
+	sayv(format, xva_start(format), &opponent);
+}
+
+bool creature::sayv(const char* format, const char* param, creature* opponent) {
 	if(!getplayer()->canhear(position))
 		return false;
 	logs::driver driver;
 	driver.name = getname();
 	driver.gender = gender;
+	if(opponent) {
+		driver.name_opponent = opponent->getname();
+		driver.gender_opponent = opponent->gender;
+	}
 	logs::add("[%1:]\"", getname());
 	logs::addv(driver, format, param);
 	logs::add("\"");
@@ -521,10 +529,10 @@ bool creature::sayv(const char* format, const char* param) {
 
 bool creature::askyn(creature* opponent, const char* format, ...) {
 	if(getplayer() != opponent) {
-		sayv(format, xva_start(format));
+		sayv(format, xva_start(format), opponent);
 		return true;
 	} else {
-		if(!sayv(format, xva_start(format)))
+		if(!sayv(format, xva_start(format), opponent))
 			return false;
 		return logs::chooseyn();
 	}
@@ -884,20 +892,17 @@ bool creature::isfriend(const creature* value) const {
 		|| value->charmer == this;
 }
 
-static bool isenemystate(const creature* p1, const creature* p2) {
-	if(p1->enemy == p2)
-		return true;
-	if(p1->role == Shopkeeper)
-		return false;
-	if(p1->isagressive() && !p2->isagressive())
-		return true;
-	return false;
-}
-
 bool creature::isenemy(const creature* target) const {
 	if(!target || target == this)
 		return false;
-	return isenemystate(this, target) || isenemystate(target, this);
+	if(target->enemy == this || enemy == target)
+		return true;
+	auto p1 = target->getparty();
+	auto p2 = getparty();
+	if(p1 && p2
+		&& (p1->enemy == this || p1->enemy == p2 || p2->enemy == target || p2->enemy == p1))
+		return true;
+	return false;
 }
 
 void creature::manipulate(short unsigned index) {

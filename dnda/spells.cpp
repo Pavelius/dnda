@@ -34,7 +34,7 @@ static void detect_evil(effectparam& e) {
 	if(e.param >= e.level)
 		return;
 	if(e.itm->getidentify() < KnowEffect && e.itm->iscursed()) {
-		e.player.act(e.text, e.itm->getname(temp, zendof(temp)));
+		e.player.act("%1 осветился красным светом.", e.itm->getname(temp, zendof(temp)));
 		e.itm->set(KnowEffect);
 		e.param++;
 	}
@@ -45,15 +45,15 @@ static void detect_magic(effectparam& e) {
 	char temp[260];
 	if(e.param >= e.level)
 		return;
-	if(e.itm->getidentify()<KnowEffect && e.itm->ismagical()) {
-		e.player.act(e.text, e.itm->getname(temp, zendof(temp)));
+	if(e.itm->getidentify() < KnowEffect && e.itm->ismagical()) {
+		e.player.act("%1 осветился голубым светом.", e.itm->getname(temp, zendof(temp)));
 		e.param++;
 	}
 }
 
 static void identify(effectparam& e) {
 	char temp[260];
-	e.player.act(e.text, e.itm->getname(temp, zendof(temp)));
+	e.player.act("%1 на мгновение осветился белым светом.", e.itm->getname(temp, zendof(temp)));
 	e.itm->set(KnowEffect);
 }
 
@@ -67,11 +67,11 @@ static struct spell_info {
 {"Броня", "брони", 10, 0, {{TargetSelf}, {}, {setstate}, {Armored, 4 * Hour}, "%герой озарил%ась синим светом."}},
 {"Благословение", "благословения", 8, 0, {{TargetFriendly, 2}, {}, {setstate}, {Blessed, Turn}, "%герой озарил%ась желтым светом."}},
 {"Очаровать персону", "шарма", 13, 0, {{TargetFriendlySelf, 4}, ResistCharm, {setstate}, {Charmed, Day}, "Внезапно %герой стал%а вести себя дружелюбно."}},
-{"Определить зло", "определения зла", 12, 0, {{TargetInvertory}, {}, {detect_evil}, {}, "%1 осветился красным светом."}},
-{"Определить магию", "определения магии", 8, 0, {{TargetInvertory}, {}, {detect_magic}, {}, "%1 осветился голубым свечением."}},
+{"Определить зло", "определения зла", 12, 0, {{TargetInvertory}, {}, {detect_evil}, {}}},
+{"Определить магию", "определения магии", 8, 0, {{TargetInvertory}, {}, {detect_magic}, {}}},
 {"Страх", "страха", 5, 0, {{TargetHostile, 5, 2}, ResistCharm, {setstate}, {Scared, 5 * Minute}, "%герой запаниковал%а и начал%а бежать.", {}}},
 {"Лечение", "лечения", 7, 0, {{TargetFriendly, 1}, {}, {healdamage}, {}, "%герой озарился белым светом.", {1, 8, Magic}}},
-{"Опознать предмет", "опознания", 20, 2, {{TargetItemUnidentified}, {}, {identify}, {}, "%1 осветился голубым светом."}},
+{"Опознать предмет", "опознания", 20, 2, {{TargetItemUnidentified}, {}, {identify}, {}}},
 {"Невидимость", "невидимости", 8, 0, {{TargetFriendly, 1}, {}, {setstate}, {Hiding, Hour}, "%герой исчез%ла из виду."}},
 {"Свет", "света", 1, 0, {{TargetFriendly, 1}, {}, {setstate}, {Lighted, Hour}, "Вокруг %героя появилось несколько светящихся шариков."}},
 {"Волшебный снаряд", "колдовства", 3, 0, {{TargetHostile, 6}, {}, {setdamage}, {}, "Из пальцев %ГЕРОЯ вылетело несколько светящихся шариков.", {2, 8, Magic}}},
@@ -143,7 +143,7 @@ spell_s creature::aispell(aref<creature*> creatures) {
 			continue;
 		if(spell_data[i].effect.type.target == NoTarget)
 			continue;
-		if(getcost(i)>mana)
+		if(getcost(i) > mana)
 			continue;
 		if(!spell_data[i].effect.type.isallow(*this, creatures))
 			continue;

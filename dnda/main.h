@@ -467,6 +467,7 @@ struct creature {
 	static creature* getplayer();
 	short unsigned	getposition() const { return position; }
 	damageinfo		getraise(skill_s id) const;
+	int				getreaction(creature* opponent) const;
 	int				getweight() const;
 	int				getweight(encumbrance_s id) const;
 	void			heal(int value, bool interactive) { damage(-value, Magic, interactive); }
@@ -504,7 +505,8 @@ struct creature {
 	void			remove(state_s value);
 	bool			roll(skill_s skill, int bonus = 0);
 	void			say(const char* format, ...);
-	bool			sayv(const char* format, const char* param);
+	bool			sayv(const char* format, const char* param, creature* opponent);
+	void			sayvs(creature& opponent, const char* format, ...);
 	static void		select(creature** result, rect rc);
 	aref<item*>		select(aref<item*> result, target_s target) const;
 	aref<creature*> select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const;

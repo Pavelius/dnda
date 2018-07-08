@@ -276,7 +276,11 @@ bool effectparam::applyfull() {
 	if(text) {
 		if(cre)
 			cre->actvs(player, text);
-		else
+		else if(itm) {
+			auto p = creature::getplayer();
+			if(p && p->canhear(player.position))
+				itm->act(text);
+		} else
 			player.act(text);
 	}
 	if(proc.success)

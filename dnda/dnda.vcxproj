@@ -149,14 +149,13 @@
     <ClCompile Include="color.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="creature.cpp" />
-    <ClCompile Include="creature_chat.cpp" />
+    <ClCompile Include="dialog.cpp" />
     <ClCompile Include="crt.cpp" />
     <ClCompile Include="crt_memory.cpp" />
     <ClCompile Include="crt_parse.cpp" />
     <ClCompile Include="draw.cpp" />
     <ClCompile Include="draw_input.cpp" />
     <ClCompile Include="draw_text.cpp" />
-    <ClCompile Include="effect.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="game_create.cpp" />
     <ClCompile Include="grammar.cpp" />
