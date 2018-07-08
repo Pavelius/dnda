@@ -48,6 +48,10 @@ static bool door_locked(const creature& player, short unsigned index) {
 	return game::getobject(index) == Door && game::isseal(index);
 }
 
+static bool hidden_object(const creature& player, short unsigned index) {
+	return game::getobject(index) !=0 && game::ishidden(index);
+}
+
 static bool any_item(const creature& player, const item& it) {
 	return true;
 }
@@ -93,6 +97,7 @@ static struct target_info {
 {"Объект", any_object},
 {"Дверь", door},
 {"Закрытая дверь", door_locked},
+{"Скрытый объект", hidden_object},
 {"Ловушка", visible_trap},
 };
 assert_enum(target, TargetTrap);

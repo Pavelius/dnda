@@ -547,7 +547,7 @@ void manual_skill_focus_item(stringbuffer& sc, manual& me) {
 	for(auto& e : item_data) {
 		if(me.value.skill != e.focus)
 			continue;
-		sc.header("[Распространяется на]: ");
+		sc.header("[Оружие]: ");
 		sc.add(e.name);
 	}
 	sc.trail(".");

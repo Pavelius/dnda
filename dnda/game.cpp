@@ -31,6 +31,10 @@ void areainfo::clear() {
 	memset(this, 0, sizeof(*this));
 }
 
+bool game::is(short unsigned i, map_flag_s v) {
+	return (mpflg[i] & (1 << v)) != 0;
+}
+
 bool game::isvisible(short unsigned i) {
 	return (mpflg[i] & (1 << Visible)) != 0;
 }

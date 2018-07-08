@@ -780,6 +780,8 @@ bool creature::move(short unsigned i) {
 			break;
 		}
 	}
+	if(alertness())
+		return true;
 	if(interact(i))
 		return true;
 	auto p1 = getlocation(position);
@@ -1553,6 +1555,28 @@ void creature::consume(int value, bool interactive) {
 		mp = mmp;
 	if(mp < 0)
 		mp = 0;
+}
+
+bool creature::alertness() {
+	if(getplayer() != getparty())
+		return false;
+	// RULE: for party only alertness check secrect doors and traps
+	short unsigned source_data[5 * 5];
+	auto result = select(source_data, TargetHiddenObject, 2, position);
+	auto found = false;
+	for(auto index : result) {
+		if(roll(Alertness)) {
+			found = true;
+			game::set(index, Hidden, false);
+			auto object = game::getobject(index);
+			if(isplayer()) {
+				act("Вы обнаружили %1.", getstr(object));
+				logs::next();
+			}
+			addexp(25);
+		}
+	}
+	return found;
 }
 
 static state_s get_ability_state(ability_s id) {
