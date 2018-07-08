@@ -151,15 +151,16 @@ enum img_s : unsigned char {
 enum target_s : unsigned char {
 	NoTarget,
 	TargetSelf, TargetFriendly, TargetFriendlySelf, TargetHostile,
-	TargetItemUnidentified, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
+	TargetItemUnidentified, TargetItemDamaged, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
 	TargetObject,
 	TargetDoor, TargetDoorSealed,
 	TargetTrap,
 };
 enum spell_s : unsigned char {
 	NoSpell,
-	Armor, Bless, CharmPerson, DetectEvil, DetectMagic, Fear, HealingSpell, Identify, Invisibility, LightSpell, MagicMissile,
-	RemovePoisonSpell, RemoveSickSpell,
+	Armor, Bless, CharmPerson, DetectEvil, DetectMagic, Fear, HealingSpell,
+	Identify, Invisibility, LightSpell, MagicMissile,
+	Repair, RemovePoisonSpell, RemoveSickSpell,
 	ShieldSpell, ShokingGrasp, Sleep,
 	FirstSpell = Armor, LastSpell = Sleep
 };
@@ -359,6 +360,7 @@ public:
 	bool			ischargeable() const;
 	bool			iscountable() const;
 	bool			iscursed() const { return magic == Cursed; }
+	bool			isdamaged() const { return damaged != 0; }
 	bool			isdrinkable() const;
 	bool			isedible() const;
 	bool			isforsale() const { return forsale != 0; }
@@ -369,6 +371,7 @@ public:
 	bool			istwohanded() const;
 	bool			isversatile() const;
 	void			loot();
+	void			repair(int level);
 	void			setcharges(int count);
 	void			setcount(int count);
 	void			set(identify_s value);

@@ -32,6 +32,10 @@ static bool undefined_item(const creature& player, const item& it) {
 	return it.getidentify() < KnowEffect;
 }
 
+static bool damaged_item(const creature& player, const item& it) {
+	return it.isdamaged();
+}
+
 static bool visible_trap(const creature& player, short unsigned index) {
 	return !game::ishidden(index) && game::gettrap(index) != NoTrap;
 }
@@ -78,7 +82,8 @@ static struct target_info {
 {"Враг", enemy},
 //
 {"Неопознанный предмет", undefined_item},
-{"Съедобный предмет", edible},
+{"Съедобный предмет", damaged_item},
+{"Поврежденный предмет", edible},
 {"Зелье или другая жидкость", drinkable},
 {"Книга или свиток", readable},
 {"Оружие", readable},

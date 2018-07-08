@@ -532,3 +532,13 @@ void item::act(const char* format, ...) const {
 	driver.gender = getgender();
 	logs::addv(driver, format, xva_start(format));
 }
+
+void item::repair(int level) {
+	auto new_count = damaged - level;
+	if(new_count <= 0)
+		damaged = 0;
+	else if(new_count > 3)
+		clear();
+	else
+		damaged = new_count;
+}

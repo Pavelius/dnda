@@ -28,6 +28,10 @@ void healdamage(effectparam& e) {
 	e.cre->heal(e.damage.roll() + e.level - 1, true);
 }
 
+static void repair(effectparam& e) {
+	e.itm->repair(e.level);
+}
+
 static void detect_evil(effectparam& e) {
 	// Detect only first level items
 	char temp[260];
@@ -75,6 +79,7 @@ static struct spell_info {
 {"Невидимость", "невидимости", 8, 0, {{TargetFriendly, 1}, {}, {setstate}, {Hiding, Hour}, "%герой исчез%ла из виду."}},
 {"Свет", "света", 1, 0, {{TargetFriendly, 1}, {}, {setstate}, {Lighted, Hour}, "Вокруг %героя появилось несколько светящихся шариков."}},
 {"Волшебный снаряд", "колдовства", 3, 0, {{TargetHostile, 6}, {}, {setdamage}, {}, "Из пальцев %ГЕРОЯ вылетело несколько светящихся шариков.", {2, 8, Magic}}},
+{"Починка", "ремонта", 10, 1, {{TargetItemDamaged}, {}, {repair}, {}, "%герой на мгновение зажгл%ась синим светом и теперь выглядит не таким сломанным."}},
 {"Исцелить яд", "лечения яда", 15, 1, {{TargetFriendly}, {}, {setstate}, {RemovePoison}, "%герой на мгновение окутался желтым свечением."}},
 {"Исцелить болезнь", "лечения болезней", 15, 1, {{TargetFriendly}, {}, {setstate}, {RemoveSick}, "%герой на мгновение окутался зеленым свечением."}},
 {"Щит", "щита", 6, 0, {{TargetSelf}, {}, {setstate}, {Shielded, Hour / 2}, "Перед %героем появился полупрозрачный барьер."}},
