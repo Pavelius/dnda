@@ -35,14 +35,14 @@ static struct enchantment_info {
 } enchantment_data[] = {{"", ""},
 {"armor", "брони", "мягкости", 10},
 {"charisma", "харизмы", "уродства", 5},
-{"cold", "холода", "проклятия холода", 5},
+{"cold", "холода", "холода", 5},
 {"constitution", "телосложения", "болезненности", 5},
 {"defence", "защиты", "притягивания ударов", 7},
 {"dexterity", "ловкости", "неуклюжести", 6},
-{"fire", "огня", "проклятия огня", 6},
+{"fire", "огня", "огня", 6},
 {"intellegene", "интеллекта", "глупости", 6},
 {"mana", "маны", "проклятия маны", 9},
-{"poison", "отравления", "яда", 6},
+{"poison", "отравления", "отравления", 6},
 {"precision", "точности", "косоглазия", 7},
 {"regeneration", "регенерации", "увядания", 10},
 {"sickness", "болезни", "тошноты", 5},
@@ -52,6 +52,7 @@ static struct enchantment_info {
 {"strenght", "силы", "слабости", 8},
 {"sustenance", "питания", "пьявки", 4},
 {"vampirism", "вампиризма", "лечения врага", 10},
+{"weakness", "ослабления", "ослабления", 6},
 {"wisdow", "мудрости", "беспечности", 6},
 //
 {"acid resistance", "сопротивления кислоте", "уязвимости к кислоте", 1},
@@ -77,10 +78,10 @@ static const char* key_names[][2] = {{"simple", "простой"},
 {"stone", "каменный"},
 {"crystal", "кристальный"},
 };
-static enchantment_s swords_effect[] = {OfCold, OfDefence, OfDexterity, OfFire, OfSpeed, OfPrecision, OfSharping, OfVampirism};
-static enchantment_s axe_effect[] = {OfStrenght, OfFire, OfSharping, OfSmashing};
+static enchantment_s swords_effect[] = {OfCold, OfDefence, OfDexterity, OfFire, OfSpeed, OfPrecision, OfSharping, OfVampirism, OfWeakness};
+static enchantment_s axe_effect[] = {OfCold, OfFire, OfStrenght, OfSharping, OfSmashing};
 static enchantment_s bludgeon_effect[] = {OfConstitution, OfFire, OfSmashing, OfStrenght};
-static enchantment_s pierce_effect[] = {OfDefence, OfDexterity, OfPrecision, OfSpeed};
+static enchantment_s pierce_effect[] = {OfDefence, OfDexterity, OfPoison, OfPrecision, OfSickness, OfSpeed, OfWeakness};
 static enchantment_s armor_effect[] = {OfDefence, OfArmor, OfCharisma, OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
 static enchantment_s helm_effect[] = {OfIntellegence, OfWisdow, OfCharisma};
 static enchantment_s bracers_effect[] = {OfDefence, OfArmor, OfStrenght, OfDexterity};
@@ -96,7 +97,7 @@ static state_s potion_state[] = {Anger, Armored, Blessed, Charmed, Hiding, Goodw
 Lighted, PoisonedWeak, Poisoned, PoisonedStrong,
 Shielded, Sick, Scared, Sleeped, Weaken,
 Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic,
-ExperienceState, HealState, RemoveSick, RemovePoison};
+Experience, HealState, RemoveSick, RemovePoison};
 static skill_s manual_skills[] = {Athletics, Acrobatics, Bargaining, Bluff, Diplomacy,
 Acrobatics, Alertness, Athletics, Concetration, DisarmTraps, HearNoises, HideInShadow, Lockpicking, PickPockets,
 Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival, Swimming,

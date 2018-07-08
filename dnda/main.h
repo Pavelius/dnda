@@ -55,7 +55,7 @@ enum enchantment_s : unsigned char {
 	OfPoison, OfPrecision,
 	OfRegeneration,
 	OfSickness, OfSharping, OfSmashing, OfSpeed, OfStrenght, OfSustenance,
-	OfVampirism, OfWisdow,
+	OfVampirism, OfWeakness, OfWisdow,
 	// Resistances
 	OfAcidResistance, OfCharmResistance, OfColdResistance, OfFireResistance, OfElectricityResistance, OfPoisonResistance, OfWaterproof,
 	LastEnchantment = OfWaterproof,
@@ -106,7 +106,7 @@ enum state_s : unsigned char {
 	Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic,
 	LastState = Charismatic,
 	// Instant effects
-	ExperienceState, HealState, RemoveSick, RemovePoison,
+	Experience, HealState, RemoveSick, RemovePoison,
 	LastEffectState = RemovePoison,
 };
 enum tile_s : unsigned char {

@@ -112,7 +112,7 @@ void creature::apply(state_s state, item_type_s magic, int quality_raw, unsigned
 			damage(dice.roll(), Magic, false);
 		}
 		break;
-	case ExperienceState:
+	case Experience:
 		addexp(quality * 1000);
 		break;
 	default:

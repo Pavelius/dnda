@@ -1017,19 +1017,36 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 		break;
 	case OfSickness:
 		// RULE: sickness effect are long
-		if(!defender->roll(ResistPoison, 10 - value))
-			defender->set(PoisonedWeak, Hour);
+		if(ai.quality > 0) {
+			if(!defender->roll(ResistPoison, 10 - value))
+				defender->set(Sick, Hour*ai.quality);
+		} else {
+			// Cursed sickness item affect attacker
+			if(!attacker->roll(ResistPoison))
+				attacker->set(Sick, (Hour / 2)*(-ai.quality));
+		}
 		break;
 	case OfPoison:
-		// RULE: chance be poisoned depends on damage deal
-		if(!defender->roll(ResistPoison, 10 - value)) {
-			if(ai.quality < 0)
-				defender->set(PoisonedWeak, Minute*poison_update * 2);
-			else {
-				// RULE: power of poison depends on magical bonus
-				static state_s quality_state[] = {PoisonedWeak, PoisonedWeak, PoisonedWeak, Poisoned, Poisoned, PoisonedStrong};
+		if(ai.quality < 0) {
+			// RULE: cused poison weapon wound owner instead
+			if(!defender->roll(ResistPoison, 10 - value))
+				defender->set(PoisonedWeak, Minute*poison_update * 2 * (-ai.quality));
+		} else {
+			// RULE: power of poison depends on magical bonus
+			static state_s quality_state[] = {PoisonedWeak, PoisonedWeak, PoisonedWeak, Poisoned, Poisoned, PoisonedStrong};
+			// RULE: chance be poisoned depends on damage deal
+			if(!defender->roll(ResistPoison, 10 - value))
 				defender->set(maptbl(quality_state, ai.quality), Minute*poison_update * 5);
-			}
+		}
+		break;
+	case OfWeakness:
+		if(ai.quality < 0) {
+			if(!defender->roll(ResistPoison, 10 - value))
+				defender->set(Weaken, Minute*3);
+		} else {
+			// RULE: chance be poisoned depends on damage deal
+			if(!defender->roll(ResistPoison, 10 - value))
+				defender->set(Weaken, Minute + Minute*value);
 		}
 		break;
 	}
