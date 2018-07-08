@@ -7,6 +7,7 @@ static const char* talk_games[] = {"кубики", "карты", "наперстки"};
 
 void setstate(effectparam& e);
 void healdamage(effectparam& e);
+int compare_skills(const void* p1, const void* p2);
 
 static void removetrap(effectparam& e) {
 	game::set(e.pos, NoTileObject);
@@ -200,4 +201,23 @@ skill_s creature::aiskill(aref<creature*> creatures) {
 	if(recomended.count > 0)
 		return recomended.data[rand() % recomended.count];
 	return NoSkill;
+}
+
+void manual_ability_skills(stringbuffer& sc, manual& e) {
+	adat<skill_s, LastResist + 1> source;
+	for(auto i = (skill_s)1; i < LastResist; i = (skill_s)(i + 1)) {
+		if(skill_data[i].ability[0] == e.value.ability || skill_data[i].ability[1] == e.value.ability)
+			source.add(i);
+	}
+	qsort(source.data, source.count, sizeof(source.data[0]), compare_skills);
+	if(!source.count)
+		return;
+	sc.add("[Навыки]: ");
+	auto p = zend(sc.result);
+	for(auto i : source) {
+		if(p[0])
+			sc.add(", ");
+		sc.add(getstr(i));
+	}
+	sc.add(".");
 }

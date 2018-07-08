@@ -154,6 +154,11 @@ static int textl(int x, int y, int width, const char* value) {
 	return x + width;
 }
 
+static int textf(int x, int y, int width, const char* value) {
+	draw::textf(x, y, width, value);
+	return x + width;
+}
+
 static int textl(int x, int y, int width, item& value) {
 	char temp[260]; value.getname(temp, zendof(temp));
 	draw::state push;
@@ -253,6 +258,20 @@ static int field(int x, int y, int w, const char* name, int value, int max_value
 	char temp[128];
 	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
 	draw::text(x + w, y, szprints(temp, zendof(temp), "%1i/%2i", value, max_value));
+	return draw::texth();
+}
+
+static int fielp(int x, int y, int w, const char* name, int p1, int p2) {
+	char temp[128];
+	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
+	draw::text(x + w, y, szprints(temp, zendof(temp), "%1i%% и %2i%%", 50 + p1, 50 + p2));
+	return draw::texth();
+}
+
+static int fielr(int x, int y, int w, const char* name, int p1, int p2) {
+	char temp[128];
+	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
+	draw::text(x + w, y, szprints(temp, zendof(temp), (p2<0) ? "%+1i%% и [-%2i]" : "%+1i%% и %2i", p1, p2));
 	return draw::texth();
 }
 
@@ -732,7 +751,7 @@ static void view_info(const creature& e) {
 	char temp[512];
 	const int tw = 26;
 	const int dx = 52;
-	const int width = 410;
+	const int width = 500;
 	const int height = draw::texth() * 4;
 	auto x = (draw::getwidth() - width) / 2;
 	auto y = draw::getheight() - height - padding * 2;
@@ -761,9 +780,9 @@ static void view_info(const creature& e) {
 	y += fiela(x, y, tw, "ХР", e.get(Charisma), e.getbasic(Charisma));
 	x += dx + 6;
 	y = y1;
-	y += field(x, y, tw, "АТ", e.getattackinfo(Melee).bonus, e.getattackinfo(Ranged).bonus);
-	y += field(x, y, tw, "БР", e.getdefence(), e.getarmor());
-	x += dx + 6;
+	y += fielp(x, y, tw, "АТ", e.getattackinfo(Melee).bonus, e.getattackinfo(Ranged).bonus);
+	y += fielr(x, y, tw, "БР", e.getdefence(), e.getarmor());
+	x += dx + 50;
 	y = y1;
 	y += field(x, y, 40, "Хиты", e.gethits(), e.getmaxhits());
 	y += field(x, y, 40, "Мана", e.getmana(), e.getmaxmana());
@@ -1131,7 +1150,7 @@ static short unsigned choose_target(creature& e, short unsigned current_index) {
 	}
 }
 
-static int compare_skills(const void* p1, const void* p2) {
+int compare_skills(const void* p1, const void* p2) {
 	auto e1 = *((skill_s*)p1);
 	auto e2 = *((skill_s*)p2);
 	return strcmp(getstr(e1), getstr(e2));
@@ -1524,6 +1543,67 @@ static void character_read(creature& e) {
 	e.use(Literacy);
 }
 
+static void view_manual(creature& e, stringbuffer& sc, manual& element) {
+	const int width = 600;
+	const int height = 380;
+	const int dy = 20;
+	auto index = e.position;
+	unsigned current_index;
+	while(true) {
+		int x = (draw::getwidth() - width) / 2;
+		int y = (draw::getheight() - height) / 2;
+		point camera = getcamera(game::getx(index), game::gety(index));
+		view_zone(&e, camera);
+		y += view_dialog({x, y, x + width, y + height}, element.value.getname());
+		if(element.text) {
+			y += draw::textf(x, y, width, element.text) + metrics::padding;
+		}
+		if(element.child) {
+			for(auto p = element.child; *p; p++) {
+				if(p->type != Element)
+					continue;
+				sc.clear();
+				sc.add("[%1]: ", p->value.getname());
+				sc.add(p->text);
+				y += draw::textf(x, y, width, sc.result) + metrics::padding;
+			}
+		}
+		for(auto& proc : element.procs) {
+			sc.clear();
+			proc(sc, element);
+			if(sc)
+				y += draw::textf(x, y, width, sc.result) + metrics::padding;
+		}
+		current_index = 0;
+		if(element.child) {
+			for(auto p = element.child; *p; p++) {
+				if(p->type != Header)
+					continue;
+				auto x1 = shortcut(x, y, 32, current_index++);
+				y += draw::textf(x1, y, width - 32, p->value.getname());
+			}
+		}
+		auto id = draw::input();
+		switch(id) {
+		case KeyEscape:
+			clear_state();
+			return;
+		default:
+			if(getkey(id, current_index))
+				view_manual(e, sc, element.child[id]);
+			break;
+		}
+	}
+}
+
+extern manual manual_main;
+
+static void character_manual(creature& e) {
+	char temp[2048];
+	stringbuffer sc(temp);
+	view_manual(e, sc, manual_main);
+}
+
 static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {KeyHome, "Двигаться вверх и влево"},
 {KeyEnd, "Двигаться вниз и влево"},
@@ -1556,6 +1636,7 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {Ctrl + Alpha + 'D', "Выпить что-то", character_drink},
 {Alpha + 'E', "Съесть что-то", character_eat},
 {Ctrl + Alpha + 'R', "Прочитать что-то", character_read},
+{Ctrl + Alpha + 'M', "Открыть мануал", character_manual},
 };
 
 int compare_hotkey(const void* p1, const void* p2) {

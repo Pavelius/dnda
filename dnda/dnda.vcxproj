@@ -164,6 +164,7 @@
     <ClCompile Include="location.cpp" />
     <ClCompile Include="logs_driver.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="manual.cpp" />
     <ClCompile Include="map_object.cpp" />
     <ClCompile Include="names.cpp" />
     <ClCompile Include="pma.cpp" />
@@ -181,6 +182,7 @@
     <ClCompile Include="target.cpp" />
     <ClCompile Include="tile.cpp" />
     <ClCompile Include="traps.cpp" />
+    <ClCompile Include="variant.cpp" />
     <ClCompile Include="view.cpp" />
     <ClCompile Include="win_draw.cpp" />
     <ClCompile Include="win_io_file.cpp" />

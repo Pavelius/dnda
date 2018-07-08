@@ -195,6 +195,12 @@
     <ClCompile Include="dialog.cpp">
       <Filter>logic</Filter>
     </ClCompile>
+    <ClCompile Include="manual.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="variant.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="collections">

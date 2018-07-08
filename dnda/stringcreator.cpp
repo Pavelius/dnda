@@ -196,3 +196,7 @@ char* szprints(char* result, const char* result_maximum, const char* src, ...) {
 	e.printv(result, result_maximum, src, xva_start(src));
 	return result;
 }
+
+void stringbuffer::add(const char* format, ...) {
+	printv(zend(result), result_maximum, format, xva_start(format));
+}

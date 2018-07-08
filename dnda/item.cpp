@@ -106,7 +106,7 @@ static struct item_info {
 	struct combatinfo {
 		char			speed;
 		damageinfo		damage;
-		char			attack; // Melee or ranger attack bonus
+		char			bonus; // Melee or ranger attack percent bonus
 		char			armor[2]; // Bonus to hit and damage reduction
 	};
 	const char*			name;
@@ -127,7 +127,7 @@ static struct item_info {
 } item_data[] = {{"Пусто"},
 {"Боевой топор", 850, 5 * GP, Male, Iron, {1, {1, 8, Slashing}}, {}, {Versatile}, {Melee}, WeaponFocusAxes, axe_effect},
 {"Дубина", 1000, 5 * CP, Female, Wood, {2, {1, 6}}, {}, {}, {Melee}, NoSkill, bludgeon_effect},
-{"Кинжал", 50, 2 * GP, Male, Iron, {3, {1, 4, Piercing}, 1}, {}, {}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
+{"Кинжал", 50, 2 * GP, Male, Iron, {3, {1, 4, Piercing}, 5}, {}, {}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},
 {"Молот", 800, 2 * GP, Male, Wood, {1, {2, 5}}, {}, {}, {Melee}, WeaponFocusAxes, bludgeon_effect},
 {"Булава", 700, 8 * GP, Female, Iron, {1, {1, 7}}, {}, {}, {Melee}, WeaponFocusAxes, bludgeon_effect},
 {"Копье", 250, 8 * SP, NoGender, Wood, {1, {1, 8, Piercing}}, {}, {Versatile}, {Melee}, NoSkill, pierce_effect},
@@ -146,23 +146,23 @@ static struct item_info {
 {"Стрела", 2, 2 * CP, Female, Wood, {}, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 {"Болт", 3, 1 * CP, Male, Iron, {}, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 //
-{"Кожанная броня", 1000, 5 * GP, Female, Leather, {0, {}, 0, {2}}, {}, {}, {Torso}, NoSkill, armor_effect},
-{"Клепанная броня", 1500, 15 * GP, Female, Leather, {0, {}, 0, {3}}, {}, {}, {Torso}, NoSkill, armor_effect},
-{"Чешуйчатый доспех", 2500, 30 * GP, Male, Iron, {0, {}, 0, {5}}, {}, {}, {Torso}, NoSkill, armor_effect},
-{"Кольчуга", 2600, 50 * GP, Female, Iron, {0, {}, 0, {5, 1}}, {}, {}, {Torso}, NoSkill, armor_effect},
-{"Бахрец", 3000, 200 * GP, Male, Iron, {0, {}, 0, {6, 2}}, {}, {}, {Torso}, NoSkill, armor_effect},
-{"Латы", 3500, 800 * GP, Female, Iron, {0, {}, 0, {8, 3}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Кожанная броня", 1000, 5 * GP, Female, Leather, {0, {}, 0, {10}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Клепанная броня", 1500, 15 * GP, Female, Leather, {0, {}, 0, {15}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Чешуйчатый доспех", 2500, 30 * GP, Male, Iron, {0, {}, 0, {25}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Кольчуга", 2600, 50 * GP, Female, Iron, {0, {}, 0, {25, 1}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Бахрец", 3000, 200 * GP, Male, Iron, {0, {}, 0, {30, 2}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Латы", 3500, 800 * GP, Female, Iron, {0, {}, 0, {40, 3}}, {}, {}, {Torso}, NoSkill, armor_effect},
 //
-{"Щит", 1500, 20 * GP, Male, Iron, {0, {}, {}, {2}}, {}, {}, {OffHand}, NoSkill, armor_effect},
-{"Шлем", 300, 5 * GP, Male, Iron, {0, {}, {}, {1}}, {}, {}, {Head}, NoSkill, helm_effect},
-{"Наручи", 200, 3 * GP, Male, Leather, {0, {}, {}, {1}}, {}, {}, {Elbows}, NoSkill, bracers_effect},
-{"Наручи", 400, 8 * GP, Male, Iron, {0, {}, {}, {1, 1}}, {}, {}, {Elbows}, NoSkill, bracers_effect},
+{"Щит", 1500, 20 * GP, Male, Iron, {0, {}, {}, {12}}, {}, {}, {OffHand}, NoSkill, armor_effect},
+{"Шлем", 300, 5 * GP, Male, Iron, {0, {}, {}, {4}}, {}, {}, {Head}, NoSkill, helm_effect},
+{"Наручи", 200, 3 * GP, Male, Leather, {0, {}, {}, {6}}, {}, {}, {Elbows}, NoSkill, bracers_effect},
+{"Наручи", 400, 8 * GP, Male, Iron, {0, {}, {}, {7, 1}}, {}, {}, {Elbows}, NoSkill, bracers_effect},
 //
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {1, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {1, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {1, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {1, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {1, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {5, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {6, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {4, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {5, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {6, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
 //
 {"Сухпаек", 100, 3 * SP, Male, Organic, {}, {}, {}, {}, NoSkill, {}, NoItem, 0, 0, {5, 0, {1, 0, 1, 0, 0, 0}, 10 * Minute}},
 {"Яблоко", 10, 1 * SP, NoGender, Organic, {}, {}, {}, {}, NoSkill, {}, NoItem, 0, 0, {1, 0, {2, 0, 0, 0, 0, 0}, 2 * Minute}},
@@ -224,7 +224,7 @@ item::item(item_s type, int chance_artifact, int chance_magic, int chance_cursed
 		magic = Mundane;
 	// Quality depend on level
 	auto r = d100();
-	if(r < chance_quality/8)
+	if(r < chance_quality / 8)
 		quality = 3;
 	else if(r < chance_quality / 3)
 		quality = 2;
@@ -273,7 +273,7 @@ void item::loot() {
 
 void item::get(attackinfo& e) const {
 	auto b = getquality();
-	e.bonus += item_data[type].combat.attack + b + getbonus(OfPrecision);
+	e.bonus += item_data[type].combat.bonus + (b + getbonus(OfPrecision)) * 5;
 	e.speed += item_data[type].combat.speed + getbonus(OfSpeed);
 	e.damage = item_data[type].combat.damage;
 	e.critical += getbonus(OfSmashing);
@@ -301,7 +301,7 @@ int item::getquality() const {
 }
 
 spell_s item::getspell() const {
-	if(item_data[type].magic.type== effectlist::Spells)
+	if(item_data[type].magic.type == effectlist::Spells)
 		return (spell_s)effect;
 	return NoSpell;
 }
@@ -412,7 +412,7 @@ bool item::isarmor() const {
 }
 
 bool item::isdrinkable() const {
-	return item_data[type].magic.type==effectlist::States;
+	return item_data[type].magic.type == effectlist::States;
 }
 
 bool item::isreadable() const {
@@ -434,8 +434,8 @@ int item::getarmor() const {
 int item::getdefence() const {
 	auto result = item_data[type].combat.armor[0];
 	if(result)
-		result += getquality();
-	return result + getbonus(OfDefence);
+		result += getquality() * 4;
+	return result + getbonus(OfDefence) * 5;
 }
 
 int	item::getweightsingle() const {
@@ -473,7 +473,7 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 				attackinfo e = {0}; get(e);
 				szblock(sc, p, result_maximum, "урон %2i-%3i", e.bonus, e.damage.min, e.damage.max);
 			} else if(isarmor())
-				szblock(sc, p, result_maximum, "защита %1i/%2i", getdefence(), getarmor());
+				szblock(sc, p, result_maximum, "защита %+1i%% и %2i", getdefence(), getarmor());
 		}
 		if(forsale)
 			szblock(sc, p, result_maximum, "цена %1i", getcost());

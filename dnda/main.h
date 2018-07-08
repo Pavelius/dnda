@@ -194,9 +194,13 @@ enum encumbrance_s : unsigned char {
 enum variant_s : unsigned char {
 	NoVariant,
 	Ability, Skill, State, Enchantment,
+	Text
 };
 enum speech_s : unsigned char {
 	Answer, Speech,
+};
+enum manual_s : unsigned char {
+	Element, Header
 };
 struct attackinfo;
 struct creature;
@@ -211,12 +215,16 @@ struct variant {
 		enchantment_s	enchantment;
 		skill_s			skill;
 		state_s			state;
+		const char*		text;
 	};
 	constexpr variant() : type(NoVariant), skill(NoSkill) {}
 	constexpr variant(skill_s v) : type(Skill), skill(v) {}
 	constexpr variant(state_s v) : type(State), state(v) {}
 	constexpr variant(enchantment_s v) : type(Enchantment), enchantment(v) {}
 	constexpr variant(ability_s v) : type(Ability), ability(v) {}
+	constexpr variant(const char* v) : type(Text), text(v) {}
+	explicit operator bool() const { return type != NoVariant; }
+	const char*			getname() const;
 };
 struct skillvalue {
 	skill_s			id;
@@ -383,7 +391,7 @@ public:
 struct attackinfo {
 	char			speed;
 	damageinfo		damage;
-	char			bonus;
+	char			bonus; // Percent bonus to hit
 	char			critical;
 	char			multiplier;
 	enchantment_s			effect;
@@ -567,6 +575,15 @@ struct areainfo {
 	unsigned char	level; // Уровень поздземелья
 	unsigned char	rooms; // Количество комнат
 	void			clear();
+};
+struct manual {
+	typedef void(*proc)(stringbuffer& sc, manual& e);
+	manual_s		type;
+	variant			value;
+	const char*		text;
+	manual*			child;
+	aref<proc>		procs;
+	explicit operator bool() const { return value.type!=0; }
 };
 namespace game {
 creature*			add(short unsigned index, creature* element);

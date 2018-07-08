@@ -15,23 +15,8 @@ static int experience_level[] = {0,
 static unsigned	experience_cost[] = {5,
 10, 20, 30, 50, 80, 100, 150,
 };
-static char	str_tohit_bonus[] = {-5,
--4, -2, -1, -1, -1, 0, 0, 0, 0,
-0, 0, 0, 0, 0, 0, 1, 2, 3, 3,
-4, 4, 5, 5, 5, 6
-};
-static char	str_damage_bonus[] = {-5,
--4, -2, -1, -1, 0, 0, 0, 0, 0,
-0, 0, 0, 0, 0, 1, 2, 3, 4, 5,
-6, 7, 8, 9, 10, 11
-};
-static char	dex_tohit_bonus[] = {-5,
--4, -2, -1, -1, -1, 0, 0, 0, 0,
-0, 0, 0, 0, 0, 1, 2, 3, 4, 4,
-5, 5, 6, 6, 7, 7
-};
 static char	dex_speed_bonus[] = {-4,
--3, -2, -1, -1, 0, 0, 0, 0, 0,
+-3, -2, -2, -2, -1, -1, 0, 0, 0,
 0, 0, 0, 0, 0, 0, 1, 2, 2, 3,
 3, 3, 4, 4, 4
 };
@@ -62,7 +47,7 @@ static constexpr struct race_info {
 	skillvalue		skills_pregen[8];
 } race_data[] = {{"Человекооразный"},
 {"Человек", {Bargaining, Gambling, Swimming}},
-{"Гном", {Smithing, Mining, Athletics}, {{ResistPoison, 30}}},
+{"Iном", {Smithing, Mining, Athletics}, {{ResistPoison, 30}}},
 {"Эльф", {Survival, WeaponFocusBows, Swimming}},
 {"Полурослик", {HideInShadow, Acrobatics, Swimming}},
 };
@@ -76,12 +61,12 @@ static struct class_info {
 	ability_s		ability;
 	cflags<skill_s>	skills;
 	cflags<spell_s>	spells;
-} class_data[] = {{"Клерик", 8, 8, 2, Wisdow, {Diplomacy, History, Healing}, {Bless, HealingSpell}},
-{"Воин", 10, 4, 1, Strenght, {Survival, WeaponFocusBlades, WeaponFocusAxes}},
-{"Маг", 4, 10, 4, Intellegence, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
-{"Паладин", 10, 4, 1, Strenght, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}},
-{"Следопыт", 10, 6, 2, Strenght, {Survival, WeaponFocusBows}, {}},
-{"Вор", 6, 4, 3, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff}},
+} class_data[] = {{"Клерик", 8, 6, 1, Wisdow, {Diplomacy, History, Healing}, {Bless, HealingSpell}},
+{"Воин", 10, 3, 2, Strenght, {Survival, WeaponFocusBlades, WeaponFocusAxes}},
+{"Маг", 4, 8, 1, Intellegence, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
+{"Паладин", 10, 4, 2, Strenght, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}},
+{"Следопыт", 10, 4, 2, Strenght, {Survival, WeaponFocusBows}, {}},
+{"Вор", 6, 3, 1, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff}},
 };
 assert_enum(class, Theif);
 getstr_enum(class);
@@ -468,22 +453,22 @@ int creature::getarmor() const {
 
 int creature::getdefence() const {
 	auto result = wears[Head].getdefence();
-	result += wears[Torso].getdefence() + wears[Torso].getquality();
+	result += wears[Torso].getdefence() + wears[Torso].getquality() * 5;
 	result += wears[TorsoBack].getdefence();
 	result += wears[Elbows].getdefence();
 	result += wears[Legs].getdefence();
 	result += wears[Melee].getdefence();
-	result += wears[OffHand].getdefence() + (wears[OffHand].isarmor() ? wears[Torso].getquality() : 0);
-	result += wears[LeftFinger].getbonus(OfDefence);
-	result += wears[RightFinger].getbonus(OfDefence);
-	result += get(Acrobatics) / 30; // RULE: Acrobatics raise armor class by +1 for every 30%.
+	result += wears[OffHand].getdefence() + (wears[OffHand].isarmor() ? wears[Torso].getquality() * 5 : 0);
+	result += wears[LeftFinger].getbonus(OfDefence)*5;
+	result += wears[RightFinger].getbonus(OfDefence)*5;
+	result += get(Acrobatics) / 4; // RULE: Acrobatics raise defence by +1% for every 4% or 1% for every 2 points of dexterity
 	if(is(Shielded))
-		result += 6;
+		result += 30;
 	if(is(Armored))
-		result += 2;
+		result += 10;
 	// RULE: Heavy encumbrace level apply to defence
 	if(is(HeavilyEncumbered))
-		result -= 4;
+		result -= 20;
 	return result;
 }
 
@@ -985,13 +970,13 @@ bool creature::interact(short unsigned index) {
 static void attack(creature* attacker, creature* defender, const attackinfo& ai, int bonus = 0) {
 	if(!defender->enemy)
 		defender->enemy = attacker;
-	auto s = d20();
+	auto s = d100();
 	auto r = s + ai.bonus + bonus - defender->getdefence();
-	if(s == 1 || (r < 10)) {
+	if(s == 1 || (r < 50)) {
 		attacker->act("%герой промазал%а.");
 		return;
 	}
-	bool critical_hit = s >= (20 - ai.critical);
+	bool critical_hit = s >= (95 - ai.critical * 5);
 	attacker->act(critical_hit ? "%герой критически попал%а." : "%герой попал%а.");
 	auto damage = ai.damage;
 	if(critical_hit) {
@@ -1042,11 +1027,11 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 	case OfWeakness:
 		if(ai.quality < 0) {
 			if(!defender->roll(ResistPoison, 10 - value))
-				defender->set(Weaken, Minute*3);
+				defender->set(Weaken, Minute * 3);
 		} else {
 			// RULE: chance be poisoned depends on damage deal
 			if(!defender->roll(ResistPoison, 10 - value))
-				defender->set(Weaken, Minute + Minute*value);
+				defender->set(Weaken, Minute + Minute * value);
 		}
 		break;
 	}
@@ -1261,16 +1246,16 @@ int creature::get(ability_s value) const {
 attackinfo creature::getattackinfo(slot_s slot) const {
 	auto attack_per_level = class_data[type].attack;
 	if(!attack_per_level)
-		attack_per_level = 2;
+		attack_per_level = 1;
 	attackinfo result = {};
-	result.bonus = level / attack_per_level;
+	result.bonus = (level - 1) * attack_per_level;
 	auto& weapon = wears[slot];
 	if(weapon) {
 		wears[slot].get(result);
 		auto focus = weapon.getfocus();
 		if(focus && getbasic(focus)) {
 			auto fs = get(focus);
-			result.bonus += fs / 30;
+			result.bonus += fs / 5;
 			result.damage.max += fs / 40;
 		}
 		// RULE: Versatile weapon if used two-handed made more damage.
@@ -1283,27 +1268,27 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 	switch(slot) {
 	case Melee:
 	case OffHand:
-		result.bonus += maptbl(str_tohit_bonus, get(Strenght));
-		result.damage.max += maptbl(str_damage_bonus, get(Strenght));
+		result.bonus += get(Strenght) - 10;
+		result.damage.max += (get(Strenght) - 10) / 2;
 		break;
 	case Ranged:
-		result.bonus += maptbl(dex_tohit_bonus, get(Dexterity));
+		result.bonus += get(Dexterity) - 10;
 		break;
 	}
 	if(is(Blessed)) {
-		result.bonus += 2;
+		result.bonus += 10;
 		result.damage.max++;
 	}
 	// RULE: Heavy encumbrace level apply to attack
 	if(is(HeavilyEncumbered))
-		result.bonus -= 4;
+		result.bonus -= 20;
 	return result;
 }
 
-static void weapon_information(item weapon, const attackinfo& ai) {
+static void weapon_information(creature& player, item weapon, const attackinfo& ai) {
 	char t1[260];
-	logs::add("%1 с бонусом [%2i] наносит [%3i-%4i] урона",
-		weapon.getname(t1, zendof(t1), false), ai.bonus, ai.damage.min, ai.damage.max);
+	player.act("%1 с шансом [%2i%%] наносит [%3i-%4i] урона",
+		weapon.getname(t1, zendof(t1), false), 50 + ai.bonus, ai.damage.min, ai.damage.max);
 }
 
 int creature::getattacktime(slot_s slot) const {
@@ -1318,18 +1303,22 @@ int creature::getattacktime(slot_s slot) const {
 }
 
 void testweapon(creature& e) {
-	e.act("%герой поробывал%а свое оружие. ");
+	e.act("%герой поробывал%а свое оружие.");
 	if(e.wears[Melee] && e.wears[OffHand].is(Melee)) {
 		e.act("Одновременно ");
-		weapon_information(e.wears[Melee], e.getattackinfo(Melee));
-		logs::add(" и ");
-		weapon_information(e.wears[OffHand], e.getattackinfo(OffHand));
+		weapon_information(e, e.wears[Melee], e.getattackinfo(Melee));
+		e.act(" и ");
+		weapon_information(e, e.wears[OffHand], e.getattackinfo(OffHand));
 	} else if(e.wears[OffHand].is(Melee))
-		weapon_information(e.wears[OffHand], e.getattackinfo(OffHand));
+		weapon_information(e, e.wears[OffHand], e.getattackinfo(OffHand));
 	else if(e.wears[Melee].is(Melee))
-		weapon_information(e.wears[Melee], e.getattackinfo(Melee));
+		weapon_information(e, e.wears[Melee], e.getattackinfo(Melee));
 	logs::add(".");
 	e.act("Это занимает %1i секунд.", e.getattacktime(Melee)*(60 / Minute));
+	if(e.wears[Ranged]) {
+		weapon_information(e, e.wears[Ranged], e.getattackinfo(Ranged));
+		e.act("Это занимает %1i секунд.", e.getattacktime(Ranged)*(60 / Minute));
+	}
 	e.wait(Minute);
 }
 
@@ -1479,7 +1468,7 @@ void creature::update() {
 	if(segments >= restore_mana) {
 		if(mp < getmaxmana()) {
 			// RULE: cursed ring of mana disable mana points natural recovering
-			mp += imax(0, 1 + getbonus(OfMana) + get(Concetration) / 30);
+			mp += imax(0, 1 + getbonus(OfMana) + get(Concetration) / 50);
 		}
 		if(!restore_mana)
 			restore_mana = segments;
