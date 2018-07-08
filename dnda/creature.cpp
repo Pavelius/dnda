@@ -47,7 +47,7 @@ static constexpr struct race_info {
 	skillvalue		skills_pregen[8];
 } race_data[] = {{"Человекооразный"},
 {"Человек", {Bargaining, Gambling, Swimming}},
-{"Iном", {Smithing, Mining, Athletics}, {{ResistPoison, 30}}},
+{"Гном", {Smithing, Mining, Athletics}, {{ResistPoison, 30}}},
 {"Эльф", {Survival, WeaponFocusBows, Swimming}},
 {"Полурослик", {HideInShadow, Acrobatics, Swimming}},
 };
@@ -56,17 +56,17 @@ getstr_enum(race);
 
 static struct class_info {
 	const char*		name;
-	unsigned char	hp, mp;
+	unsigned char	hp;
 	unsigned char	attack;
 	ability_s		ability;
 	cflags<skill_s>	skills;
 	cflags<spell_s>	spells;
-} class_data[] = {{"Клерик", 8, 6, 1, Wisdow, {Diplomacy, History, Healing}, {Bless, HealingSpell}},
-{"Воин", 10, 3, 2, Strenght, {Survival, WeaponFocusBlades, WeaponFocusAxes}},
-{"Маг", 4, 8, 1, Intellegence, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
-{"Паладин", 10, 4, 2, Strenght, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}},
-{"Следопыт", 10, 4, 2, Strenght, {Survival, WeaponFocusBows}, {}},
-{"Вор", 6, 3, 1, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff}},
+} class_data[] = {{"Клерик", 8, 1, Wisdow, {Diplomacy, History, Healing}, {Bless, HealingSpell}},
+{"Воин", 10, 2, Strenght, {Survival, WeaponFocusBlades, WeaponFocusAxes}},
+{"Маг", 4, 1, Intellegence, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
+{"Паладин", 10, 2, Strenght, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}},
+{"Следопыт", 10, 2, Strenght, {Survival, WeaponFocusBows}, {}},
+{"Вор", 6, 1, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff}},
 };
 assert_enum(class, Theif);
 getstr_enum(class);
@@ -106,6 +106,26 @@ assert_enum(material, Wood);
 getstr_enum(material);
 
 int mget(int ox, int oy, int mx, int my);
+
+void manual_skill_race(stringbuffer& sc, manual& me) {
+	for(auto& e : race_data) {
+		if(!e.skills.is(me.value.skill))
+			continue;
+		sc.header("[Расы]: ");
+		sc.add(e.name);
+	}
+	sc.trail(".");
+}
+
+void manual_skill_class(stringbuffer& sc, manual& me) {
+	for(auto& e : class_data) {
+		if(!e.skills.is(me.value.skill))
+			continue;
+		sc.header("[Классы]: ");
+		sc.add(e.name);
+	}
+	sc.trail(".");
+}
 
 static int roll3d6() {
 	return (rand() % 6) + (rand() % 6) + (rand() % 6) + 3;
@@ -531,8 +551,9 @@ int	creature::getmaxhits() const {
 
 int	creature::getmaxmana() const {
 	auto result = mmp;
-	result += (get(Wisdow) + get(Intellegence)) / 2;
-	result += getbasic(Concetration) / 5;
+	result += get(Intellegence);
+	if(skills[Concetration])
+		result += get(Concetration) / 5;
 	return result;
 }
 
@@ -717,8 +738,8 @@ void creature::trapeffect() {
 		return;
 	if(isparty(current_player))
 		game::set(position, Hidden, false);
-	if(get(Alertness)) {
-		if(roll(Alertness)) {
+	if(get(Acrobatics)) {
+		if(roll(Acrobatics)) {
 			hint("%герой успешно обош%ла ловушку.");
 			return;
 		}
@@ -972,7 +993,7 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 		defender->enemy = attacker;
 	auto s = d100();
 	auto r = s + ai.bonus + bonus - defender->getdefence();
-	if(s == 1 || (r < 50)) {
+	if(s == 1 || (r < chance_to_hit)) {
 		attacker->act("%герой промазал%а.");
 		return;
 	}
@@ -1268,15 +1289,16 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 	switch(slot) {
 	case Melee:
 	case OffHand:
-		result.bonus += get(Strenght) - 10;
+		result.bonus += get(Strenght);
 		result.damage.max += (get(Strenght) - 10) / 2;
 		break;
 	case Ranged:
-		result.bonus += get(Dexterity) - 10;
+		result.bonus += get(Dexterity);
 		break;
 	}
 	if(is(Blessed)) {
-		result.bonus += 10;
+		// RULE: bless add Wisdow ability to attack bonus
+		result.bonus += get(Wisdow);
 		result.damage.max++;
 	}
 	// RULE: Heavy encumbrace level apply to attack
@@ -1288,7 +1310,7 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 static void weapon_information(creature& player, item weapon, const attackinfo& ai) {
 	char t1[260];
 	player.act("%1 с шансом [%2i%%] наносит [%3i-%4i] урона",
-		weapon.getname(t1, zendof(t1), false), 50 + ai.bonus, ai.damage.min, ai.damage.max);
+		weapon.getname(t1, zendof(t1), false), chance_to_hit + ai.bonus, ai.damage.min, ai.damage.max);
 }
 
 int creature::getattacktime(slot_s slot) const {
@@ -1393,7 +1415,6 @@ void creature::levelup() {
 	}
 	athletics(interactive);
 	mhp += xrand(1, class_data[type].hp);
-	mmp += xrand(1, class_data[type].mp);
 	auto n = maptbl(int_checks, abilities[Intellegence]);
 	if(interactive)
 		logs::raise(*this, n);

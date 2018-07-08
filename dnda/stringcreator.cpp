@@ -200,3 +200,15 @@ char* szprints(char* result, const char* result_maximum, const char* src, ...) {
 void stringbuffer::add(const char* format, ...) {
 	printv(zend(result), result_maximum, format, xva_start(format));
 }
+
+void stringbuffer::header(const char* header, const char* separator) {
+	if(!result[0])
+		add(header);
+	else
+		add(separator);
+}
+
+void stringbuffer::trail(const char* header) {
+	if(result[0])
+		add(header);
+}

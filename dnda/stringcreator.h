@@ -25,7 +25,9 @@ struct stringbuffer : stringcreator {
 	template<unsigned N> constexpr stringbuffer(char(&data)[N]) : result(data), result_maximum(data+N-1) {}
 	explicit operator bool() const { return result != 0 && result[0]; }
 	void				add(const char* format, ...);
+	void				header(const char* header, const char* separator = ", ");
 	void				clear() { result[0] = 0; }
+	void				trail(const char* header);
 };
 
 // Macro for correct declaration string indentifier.

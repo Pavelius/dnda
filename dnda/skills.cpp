@@ -221,3 +221,12 @@ void manual_ability_skills(stringbuffer& sc, manual& e) {
 	}
 	sc.add(".");
 }
+
+void manual_skill_ability(stringbuffer& sc, manual& e) {
+	auto& ep = skill_data[e.value.skill];
+	sc.add("[Базовое значение]: ");
+	if(ep.ability[0] == ep.ability[1])
+		sc.add("%1 x 2", getstr(ep.ability[0]));
+	else
+		sc.add("%1 + %2", getstr(ep.ability[0]), getstr(ep.ability[1]));
+}

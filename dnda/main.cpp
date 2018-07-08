@@ -9,9 +9,11 @@ int main(int argc, char* argv[]) {
 	auto p1 = add(get(8, 5), new creature(Human, Female, Mage));
 	auto p2 = add(get(8, 5), new creature(Dwarf, Male, Fighter));
 	auto p3 = add(get(2, 2), new creature(Elf, Male, Theif));
+	auto p4 = add(get(2, 2), new creature(Halfling, Male, Cleric));
 	p1->join(p1);
 	p2->join(p1);
 	p3->join(p1);
+	p4->join(p1);
 	p1->setplayer();
 
 	p1->equip(item(Book1, 4, 20, 20, 40));

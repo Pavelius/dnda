@@ -264,14 +264,14 @@ static int field(int x, int y, int w, const char* name, int value, int max_value
 static int fielp(int x, int y, int w, const char* name, int p1, int p2) {
 	char temp[128];
 	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
-	draw::text(x + w, y, szprints(temp, zendof(temp), "%1i%% è %2i%%", 50 + p1, 50 + p2));
+	draw::text(x + w, y, szprints(temp, zendof(temp), "%1i%% è %2i%%", chance_to_hit + p1, chance_to_hit + p2));
 	return draw::texth();
 }
 
 static int fielr(int x, int y, int w, const char* name, int p1, int p2) {
 	char temp[128];
 	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
-	draw::text(x + w, y, szprints(temp, zendof(temp), (p2<0) ? "%+1i%% è [-%2i]" : "%+1i%% è %2i", p1, p2));
+	draw::text(x + w, y, szprints(temp, zendof(temp), (p2 < 0) ? "%+1i%% è [-%2i]" : "%+1i%% è %2i", p1, p2));
 	return draw::texth();
 }
 
@@ -1544,14 +1544,14 @@ static void character_read(creature& e) {
 }
 
 static void view_manual(creature& e, stringbuffer& sc, manual& element) {
-	const int width = 600;
-	const int height = 380;
+	const int width = 520;
+	const int height = 464;
 	const int dy = 20;
 	auto index = e.position;
 	unsigned current_index;
 	while(true) {
 		int x = (draw::getwidth() - width) / 2;
-		int y = (draw::getheight() - height) / 2;
+		int y = padding * 3;
 		point camera = getcamera(game::getx(index), game::gety(index));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, element.value.getname());

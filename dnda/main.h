@@ -12,6 +12,7 @@ const int SP = 10;
 const int CP = 1;
 const int max_map_x = 80;
 const int max_map_y = 80;
+const int chance_to_hit = 40;
 const unsigned short Blocked = 0xFFFF;
 const unsigned short BlockedCreature = Blocked - 1;
 

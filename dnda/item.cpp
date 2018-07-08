@@ -542,3 +542,13 @@ void item::repair(int level) {
 	else
 		damaged = new_count;
 }
+
+void manual_skill_focus_item(stringbuffer& sc, manual& me) {
+	for(auto& e : item_data) {
+		if(me.value.skill != e.focus)
+			continue;
+		sc.header("[Распространяется на]: ");
+		sc.add(e.name);
+	}
+	sc.trail(".");
+}

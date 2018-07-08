@@ -360,6 +360,12 @@
     <png input="...\gelf_fm.png"/>
     <png input="...\gelf_fr.png"/>
     <png input="...\gelf_fw.png"/>
+    <png input="...\hurth_mm.png"/>
+    <png input="...\hurth_mr.png"/>
+    <png input="...\hurth_mw.png"/>
+    <png input="...\hurth_fm.png"/>
+    <png input="...\hurth_fr.png"/>
+    <png input="...\hurth_fw.png"/>
   </library>
   <library output="...\pcmar" input="...\pc\modular\arms" count="64" ox="41" oy="87">
     <png input="...\lhand_unarmed.png"/>
