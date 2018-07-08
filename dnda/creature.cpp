@@ -553,7 +553,7 @@ int	creature::getmaxmana() const {
 	auto result = mmp;
 	result += get(Intellegence);
 	if(skills[Concetration])
-		result += get(Concetration) / 5;
+		result += get(Concetration) / 4;
 	return result;
 }
 

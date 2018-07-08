@@ -108,6 +108,7 @@ static struct item_info {
 		damageinfo		damage;
 		char			bonus; // Melee or ranger attack percent bonus
 		char			armor[2]; // Bonus to hit and damage reduction
+		char			armor_magic_bonus;
 	};
 	const char*			name;
 	int					weight;
@@ -146,23 +147,29 @@ static struct item_info {
 {"Стрела", 2, 2 * CP, Female, Wood, {}, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 {"Болт", 3, 1 * CP, Male, Iron, {}, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 //
-{"Кожанная броня", 1000, 5 * GP, Female, Leather, {0, {}, 0, {10}}, {}, {}, {Torso}, NoSkill, armor_effect},
-{"Клепанная броня", 1500, 15 * GP, Female, Leather, {0, {}, 0, {15}}, {}, {}, {Torso}, NoSkill, armor_effect},
-{"Чешуйчатый доспех", 2500, 30 * GP, Male, Iron, {0, {}, 0, {25}}, {}, {}, {Torso}, NoSkill, armor_effect},
-{"Кольчуга", 2600, 50 * GP, Female, Iron, {0, {}, 0, {25, 1}}, {}, {}, {Torso}, NoSkill, armor_effect},
-{"Бахрец", 3000, 200 * GP, Male, Iron, {0, {}, 0, {30, 2}}, {}, {}, {Torso}, NoSkill, armor_effect},
-{"Латы", 3500, 800 * GP, Female, Iron, {0, {}, 0, {40, 3}}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Кожанная броня", 1000, 5 * GP, Female, Leather, {0, {}, 0, {10}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Клепанная броня", 1500, 15 * GP, Female, Leather, {0, {}, 0, {15}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Чешуйчатый доспех", 2500, 30 * GP, Male, Iron, {0, {}, 0, {25}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Кольчуга", 2600, 50 * GP, Female, Iron, {0, {}, 0, {25, 1}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Бахрец", 3000, 200 * GP, Male, Iron, {0, {}, 0, {30, 2}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Латы", 3500, 800 * GP, Female, Iron, {0, {}, 0, {40, 3}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
 //
-{"Щит", 1500, 20 * GP, Male, Iron, {0, {}, {}, {12}}, {}, {}, {OffHand}, NoSkill, armor_effect},
-{"Шлем", 300, 5 * GP, Male, Iron, {0, {}, {}, {4}}, {}, {}, {Head}, NoSkill, helm_effect},
-{"Наручи", 200, 3 * GP, Male, Leather, {0, {}, {}, {6}}, {}, {}, {Elbows}, NoSkill, bracers_effect},
-{"Наручи", 400, 8 * GP, Male, Iron, {0, {}, {}, {7, 1}}, {}, {}, {Elbows}, NoSkill, bracers_effect},
+{"Щит", 1500, 20 * GP, Male, Iron, {0, {}, {}, {12}, 5}, {}, {}, {OffHand}, NoSkill, armor_effect},
+{"Шлем", 300, 5 * GP, Male, Iron, {0, {}, {}, {4}, 4}, {}, {}, {Head}, NoSkill, helm_effect},
+{"Наручи", 200, 3 * GP, Male, Leather, {0, {}, {}, {6}, 4}, {}, {}, {Elbows}, NoSkill, bracers_effect},
+{"Наручи", 400, 8 * GP, Male, Iron, {0, {}, {}, {7, 1}, 4}, {}, {}, {Elbows}, NoSkill, bracers_effect},
 //
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {5, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {6, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {4, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {5, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {6, 0}}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {5, 0}, 2}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {6, 0}, 2}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {4, 0}, 3}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {5, 0}, 2}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {6, 0}, 2}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+//
+{"Сапоги", 300, 6 * GP, NoGender, Leather, {0, {}, {}, {3, 0}, 3}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 300, 6 * GP, NoGender, Leather, {0, {}, {}, {4, 0}, 3}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 350, 6 * GP, NoGender, Leather, {0, {}, {}, {7, 0}, 3}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 400, 6 * GP, NoGender, Leather, {0, {}, {}, {8, 0}, 3}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 450, 6 * GP, NoGender, Leather, {0, {}, {}, {9, 0}, 4}, {}, {}, {Legs}, NoSkill},
 //
 {"Сухпаек", 100, 3 * SP, Male, Organic, {}, {}, {}, {}, NoSkill, {}, NoItem, 0, 0, {5, 0, {1, 0, 1, 0, 0, 0}, 10 * Minute}},
 {"Яблоко", 10, 1 * SP, NoGender, Organic, {}, {}, {}, {}, NoSkill, {}, NoItem, 0, 0, {1, 0, {2, 0, 0, 0, 0, 0}, 2 * Minute}},
@@ -434,7 +441,7 @@ int item::getarmor() const {
 int item::getdefence() const {
 	auto result = item_data[type].combat.armor[0];
 	if(result)
-		result += getquality() * 4;
+		result += getquality() * item_data[type].combat.armor_magic_bonus;
 	return result + getbonus(OfDefence) * 5;
 }
 

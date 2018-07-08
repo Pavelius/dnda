@@ -568,10 +568,10 @@ static void view_board(point camera, bool show_fow = true, fxeffect* effects = 0
 				case NoItem:
 					break;
 				case ManyItems:
-					draw::image(x, y, gres(ResItems), 0, 0);
+					draw::image(x, y - 8, gres(ResItems), 0, 0);
 					break;
 				default:
-					draw::image(x, y, gres(ResItems), stuff[pi], 0);
+					draw::image(x, y - 8, gres(ResItems), stuff[pi], 0);
 					break;
 				}
 			}
