@@ -51,7 +51,7 @@ const int			mmaps = 5;
 const unsigned char	dialog_alpha = 200;
 const int			padding = 8;
 static point		viewport;
-static char			state_message[4096];
+static char			state_message[1024];
 static hotkey*		gethotkey(int id);
 static int			answers[9];
 static bool			show_gui_panel = true;
@@ -69,8 +69,9 @@ void logs::add(const char* format, ...) {
 	addv(format, xva_start(format));
 }
 
-void logs::addu(const char* format, ...) {
-	addv(format, xva_start(format), 1);
+void logs::addnc(const char* format, ...) {
+	stringcreator sc;
+	addvnc(sc, format, xva_start(format));
 }
 
 void logs::add(int id, const char* format, ...) {
@@ -82,9 +83,8 @@ void logs::add(int id, const char* format, ...) {
 	current_key_index++;
 }
 
-void logs::addv(stringcreator& sc, const char* format, const char* vl, int letter) {
+void logs::addvnc(stringcreator& sc, const char* format, const char* vl) {
 	char* p = zend(state_message);
-	// First string may not be emphty or white spaced
 	if(p == state_message)
 		format = zskipspcr(format);
 	if(format[0] == 0)
@@ -100,15 +100,18 @@ void logs::addv(stringcreator& sc, const char* format, const char* vl, int lette
 			format++;
 	}
 	sc.printv(p, state_message + sizeof(state_message) - 1, format, vl);
-	if(letter > 0)
-		szupper(p, 1);
-	else if(letter < 0)
-		szlower(p, 1);
 }
 
-void logs::addv(const char* format, const char* vl, int letter) {
+void logs::addv(stringcreator& sc, const char* format, const char* vl) {
+	addvnc(sc, format, vl);
+	auto p = zend(state_message);
+	if(p > (state_message + sizeof(state_message) - 260))
+		logs::next();
+}
+
+void logs::addv(const char* format, const char* vl) {
 	stringcreator sc;
-	addv(sc, format, vl, letter);
+	addv(sc, format, vl);
 }
 
 void __cdecl dlgerr(char const* title, char const* format, ...) {}
@@ -1427,7 +1430,7 @@ void logs::next() {
 	auto p = creature::getplayer();
 	if(!p)
 		return;
-	add("[...Пробел]");
+	szprints(zend(state_message), zendof(state_message), "[...Пробел]");
 	while(true) {
 		point camera = getcamera(game::getx(p->position), game::gety(p->position));
 		view_zone(p, camera);

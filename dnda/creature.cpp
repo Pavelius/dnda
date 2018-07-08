@@ -521,8 +521,8 @@ bool creature::sayv(const char* format, const char* param, creature* opponent) {
 		driver.name_opponent = opponent->getname();
 		driver.gender_opponent = opponent->gender;
 	}
-	logs::add("[%1:]\"", getname());
-	logs::addv(driver, format, param);
+	logs::addnc("[%1:]\"", getname());
+	logs::addvnc(driver, format, param);
 	logs::add("\"");
 	return true;
 }

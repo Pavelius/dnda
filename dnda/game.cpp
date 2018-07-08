@@ -494,7 +494,7 @@ void game::looktarget(short unsigned index) {
 		logs::add(p->getname());
 		return;
 	}
-	logs::addu(getstr(getobject(index)));
+	logs::add("%L1", getstr(getobject(index)));
 }
 
 void game::lookhere(short unsigned index) {

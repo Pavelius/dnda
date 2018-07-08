@@ -629,10 +629,11 @@ struct driver : stringcreator {
 	void			parseidentifier(char* result, const char* result_max, const char* identifier) override;
 };
 void				add(const char* format, ...);
+void				addnc(const char* format, ...);
 void				add(int id, const char* format, ...);
-void				addu(const char* format, ...);
-void				addv(const char* format, const char* param, int letter = 0);
-void				addv(stringcreator& driver, const char* format, const char* param, int letter = 0);
+void				addv(const char* format, const char* param);
+void				addv(stringcreator& driver, const char* format, const char* param);
+void				addvnc(stringcreator& driver, const char* format, const char* param);
 short unsigned		choose(const creature& e, short unsigned* source, int count);
 item*				choose(const creature& e, item** source, unsigned count, const char* title);
 bool				choose(creature& e, skill_s& result, aref<skill_s> source, bool can_escape = true);
