@@ -201,7 +201,30 @@ aref<item*> creature::select(aref<item*> result, target_s target) const {
 	return aref<item*>(result.data, pb - result.data);
 }
 
-aref<short unsigned> creature::select(aref<short unsigned> result, target_s target, char range, short unsigned start) const {
+static bool linelossv(int x0, int y0, int x1, int y1) {
+	int dx = iabs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+	int dy = iabs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+	int err = (dx > dy ? dx : -dy) / 2, e2;
+	for(;;) {
+		if(x0 == x1 && y0 == y1)
+			return true;
+		if(x0 >= 0 && x0 < max_map_x && y0 >= 0 && y0 < max_map_y) {
+			if(!game::ispassablelight(game::get(x0, y0)))
+				return false;
+		}
+		e2 = err;
+		if(e2 > -dx) {
+			err -= dy;
+			x0 += sx;
+		}
+		if(e2 < dy) {
+			err += dx;
+			y0 += sy;
+		}
+	}
+}
+
+aref<short unsigned> creature::select(aref<short unsigned> result, target_s target, char range, short unsigned start, bool los) const {
 	auto& ti = target_data[target];
 	auto pb = result.data;
 	auto pe = result.data + result.count;
@@ -218,6 +241,8 @@ aref<short unsigned> creature::select(aref<short unsigned> result, target_s targ
 					continue;
 				auto index = game::get(x1, y1);
 				if(!ti.proc.ind(*this, index))
+					continue;
+				if(los && !linelossv(x, y, x1, y1))
 					continue;
 				if(pb < pe)
 					*pb++ = index;

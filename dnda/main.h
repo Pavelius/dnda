@@ -483,7 +483,7 @@ struct creature {
 	static const char* getname(tile_s id);
 	static const char* getname(state_s id, bool cursed);
 	static const char* getname(skill_s id);
-	creature*		getnearest(targetdesc ti) const;
+	//creature*		getnearest(targetdesc ti) const;
 	creature*		getparty() const;
 	static creature* getplayer();
 	short unsigned	getposition() const { return position; }
@@ -531,7 +531,7 @@ struct creature {
 	static void		select(creature** result, rect rc);
 	aref<item*>		select(aref<item*> result, target_s target) const;
 	aref<creature*> select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const;
-	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start) const;
+	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start, bool los = true) const;
 	void			set(state_s value, unsigned segments, bool after_recoil = false);
 	void			set(spell_s value, int level);
 	static void		setblocks(short unsigned* movements, short unsigned value);
