@@ -572,7 +572,7 @@ char* creature::getfullname(char* result, const char* result_maximum, bool show_
 }
 
 int creature::getdiscount(creature* customer) const {
-	// RULE: Навык торговли делает продажу/покупку более привлекательной.
+	// RULE: Bargain skill modify cost of selling or bying items
 	auto bs = get(Bargaining);
 	auto bc = customer->get(Bargaining);
 	auto delta = bc - bs;
