@@ -203,6 +203,25 @@ skill_s creature::aiskill(aref<creature*> creatures) {
 	return NoSkill;
 }
 
+skill_s creature::aiskill() {
+	if(is(Anger))
+		return NoSkill;
+	aref<creature*> source = {};
+	adat<skill_s, LastSkill + 1> recomended;
+	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
+		if(!skills[i])
+			continue;
+		if(!skill_data[i].effect.type.isposition())
+			continue;
+		if(!skill_data[i].effect.type.isallow(*this, source))
+			continue;
+		recomended.add(i);
+	}
+	if(recomended.count > 0)
+		return recomended.data[rand() % recomended.count];
+	return NoSkill;
+}
+
 void manual_ability_skills(stringbuffer& sc, manual& e) {
 	adat<skill_s, LastResist + 1> source;
 	for(auto i = (skill_s)1; i < LastResist; i = (skill_s)(i + 1)) {

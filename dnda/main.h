@@ -238,6 +238,7 @@ struct targetdesc {
 	unsigned char	area;
 	bool			isallow(const creature& player, aref<creature*> creatures) const;
 	bool			iscreature() const;
+	bool			isposition() const;
 };
 struct damageinfo {
 	char			min;
@@ -428,6 +429,7 @@ struct creature {
 	void			actv(creature& opponent, const char* format, const char* param) const;
 	void			actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
 	void			addexp(int count);
+	skill_s			aiskill();
 	skill_s			aiskill(aref<creature*> creatures);
 	spell_s			aispell(aref<creature*> creatures);
 	bool			alertness();

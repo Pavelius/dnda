@@ -49,7 +49,7 @@ static bool door_locked(const creature& player, short unsigned index) {
 }
 
 static bool hidden_object(const creature& player, short unsigned index) {
-	return game::getobject(index) !=0 && game::ishidden(index);
+	return game::getobject(index) != 0 && game::ishidden(index);
 }
 
 static bool any_item(const creature& player, const item& it) {
@@ -128,7 +128,11 @@ static bool islos(int x0, int y0, int x1, int y1) {
 }
 
 bool targetdesc::iscreature() const {
-	return target_data[target].proc.cre!=0;
+	return target_data[target].proc.cre != 0;
+}
+
+bool targetdesc::isposition() const {
+	return target_data[target].proc.ind != 0;
 }
 
 bool targetdesc::isallow(const creature& player, aref<creature*> creatures) const {
@@ -263,7 +267,7 @@ creature* creature::choose(aref<creature*> source, bool interactive) const {
 bool effectparam::saving() const {
 	if(cre && save != NoSkill) {
 		auto chance_save = cre->get(save);
-		if(chance_save>0) {
+		if(chance_save > 0) {
 			auto r = d100();
 			if(r < chance_save) {
 				if(interactive)

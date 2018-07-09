@@ -719,6 +719,7 @@ bool creature::walkaround() {
 		wait(xrand(2, Minute));
 		return false;
 	}
+	// When we try to stand and think
 	if(d100() < 50) {
 		creature* creature_data[256];
 		auto creatures = getcreatures(creature_data, position, getlos());
@@ -736,6 +737,12 @@ bool creature::walkaround() {
 			use(spell);
 			return false;
 		}
+	}
+	// When we try move
+	auto skill = aiskill();
+	if(skill) {
+		use(skill);
+		return false;
 	}
 	auto d = (direction_s)xrand(Left, RightDown);
 	return move(to(position, d));
