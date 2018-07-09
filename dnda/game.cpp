@@ -141,7 +141,7 @@ tile_s game::gettile() {
 }
 
 tile_s game::gettile(short unsigned i) {
-	if(i == 0xFFFF)
+	if(i == Blocked)
 		return NoTile;
 	return mptil[i];
 }
@@ -151,7 +151,7 @@ int game::getrand(short unsigned i) {
 }
 
 void game::set(short unsigned i, tile_s value) {
-	if(i == 0xFFFF)
+	if(i == Blocked)
 		return;
 	mptil[i] = value;
 	switch(value) {
@@ -164,9 +164,9 @@ void game::set(short unsigned i, tile_s value) {
 }
 
 void game::set(short unsigned i, tile_s value, int w, int h) {
-	for(auto y = i; y != 0xFFFF && h > 0; y = to(y, Down), h--) {
+	for(auto y = i; y != Blocked && h > 0; y = to(y, Down), h--) {
 		auto w1 = w;
-		for(auto x = y; x != 0xFFFF && w1 > 0; x = to(x, Right), w1--)
+		for(auto x = y; x != Blocked && w1 > 0; x = to(x, Right), w1--)
 			set(x, value);
 	}
 }
@@ -349,48 +349,48 @@ short unsigned game::to(short unsigned index, direction_s id) {
 	switch(id) {
 	case Left:
 		if((index%max_map_x) == 0)
-			return 0xFFFF;
+			return Blocked;
 		return index - 1;
 	case Right:
 		if((index%max_map_x) >= max_map_x - 1)
-			return 0xFFFF;
+			return Blocked;
 		return index + 1;
 	case Up:
 		if((index / max_map_x) == 0)
-			return 0xFFFF;
+			return Blocked;
 		return index - max_map_x;
 	case Down:
 		if((index / max_map_x) >= max_map_y - 1)
-			return 0xFFFF;
+			return Blocked;
 		return index + max_map_x;
 	case LeftUp:
 		if((index%max_map_x) == 0)
-			return 0xFFFF;
+			return Blocked;
 		if((index / max_map_x) == 0)
-			return 0xFFFF;
+			return Blocked;
 		return index - 1 - max_map_x;
 	case LeftDown:
 		if((index%max_map_x) == 0)
-			return 0xFFFF;
+			return Blocked;
 		if((index / max_map_x) >= max_map_y - 1)
-			return 0xFFFF;
+			return Blocked;
 		return index - 1 + max_map_x;
 	case RightUp:
 		if((index%max_map_x) >= max_map_x - 1)
 			return -1;
 		if((index / max_map_x) == 0)
-			return 0xFFFF;
+			return Blocked;
 		return index + 1 - max_map_x;
 	case RightDown:
 		if((index%max_map_x) >= max_map_x - 1)
-			return 0xFFFF;
+			return Blocked;
 		if((index / max_map_x) >= max_map_y - 1)
-			return 0xFFFF;
+			return Blocked;
 		return index + 1 + max_map_x;
 	case Center:
 		return index;
 	default:
-		return 0xFFFF;
+		return Blocked;
 	}
 }
 

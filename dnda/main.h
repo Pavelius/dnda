@@ -637,7 +637,7 @@ bool				serialize(bool writemode);
 void				set(short unsigned i, tile_s value);
 void				set(short unsigned i, tile_s value, int w, int h);
 void				set(short unsigned i, map_object_s value);
-void				set(short unsigned i, map_flag_s type, bool value);
+void				set(short unsigned i, map_flag_s type, bool value = true);
 void				set(short unsigned i, unsigned char value);
 extern areainfo		statistic;
 short unsigned		to(short unsigned index, direction_s side);
