@@ -716,7 +716,7 @@ void creature::wait(int segments) {
 
 bool creature::walkaround() {
 	if(d100() < 40) {
-		wait(xrand(2, Minute);
+		wait(xrand(2, Minute));
 		return false;
 	}
 	if(d100() < 50) {
@@ -728,11 +728,14 @@ bool creature::walkaround() {
 			if(d100() < 50)
 				skill = NoSkill;
 		}
-		if(skill)
+		if(skill) {
 			use(skill);
-		else if(spell)
+			return false;
+		}
+		if(spell) {
 			use(spell);
-		return false;
+			return false;
+		}
 	}
 	auto d = (direction_s)xrand(Left, RightDown);
 	return move(to(position, d));
