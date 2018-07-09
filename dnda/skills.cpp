@@ -6,8 +6,12 @@ static const char* talk_location[] = {"библиотеку", "ратушу", "магазин", "таверн
 static const char* talk_games[] = {"кубики", "карты", "наперстки"};
 
 void setstate(effectparam& e);
-void healdamage(effectparam& e);
 int compare_skills(const void* p1, const void* p2);
+
+static void healdamage(effectparam& e) {
+	auto damage = e.damage.max + e.skill_value / 10;
+	e.cre->heal(e.damage.roll(), true);
+}
 
 static void removetrap(effectparam& e) {
 	game::set(e.pos, NoTileObject);
@@ -110,7 +114,7 @@ static struct skill_info {
 {"Инженерное дело", "инженерии", {Intellegence, Intellegence}},
 {"Азартные игры", "азартных игр", {Charisma, Dexterity}, {{TargetFriendly, 1}, {}, {gamble, failgamble, test_gamble}, {}, 0, {}, 25}},
 {"История", "истории", {Intellegence, Intellegence}},
-{"Лечение", "лечения", {Wisdow, Intellegence}, {{TargetFriendlyWounded, 1}, {}, {healdamage}, {}, "%герой перевязал%а раны.", 5}},
+{"Лечение", "лечения", {Wisdow, Intellegence}, {{TargetFriendlyWounded, 1}, {}, {healdamage}, {}, "%герой перевязал%а раны.", {1, 3}, 5}},
 {"Грамотность", "письма и чтения", {Intellegence, Intellegence}, {{TargetItemReadable}, {}, {literacy, literacy}, {}, 0, {}, 25}},
 {"Шахтерское дело", "шахтерского дела", {Strenght, Intellegence}},
 {"Кузнечное дело", "кузнечного дела", {Strenght, Intellegence}},
