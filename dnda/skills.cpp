@@ -94,7 +94,7 @@ static struct skill_info {
 } skill_data[] = {{"Нет навыка"},
 {"Торговля", "торговли", {Charisma, Intellegence}},
 {"Блеф", "обмана", {Charisma, Dexterity}},
-{"Дипломатия", "дипломатии", {Charisma, Wisdow}, {{TargetFriendlySelf, 1}, {}, {setstate}, {Goodwill, Turn / 2}, "%герой одобрил%а предложение."}},
+{"Дипломатия", "дипломатии", {Charisma, Wisdow}, {{TargetFriendly, 1}, {}, {setstate}, {Goodwill, Turn / 2}, "%герой одобрил%а предложение."}},
 //
 {"Акробатика", "акробатики", {Dexterity, Dexterity}},
 {"Внимательность", "внимательности", {Wisdow, Dexterity}},
@@ -110,7 +110,7 @@ static struct skill_info {
 {"Инженерное дело", "инженерии", {Intellegence, Intellegence}},
 {"Азартные игры", "азартных игр", {Charisma, Dexterity}, {{TargetFriendly, 1}, {}, {gamble, failgamble, test_gamble}, {}, 0, {}, 25}},
 {"История", "истории", {Intellegence, Intellegence}},
-{"Лечение", "лечения", {Wisdow, Intellegence}, {{TargetFriendlySelf, 1}, {}, {healdamage}, {}, "%герой перевязал%а раны.", 5}},
+{"Лечение", "лечения", {Wisdow, Intellegence}, {{TargetFriendlyWounded, 1}, {}, {healdamage}, {}, "%герой перевязал%а раны.", 5}},
 {"Грамотность", "письма и чтения", {Intellegence, Intellegence}, {{TargetItemReadable}, {}, {literacy, literacy}, {}, 0, {}, 25}},
 {"Шахтерское дело", "шахтерского дела", {Strenght, Intellegence}},
 {"Кузнечное дело", "кузнечного дела", {Strenght, Intellegence}},

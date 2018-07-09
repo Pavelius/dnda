@@ -70,7 +70,7 @@ static struct spell_info {
 } spell_data[] = {{"", ""},
 {"Броня", "брони", 10, 0, {{TargetSelf}, {}, {setstate}, {Armored, 4 * Hour}, "%герой озарил%ась синим светом."}},
 {"Благословение", "благословения", 8, 0, {{TargetFriendly, 2}, {}, {setstate}, {Blessed, Turn}, "%герой озарил%ась желтым светом."}},
-{"Очаровать персону", "шарма", 13, 0, {{TargetFriendlySelf, 4}, ResistCharm, {setstate}, {Charmed, Day}, "Внезапно %герой стал%а вести себя дружелюбно."}},
+{"Очаровать персону", "шарма", 13, 0, {{TargetFriendly, 4}, ResistCharm, {setstate}, {Charmed, Day}, "Внезапно %герой стал%а вести себя дружелюбно."}},
 {"Определить зло", "определения зла", 12, 0, {{TargetInvertory}, {}, {detect_evil}, {}}},
 {"Определить магию", "определения магии", 8, 0, {{TargetInvertory}, {}, {detect_magic}, {}}},
 {"Страх", "страха", 5, 0, {{TargetHostile, 5, 2}, ResistCharm, {setstate}, {Scared, 5 * Minute}, "%герой запаниковал%а и начал%а бежать.", {}}},

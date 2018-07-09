@@ -711,6 +711,8 @@ void creature::updateweight() {
 }
 
 void creature::wait(int segments) {
+	if(!recoil)
+		recoil = segments;
 	recoil += segments;
 }
 

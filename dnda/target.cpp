@@ -8,6 +8,10 @@ static bool friendly(const creature& player, const creature* opponent) {
 	return !player.isenemy(opponent);
 }
 
+static bool wounded_friendly(const creature& player, const creature* opponent) {
+	return !player.isenemy(opponent) && player.gethits() < player.getmaxhits();
+}
+
 static bool enemy(const creature& player, const creature* opponent) {
 	return player.isenemy(opponent);
 }
@@ -76,13 +80,13 @@ static struct target_info {
 	const char*		name;
 	callback		proc;
 	bool			self_only;
-	bool			exclude_self;
+	bool			include_self;
 	bool			target_all_match;
 } target_data[] = {{"Нет"},
 //
 {"Вы", you, true},
 {"Союзник", friendly},
-{"Вы или Союзник", friendly, false, true},
+{"Раненный союзник", wounded_friendly, false, true},
 {"Враг", enemy},
 //
 {"Неопознанный предмет", undefined_item},
@@ -141,7 +145,7 @@ bool targetdesc::isallow(const creature& player, aref<creature*> creatures) cons
 		if(e.self_only)
 			return true;
 		creature* source[1];
-		if(player.select(source, creatures, target, range, player.position, e.exclude_self ? &player : 0))
+		if(player.select(source, creatures, target, range, player.position, e.include_self ? 0 : &player))
 			return true;
 	} else if(e.proc.itm) {
 		item* source[1];
@@ -324,7 +328,7 @@ int effectparam::apply(const char* format, const char* format_param) {
 		creature* source_data[256];
 		auto source = player.select(source_data, creatures,
 			type.target, type.range, player.position,
-			ti.exclude_self ? &player : 0);
+			ti.include_self ? 0 : &player);
 		if(ti.target_all_match) {
 			for(auto p : source) {
 				cre = p;
