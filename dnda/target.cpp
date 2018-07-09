@@ -76,7 +76,7 @@ static struct target_info {
 	const char*		name;
 	callback		proc;
 	bool			self_only;
-	bool			include_self;
+	bool			exclude_self;
 	bool			target_all_match;
 } target_data[] = {{"Нет"},
 //
@@ -141,7 +141,7 @@ bool targetdesc::isallow(const creature& player, aref<creature*> creatures) cons
 		if(e.self_only)
 			return true;
 		creature* source[1];
-		if(player.select(source, creatures, target, range, player.position, e.include_self ? 0 : &player))
+		if(player.select(source, creatures, target, range, player.position, e.exclude_self ? &player : 0))
 			return true;
 	} else if(e.proc.itm) {
 		item* source[1];
@@ -324,7 +324,7 @@ int effectparam::apply(const char* format, const char* format_param) {
 		creature* source_data[256];
 		auto source = player.select(source_data, creatures,
 			type.target, type.range, player.position,
-			ti.include_self ? 0 : &player);
+			ti.exclude_self ? &player : 0);
 		if(ti.target_all_match) {
 			for(auto p : source) {
 				cre = p;

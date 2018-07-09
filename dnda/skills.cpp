@@ -60,16 +60,14 @@ static bool test_gamble(effectparam& e) {
 		e.cre->say("Нет. Я на мели. В другой раз.");
 		return false;
 	}
+	e.skill_bonus = -e.cre->get(Gambling) / 2;
 	return true;
 }
 
 static void gamble(effectparam& e) {
 	e.player.money += e.param;
 	e.cre->money -= e.param;
-	if(e.player.isplayer())
-		e.player.act("%герой выиграл%а [+%1i] монет.", e.param);
-	if(e.cre->isplayer())
-		e.cre->act("%герой проиграл%а [-%1i] монет.", e.param);
+	e.cre->act("%герой проиграл%а [%1i] монет.", e.param);
 }
 
 static void failskill(effectparam& e) {
@@ -83,10 +81,7 @@ static void failskill(effectparam& e) {
 static void failgamble(effectparam& e) {
 	e.player.money -= e.param;
 	e.cre->money += e.param;
-	if(e.player.isplayer())
-		logs::add("Ты проиграл [-%1i] монет.", e.param);
-	if(e.cre->isplayer())
-		logs::add("Ты выиграл [+%1i] монет.", e.param);
+	e.player.act("%герой проиграл%а [%1i] монет.", e.param);
 }
 
 static struct skill_info {
@@ -109,11 +104,11 @@ static struct skill_info {
 {"Слышать звуки", "слуха", {Wisdow, Intellegence}},
 {"Прятаться в тени", "скрытности", {Dexterity, Dexterity}, {{TargetSelf}, {}, {setstate}, {Hiding, Turn / 2}, "%герой внезапно изчез%ла из поля зрения."}},
 {"Открыть замок", "взлома", {Dexterity, Intellegence}, {{TargetDoorSealed, 1}, {}, {removelock}, {}, "%герой вскрыл%а замок.", {}, 50}},
-{"Очистить карманы", "воровства", {Dexterity, Charisma}, {{TargetFriendlySelf, 1}, {}, {pickpockets, 0, test_pickpockets}, {}, 0, {}, 25}},
+{"Очистить карманы", "воровства", {Dexterity, Charisma}, {{TargetFriendly, 1}, {}, {pickpockets, 0, test_pickpockets}, {}, 0, {}, 25}},
 {"Алхимия", "алхимии", {Intellegence, Intellegence}},
 {"Танцы", "танцев", {Dexterity, Charisma}, {{TargetSelf}, {}, {dance}, {}, "%герой станевал%а отличный танец.", {}, 10}},
 {"Инженерное дело", "инженерии", {Intellegence, Intellegence}},
-{"Азартные игры", "азартных игр", {Charisma, Dexterity}, {{TargetFriendlySelf, 1}, {}, {gamble, failgamble, test_gamble}, {}, 0, {}, 25}},
+{"Азартные игры", "азартных игр", {Charisma, Dexterity}, {{TargetFriendly, 1}, {}, {gamble, failgamble, test_gamble}, {}, 0, {}, 25}},
 {"История", "истории", {Intellegence, Intellegence}},
 {"Лечение", "лечения", {Wisdow, Intellegence}, {{TargetFriendlySelf, 1}, {}, {healdamage}, {}, "%герой перевязал%а раны.", 5}},
 {"Грамотность", "письма и чтения", {Intellegence, Intellegence}, {{TargetItemReadable}, {}, {literacy, literacy}, {}, 0, {}, 25}},
