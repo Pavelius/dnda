@@ -1541,21 +1541,29 @@ static void character_read(creature& e) {
 	e.use(Literacy);
 }
 
+int compare_manual(const void* p1, const void* p2) {
+	auto e1 = *((manual**)p1);
+	auto e2 = *((manual**)p2);
+	auto n1 = e1->value.getname();
+	auto n2 = e2->value.getname();
+	return strcmp(n1, n2);
+}
+
 static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 	const int width = 520;
 	const int height = 464;
 	const int dy = 20;
 	auto index = e.position;
 	unsigned current_index;
+	adat<manual*, 64> source;
 	while(true) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = padding * 3;
 		point camera = getcamera(game::getx(index), game::gety(index));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, element.value.getname());
-		if(element.text) {
+		if(element.text)
 			y += draw::textf(x, y, width, element.text) + metrics::padding;
-		}
 		if(element.child) {
 			for(auto p = element.child; *p; p++) {
 				if(p->type != Element)
@@ -1573,10 +1581,15 @@ static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 				y += draw::textf(x, y, width, sc.result) + metrics::padding;
 		}
 		current_index = 0;
+		source.clear();
 		if(element.child) {
 			for(auto p = element.child; *p; p++) {
 				if(p->type != Header)
 					continue;
+				source.add(p);
+			}
+			qsort(source.data, source.getcount(), sizeof(source.data[0]), compare_manual);
+			for(auto p : source) {
 				auto x1 = shortcut(x, y, 32, current_index++);
 				y += draw::textf(x1, y, width - 32, p->value.getname());
 			}
@@ -1588,7 +1601,7 @@ static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 			return;
 		default:
 			if(getkey(id, current_index))
-				view_manual(e, sc, element.child[id]);
+				view_manual(e, sc, *source.data[id]);
 			break;
 		}
 	}

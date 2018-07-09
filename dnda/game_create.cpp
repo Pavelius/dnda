@@ -208,11 +208,10 @@ static creature* create_bartender(location& e, short unsigned index) {
 	return e.owner;
 }
 
-static creature* create_monster(short unsigned index) {
+static void create_monster(short unsigned index) {
 	static role_s monsters[] = {GoblinWarrior, OrcWarrior, GiantRat, Skeleton, Zombie};
-	if(creature::isbooming())
-		return 0;
-	return game::add(index, new creature((role_s)(maprnd(monsters))));
+	if(!creature::isbooming())
+		game::add(index, new creature((role_s)(maprnd(monsters))));
 }
 
 static creature* create_priest(location& e, short unsigned index) {
@@ -503,25 +502,24 @@ static void create_dungeon_item(short unsigned index) {
 	create_item(index, random(slots_weapons_armor), statistic.level, false);
 }
 
+static void create_trap(short unsigned index) {
+	set(index, Trap);
+	set(index, Hidden, true);
+}
+
+static void create_treasure(short unsigned index) {
+	create_item(index, Coin, 1, false);
+}
+
 static void create_corridor_content(short unsigned index) {
-	switch((corridor_content_s)xrand(0, DungeonTrap)) {
-	case DungeonTrap:
-		set(index, Trap);
-		//set(index, Hidden, true);
-		break;
-	case DungeonTreasure:
-		create_item(index, Coin, 1, false);
-		break;
-	case DungeonDoor:
-		create_door(index);
-		break;
-	case DungeonMonster:
-		create_monster(index);
-		break;
-	case DungeonItem:
-		create_dungeon_item(index);
-		break;
-	}
+	typedef void(*proc)(short unsigned index);
+	proc chances[] = {create_trap,
+		create_treasure, create_treasure,
+		create_door,
+		create_monster, create_monster, create_monster, create_monster,
+		create_dungeon_item, create_dungeon_item,
+	};
+	maprnd(chances)(index);
 }
 
 static void create_corridor(short unsigned index, direction_s dir) {
