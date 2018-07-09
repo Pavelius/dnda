@@ -716,11 +716,11 @@ void creature::wait(int segments) {
 
 bool creature::walkaround() {
 	if(d100() < 40) {
-		wait(xrand(2, Minute));
+		wait(xrand(1, Minute/2));
 		return false;
 	}
 	// When we try to stand and think
-	if(d100() < 50) {
+	if(d100() < 40) {
 		creature* creature_data[256];
 		auto creatures = getcreatures(creature_data, position, getlos());
 		auto skill = aiskill(creatures);
@@ -754,11 +754,9 @@ void creature::trapeffect() {
 		return;
 	if(isparty(current_player))
 		game::set(position, Hidden, false);
-	if(get(Acrobatics)) {
-		if(roll(Acrobatics)) {
-			hint("%герой успешно обош%ла ловушку.");
-			return;
-		}
+	if(roll(Acrobatics)) {
+		hint("%герой успешно обош%ла ловушку.");
+		return;
 	}
 	auto a = game::getattackinfo(trap);
 	damage(a.damage.roll(), a.damage.type, true);
