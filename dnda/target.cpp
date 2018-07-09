@@ -44,6 +44,10 @@ static bool visible_trap(const creature& player, short unsigned index) {
 	return !game::ishidden(index) && game::gettrap(index) != NoTrap;
 }
 
+static bool any_door(const creature& player, short unsigned index) {
+	return game::getobject(index) == Door;
+}
+
 static bool door(const creature& player, short unsigned index) {
 	return game::getobject(index) == Door && !game::isseal(index);
 }
@@ -99,7 +103,7 @@ static struct target_info {
 {"Все предметы из инвентаря", any_item, false, false, true},
 //
 {"Объект", any_object},
-{"Дверь", door},
+{"Дверь", any_door},
 {"Закрытая дверь", door_locked},
 {"Скрытый объект", hidden_object},
 {"Ловушка", visible_trap},

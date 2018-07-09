@@ -13,7 +13,7 @@ enum corridor_content_s {
 const int chance_generate_room = 40;
 const int chance_special_area = 5;
 const int chance_corridor_content = 10;
-const int chance_door_closed = 10;
+const int chance_door_closed = 30;
 const int dense_forest = 15;
 const int max_building_size = 15;
 extern tile_s location_type;

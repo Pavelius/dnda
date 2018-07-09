@@ -17,6 +17,15 @@ static void removetrap(effectparam& e) {
 	game::set(e.pos, NoTileObject);
 }
 
+static bool testbash(effectparam& e) {
+	e.skill_bonus = -20;
+	return true;
+}
+
+static void bashdoor(effectparam& e) {
+	game::set(e.pos, NoTileObject);
+}
+
 static void removelock(effectparam& e) {
 	game::set(e.pos, Sealed, false);
 }
@@ -102,7 +111,7 @@ static struct skill_info {
 //
 {"Акробатика", "акробатики", {Dexterity, Dexterity}},
 {"Внимательность", "внимательности", {Wisdow, Dexterity}},
-{"Атлетика", "атлетики", {Strenght, Dexterity}},
+{"Атлетика", "атлетики", {Strenght, Dexterity}, {{TargetDoor, 1}, {}, {bashdoor, 0, testbash}, {}, "%герой разнес%ла двери в щепки.", {}, 20}},
 {"Концентрация", "концетрации", {Wisdow, Constitution}},
 {"Обезвредить ловушки", "ловушек", {Dexterity, Intellegence}, {{TargetTrap, 1}, {}, {removetrap}, {}, "%герой обезвредил%а ловушку.", {}, 30}},
 {"Слышать звуки", "слуха", {Wisdow, Intellegence}},
