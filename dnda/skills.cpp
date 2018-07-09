@@ -192,7 +192,7 @@ skill_s creature::aiskill(aref<creature*> creatures) {
 	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
 		if(!skills[i])
 			continue;
-		if(skill_data[i].effect.type.target == NoTarget)
+		if(!skill_data[i].effect.type.iscreature())
 			continue;
 		if(!skill_data[i].effect.type.isallow(*this, creatures))
 			continue;

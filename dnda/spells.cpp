@@ -146,7 +146,7 @@ spell_s creature::aispell(aref<creature*> creatures) {
 	for(auto i = (spell_s)1; i <= LastSpell; i = (spell_s)(i + 1)) {
 		if(!spells[i])
 			continue;
-		if(spell_data[i].effect.type.target == NoTarget)
+		if(spell_data[i].effect.type.iscreature())
 			continue;
 		if(getcost(i) > mana)
 			continue;

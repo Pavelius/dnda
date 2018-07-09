@@ -715,16 +715,22 @@ void creature::wait(int segments) {
 }
 
 bool creature::walkaround() {
-	if(d100() < 40)
+	if(d100() < 40) {
+		wait(xrand(2, Minute);
 		return false;
+	}
 	if(d100() < 50) {
 		creature* creature_data[256];
 		auto creatures = getcreatures(creature_data, position, getlos());
 		auto skill = aiskill(creatures);
+		auto spell = aispell(creatures);
+		if(skill && spell) {
+			if(d100() < 50)
+				skill = NoSkill;
+		}
 		if(skill)
 			use(skill);
-		auto spell = aiskill(creatures);
-		if(spell)
+		else if(spell)
 			use(spell);
 		return false;
 	}

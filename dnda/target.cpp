@@ -127,6 +127,10 @@ static bool islos(int x0, int y0, int x1, int y1) {
 	}
 }
 
+bool targetdesc::iscreature() const {
+	return target_data[target].proc.cre!=0;
+}
+
 bool targetdesc::isallow(const creature& player, aref<creature*> creatures) const {
 	auto& e = target_data[target];
 	if(e.proc.cre) {
