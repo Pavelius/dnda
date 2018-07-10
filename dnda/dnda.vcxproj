@@ -151,7 +151,6 @@
     <ClCompile Include="creature.cpp" />
     <ClCompile Include="dialog.cpp" />
     <ClCompile Include="crt.cpp" />
-    <ClCompile Include="crt_memory.cpp" />
     <ClCompile Include="crt_parse.cpp" />
     <ClCompile Include="draw.cpp" />
     <ClCompile Include="draw_input.cpp" />
@@ -179,6 +178,7 @@
     <ClCompile Include="state.cpp" />
     <ClCompile Include="stringcreator.cpp" />
     <ClCompile Include="surface.cpp" />
+    <ClCompile Include="szdup.cpp" />
     <ClCompile Include="target.cpp" />
     <ClCompile Include="tile.cpp" />
     <ClCompile Include="traps.cpp" />

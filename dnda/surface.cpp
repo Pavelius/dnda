@@ -23,6 +23,8 @@ draw::surface::~surface() {
 	resize(0, 0, 0, true);
 }
 
+extern "C" void*	realloc(void *ptr, unsigned size);
+
 void draw::surface::resize(int width, int height, int bpp, bool alloc_memory) {
 	if(this->width == width && this->height == height && this->bpp == bpp)
 		return;
@@ -33,7 +35,7 @@ void draw::surface::resize(int width, int height, int bpp, bool alloc_memory) {
 	if(width) {
 		unsigned size = (height + 1)*scanline;
 		if(alloc_memory)
-			bits = (unsigned char*)rmreserve(bits, size);
+			bits = (unsigned char*)realloc(bits, size);
 	} else {
 		delete bits;
 		bits = 0;

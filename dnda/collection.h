@@ -1,5 +1,7 @@
 #include "initializer_list.h"
 
+extern "C" void*			realloc(void *ptr, unsigned size);
+
 #pragma once
 
 // Abstract collection
@@ -67,6 +69,30 @@ template<class T> struct aref {
 	int						indexof(const T t) const { for(unsigned i = 0; i < count; i++) if(data[i] == t) return i; return -1; }
 	bool					is(const T value) const { return indexof(value) != -1; }
 	void					remove(int index, int elements_count = 1) { if(index < 0 || index >= count) return; count -= elements_count; if(index >= count) return; memmove(data + index, data + index + elements_count, sizeof(data[0])*(count - index)); }
+};
+//
+template<class T> struct avec : aref<T> {
+	constexpr avec() : aref<T>(0, 0), count_max() {}
+	constexpr avec(avec&& that) : count_max(that.count_max) { data = that.data; count = that.count; that.data = 0; that.count = 0; that.count_max = 0; }
+	~avec() { this->clear(); if(this->data) delete[] this->data; this->data = 0; }
+	T* add() {
+		if(this->count < count_max)
+			return aref<T>::add();
+		if(!count_max) {
+			count_max = 256;
+			this->data = new T[count_max];
+		} else {
+			if(count_max < 256 * 256 * 4)
+				count_max = count_max * 2;
+			else
+				count_max += 256 * 256 * 4;
+			this->data = (T*)realloc(this->data, count_max * sizeof(T));
+		}
+		return aref<T>::add();
+	}
+	void add(const T& e) { *add() = e; }
+private:
+	unsigned				count_max;
 };
 // Abstract flag data bazed on enumerator
 template<typename T, typename DT = unsigned> class cflags {

@@ -52,9 +52,11 @@ const unsigned char	dialog_alpha = 200;
 const int			padding = 8;
 static point		viewport;
 static char			state_message[1024];
+static const char*	p_message = state_message;
 static hotkey*		gethotkey(int id);
 static int			answers[9];
 static bool			show_gui_panel = true;
+static avec<const char*> messages;
 
 namespace colors {
 color				fow = color::create(10, 10, 10);
@@ -62,6 +64,7 @@ color				fow = color::create(10, 10, 10);
 
 static void clear_state() {
 	state_message[0] = 0;
+	p_message = state_message;
 	current_key_index = 0;
 }
 
@@ -84,7 +87,7 @@ void logs::add(int id, const char* format, ...) {
 }
 
 void logs::addvnc(stringcreator& sc, const char* format, const char* vl) {
-	char* p = zend(state_message);
+	auto p = zend(state_message);
 	if(p == state_message)
 		format = zskipspcr(format);
 	if(format[0] == 0)
@@ -104,9 +107,11 @@ void logs::addvnc(stringcreator& sc, const char* format, const char* vl) {
 
 void logs::addv(stringcreator& sc, const char* format, const char* vl) {
 	addvnc(sc, format, vl);
+	messages.add(szdup(p_message));
 	auto p = zend(state_message);
 	if(p > (state_message + sizeof(state_message) - 260))
 		logs::next();
+	p_message = p;
 }
 
 void logs::addv(const char* format, const char* vl) {
@@ -1609,6 +1614,26 @@ static void character_manual(creature& e) {
 	view_manual(e, sc, manual_main);
 }
 
+static void character_logs(creature& e) {
+	const int width = 700;
+	const int height = 464;
+	const int dy = 20;
+	while(true) {
+		int x = (draw::getwidth() - width) / 2;
+		int y = padding * 3;
+		point camera = getcamera(game::getx(e.position), game::gety(e.position));
+		view_zone(&e, camera);
+		y += view_dialog({x, y, x + width, y + height}, "Сообщения");
+		for(auto m : messages)
+			y += draw::textf(x, y, width, m) + 4;
+		auto id = draw::input();
+		switch(id) {
+		case KeyEscape:
+			return;
+		}
+	}
+}
+
 static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {KeyHome, "Двигаться вверх и влево"},
 {KeyEnd, "Двигаться вниз и влево"},
@@ -1642,6 +1667,7 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {Alpha + 'E', "Съесть что-то", character_eat},
 {Ctrl + Alpha + 'R', "Прочитать что-то", character_read},
 {Ctrl + Alpha + 'M', "Открыть мануал", character_manual},
+{Ctrl + Alpha + 'L', "Просмотр сообщений", character_logs},
 };
 
 int compare_hotkey(const void* p1, const void* p2) {

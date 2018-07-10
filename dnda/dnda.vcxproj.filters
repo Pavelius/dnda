@@ -72,9 +72,6 @@
     <ClCompile Include="crt.cpp">
       <Filter>runtime</Filter>
     </ClCompile>
-    <ClCompile Include="crt_memory.cpp">
-      <Filter>runtime</Filter>
-    </ClCompile>
     <ClCompile Include="crt_parse.cpp">
       <Filter>runtime</Filter>
     </ClCompile>
@@ -200,6 +197,9 @@
     </ClCompile>
     <ClCompile Include="variant.cpp">
       <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="szdup.cpp">
+      <Filter>string</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

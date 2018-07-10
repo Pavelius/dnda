@@ -446,6 +446,7 @@ void creature::clear() {
 	memset(this, 0, sizeof(creature));
 	position = Blocked;
 	guard = Blocked;
+	order.move = Blocked;
 	role = Character;
 }
 
@@ -875,14 +876,14 @@ void creature::makemove() {
 			walkaround();
 		else
 			moveto(party->position);
-	} else if(order.move != Blocked)
-		moveto(order.move);
-	else if(order.skill) {
-		use(order.skill);
-		order.skill = NoSkill;
-	} else if(order.spell) {
-		use(order.spell);
-		order.spell = NoSpell;
+	//} else if(order.move != Blocked)
+	//	moveto(order.move);
+	//else if(order.skill) {
+	//	use(order.skill);
+	//	order.skill = NoSkill;
+	//} else if(order.spell) {
+	//	use(order.spell);
+	//	order.spell = NoSpell;
 	} else
 		walkaround();
 }
@@ -1549,16 +1550,16 @@ void creature::lookfloor() {
 	auto count = game::getitems(source, sizeof(source) / sizeof(source[0]), position);
 	if(!count)
 		return;
-	logs::add("«десь ");
+	logs::addnc("«десь ");
 	if(count > 1)
-		logs::add("лежат ");
+		logs::addnc("лежат ");
 	else
-		logs::add("лежит ");
+		logs::addnc("лежит ");
 	for(int i = 0; i < count; i++) {
 		if(i != 0)
-			logs::add(" и ");
+			logs::addnc(" и ");
 		char temp[260];
-		logs::add(source[i]->getname(temp, zendof(temp), true));
+		logs::addnc(source[i]->getname(temp, zendof(temp), true));
 	}
 	logs::add(".");
 }
