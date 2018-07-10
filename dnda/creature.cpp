@@ -479,8 +479,8 @@ int creature::getdefence() const {
 	result += wears[Legs].getdefence();
 	result += wears[Melee].getdefence();
 	result += wears[OffHand].getdefence() + (wears[OffHand].isarmor() ? wears[Torso].getquality() * 5 : 0);
-	result += wears[LeftFinger].getbonus(OfDefence)*5;
-	result += wears[RightFinger].getbonus(OfDefence)*5;
+	result += wears[LeftFinger].getbonus(OfDefence) * 5;
+	result += wears[RightFinger].getbonus(OfDefence) * 5;
 	result += get(Acrobatics) / 4; // RULE: Acrobatics raise defence by +1% for every 4% or 1% for every 2 points of dexterity
 	if(is(Shielded))
 		result += 30;
@@ -718,7 +718,7 @@ void creature::wait(int segments) {
 
 bool creature::walkaround() {
 	if(d100() < 40) {
-		wait(xrand(1, Minute/2));
+		wait(xrand(1, Minute / 2));
 		return false;
 	}
 	// When we try to stand and think
@@ -826,6 +826,8 @@ bool creature::move(short unsigned i) {
 }
 
 bool creature::moveto(short unsigned index) {
+	if(index == position)
+		return false;
 	if(distance(position, index) > 1) {
 		makewave(index);
 		index = getstepto(position);
@@ -847,6 +849,8 @@ bool creature::moveaway(short unsigned index) {
 }
 
 void creature::makemove() {
+	if(order.move == position)
+		order.move = Blocked;
 	// RULE: sleeped creature don't move
 	if(is(Sleeped))
 		return;
@@ -871,6 +875,14 @@ void creature::makemove() {
 			walkaround();
 		else
 			moveto(party->position);
+	} else if(order.move != Blocked)
+		moveto(order.move);
+	else if(order.skill) {
+		use(order.skill);
+		order.skill = NoSkill;
+	} else if(order.spell) {
+		use(order.spell);
+		order.spell = NoSpell;
 	} else
 		walkaround();
 }

@@ -297,7 +297,8 @@ struct effectparam : effectinfo {
 		effectinfo(effect_param), player(player), interactive(interactive),
 		cre(0), itm(0), pos(Blocked),
 		param(0), level(1), creatures(p_creatures),
-		skill_roll(0), skill_value(0), skill_bonus(0) {}
+		skill_roll(0), skill_value(0), skill_bonus(0) {
+	}
 	int				apply(const char* format, const char* format_param);
 	bool			applyfull();
 	bool			saving() const;
@@ -402,6 +403,12 @@ struct attackinfo {
 	char			quality;
 	item*			weapon;
 };
+struct command {
+	unsigned short	move;
+	skill_s			skill;
+	spell_s			spell;
+	constexpr command() : move(Blocked), skill(NoSkill), spell(NoSpell) {}
+};
 struct creature {
 	race_s			race;
 	class_s			type;
@@ -483,7 +490,6 @@ struct creature {
 	static const char* getname(tile_s id);
 	static const char* getname(state_s id, bool cursed);
 	static const char* getname(skill_s id);
-	//creature*		getnearest(targetdesc ti) const;
 	creature*		getparty() const;
 	static creature* getplayer();
 	short unsigned	getposition() const { return position; }
@@ -561,6 +567,7 @@ private:
 	unsigned		recoil;
 	creature*		party;
 	encumbrance_s	encumbrance;
+	command			order;
 	//
 	static bool		playturn();
 	void			updateweight();
@@ -590,7 +597,7 @@ struct manual {
 	const char*		text;
 	manual*			child;
 	aref<proc>		procs;
-	explicit operator bool() const { return value.type!=0; }
+	explicit operator bool() const { return value.type != 0; }
 };
 namespace game {
 creature*			add(short unsigned index, creature* element);
