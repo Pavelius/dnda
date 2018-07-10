@@ -107,7 +107,7 @@ void logs::addvnc(stringcreator& sc, const char* format, const char* vl) {
 
 void logs::addv(stringcreator& sc, const char* format, const char* vl) {
 	addvnc(sc, format, vl);
-	messages.add(szdup(p_message));
+	messages.add(szdup(zskipspcr(p_message)));
 	auto p = zend(state_message);
 	if(p > (state_message + sizeof(state_message) - 260))
 		logs::next();
@@ -1615,21 +1615,33 @@ static void character_manual(creature& e) {
 }
 
 static void character_logs(creature& e) {
-	const int width = 700;
+	const int width = 520;
 	const int height = 464;
 	const int dy = 20;
+	const int pixel_per_line = draw::texth();
+	const int lines_per_screen = height / pixel_per_line;
+	int index = messages.count - lines_per_screen + 2;
 	while(true) {
-		int x = (draw::getwidth() - width) / 2;
-		int y = padding * 3;
+		if(index >= (int)messages.count)
+			index = messages.count - 1;
+		if(index < 0)
+			index = 0;
+		auto x = (draw::getwidth() - width) / 2;
+		auto y = padding * 3;
+		auto y0 = y;
 		point camera = getcamera(game::getx(e.position), game::gety(e.position));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, "Сообщения");
-		for(auto m : messages)
-			y += draw::textf(x, y, width, m) + 4;
+		for(unsigned i = index; i < messages.count && y < y0 + height; i++)
+			y += draw::textf(x, y, width, messages[i]);
 		auto id = draw::input();
 		switch(id) {
 		case KeyEscape:
 			return;
+		case KeyUp: index--; break;
+		case KeyDown: index++; break;
+		case KeyPageDown: index += lines_per_screen - 2; break;
+		case KeyPageUp: index -= lines_per_screen - 2; break;
 		}
 	}
 }
