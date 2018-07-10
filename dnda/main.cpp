@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 
 	p1->equip(item(Book1, 4, 20, 20, 40));
 	p1->equip(Repair);
-	p1->equip(item(PotionRed, Magical, (enchantment_s)Experience));
+	p1->equip(item(PotionRed, Mundane, (enchantment_s)Experience));
 	p1->equip(DetectMagic);
 	p1->equip(DoorKey);
 	p1->equip(Apple);
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 	p3->equip(Arrow);
 	p3->equip(item(SwordLong, Artifact, OfStrenght));
 	p3->equip(item(Dagger, Cursed, OfDexterity));
-	p3->equip(item(BracersLeather, Magical, OfDefence));
+	p3->equip(item(BracersLeather, Mundane, OfDefence));
 
 	//for(int i=0; i<6; i++)
 	//	add(get(14, 14), new creature(GoblinWarrior));

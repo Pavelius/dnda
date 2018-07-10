@@ -180,7 +180,7 @@ enum identify_s : unsigned char {
 	Unknown, KnowQuality, KnowEffect, KnowHistory
 };
 enum item_type_s : unsigned char {
-	Mundane, Cursed, Magical, Artifact,
+	Mundane, Cursed, BlessedItem, Artifact,
 };
 enum attack_s : unsigned char {
 	Bludgeon, Slashing, Piercing,

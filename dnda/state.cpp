@@ -69,19 +69,12 @@ ability_s get_state_ability(state_s id) {
 	}
 }
 
-void creature::apply(state_s state, item_type_s magic, int quality_raw, unsigned duration, bool interactive) {
+void creature::apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive) {
+	// Quality would be from 1 to 6 or from -1 to -4
 	static damageinfo healing[] = {{1, 5}, {5, 10}, {10, 20}, {15, 30}, {20, 40}, {30, 50}, {40, 60}};
-	int quality = quality_raw + 1; // this get quality 1-4
-	bool iscursed = (magic == Cursed);
 	bool isartifact = (magic == Artifact);
-	switch(magic) {
-	case Cursed: quality = -quality; break;
-	case Magical: quality = quality + 1; break; // this would be 2-5
-	case Artifact: quality = quality + 2; break; // this would be 3-6
-	default: break;
-	}
-	if(!iscursed)
-		duration = duration * quality;
+	if(quality>0)
+		duration *= quality;
 	switch(state) {
 	case Strenghted:
 	case Dexterious:
@@ -91,32 +84,32 @@ void creature::apply(state_s state, item_type_s magic, int quality_raw, unsigned
 	case Charismatic:
 		if(true) {
 			auto ability = get_state_ability(state);
-			if(iscursed) {
+			if(quality<0) {
 				abilities[ability] += quality;
 				if(abilities[ability] < 1)
 					abilities[ability] = 1;
 			} else if(isartifact)
-				abilities[ability] += quality;
+				abilities[ability] += (quality-2); // This would be from 3-6, so effect would be from 1 to 3
 			else
 				set(state, duration + duration / 2);
 		}
 		break;
 	case HealState:
-		if(!iscursed) {
-			auto dice = maptbl(healing, quality-1);
+		if(quality<0) {
+			auto dice = maptbl(healing, -quality);
+			damage(dice.roll(), Magic, false);
+		} else {
+			auto dice = maptbl(healing, quality);
 			if(isartifact) // Artifact permanently add health maximum
 				mhp += xrand(2, 8);
 			heal(dice.roll(), false);
-		} else {
-			auto dice = maptbl(healing, -(quality-1));
-			damage(dice.roll(), Magic, false);
 		}
 		break;
 	case Experience:
-		addexp(quality * 1000);
+		addexp(1000 * quality);
 		break;
 	default:
-		if(iscursed && state_data[state].cursed_state)
+		if(quality<0 && state_data[state].cursed_state)
 			set(state_data[state].cursed_state, duration);
 		else
 			set(state, duration);
@@ -137,6 +130,6 @@ void creature::drink(item& it, bool interactive) {
 	else
 		hint(" и почувствовал%а себя %1", getname(state, false));
 	act(".");
-	apply(state, it.getmagic(), it.getqualityraw(), Hour, interactive);
+	apply(state, it.getmagic(), it.getquality(), Hour, interactive);
 	it.clear();
 }

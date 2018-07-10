@@ -223,10 +223,12 @@ item::item(item_s type, int chance_artifact, int chance_magic, int chance_cursed
 	// Chance item to be magical
 	if(d100() < chance_artifact)
 		magic = Artifact;
-	else if(d100() < chance_magic)
-		magic = Magical;
-	else if(d100() < chance_cursed)
-		magic = Cursed;
+	else if(d100() < chance_cursed) {
+		if(d100()<50)
+			magic = BlessedItem;
+		else
+			magic = Cursed;
+	}
 	else
 		magic = Mundane;
 	// Quality depend on level
@@ -242,11 +244,11 @@ item::item(item_s type, int chance_artifact, int chance_magic, int chance_cursed
 	// Several effect types
 	switch(item_data[type].magic.type) {
 	case effectlist::Echantments:
-		if(magic != Mundane)
+		if(d100()<chance_magic)
 			effect = item_data[type].magic.effects.data[rand() % item_data[type].magic.effects.count];
 		break;
 	case effectlist::Spells:
-		if((is(Melee) && magic != Mundane) || !is(Melee))
+		if((is(Melee) && (d100()<chance_magic)) || !is(Melee))
 			effect = (enchantment_s)item_data[type].magic.spells.data[rand() % item_data[type].magic.spells.count];
 		break;
 	case effectlist::States:
@@ -299,11 +301,12 @@ void item::get(attackinfo& e) const {
 }
 
 int item::getquality() const {
+	auto e = effect ? 1 : 0;
 	switch(magic) {
-	case Cursed: return -(quality + 1 + damaged);
-	case Magical: return quality + 1 - damaged;
-	case Artifact: return quality + 2 - damaged;
-	default: return quality - damaged;
+	case Cursed: return -(quality + 0 + e) - damaged;
+	case BlessedItem: return (quality + 1 + e) - damaged;
+	case Artifact: return (quality + 2 + e) - damaged;
+	default: return (quality + 0 + e) - damaged;
 	}
 }
 

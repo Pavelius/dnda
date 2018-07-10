@@ -166,7 +166,7 @@ static int textl(int x, int y, int width, item& value) {
 		switch(value.getmagic()) {
 		case Artifact: draw::fore = draw::fore.mix(colors::yellow, 128); break;
 		case Cursed: draw::fore = draw::fore.mix(colors::red, 128); break;
-		case Magical: draw::fore = draw::fore.mix(colors::blue, 128); break;
+		case BlessedItem: draw::fore = draw::fore.mix(colors::green, 128); break;
 		}
 		break;
 		//case Unknown:
