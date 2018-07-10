@@ -108,7 +108,7 @@ enum state_s : unsigned char {
 	Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic,
 	LastState = Charismatic,
 	// Instant effects
-	Experience, HealState, RemoveSick, RemovePoison,
+	Experience, RestoreHits, RestoreMana, RemoveSick, RemovePoison,
 	LastEffectState = RemovePoison,
 };
 enum tile_s : unsigned char {

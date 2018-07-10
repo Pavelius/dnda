@@ -1393,8 +1393,11 @@ void creature::remove(state_s value) {
 
 void creature::set(state_s value, unsigned segments_count, bool after_recoil) {
 	switch(value) {
-	case HealState:
+	case RestoreHits:
 		heal(xrand(10, 20), false);
+		break;
+	case RestoreMana:
+		consume(xrand(8, 16), false);
 		break;
 	case RemovePoison:
 		remove(Poisoned);

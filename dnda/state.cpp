@@ -31,6 +31,7 @@ static struct state_info {
 {"Красивый", "красоты", "красивее", NoState},
 //
 {"Опыт", "опыта", "опытнее", Sick},
+{"Мана", "маны", "насыщеннее маной", Sick},
 {"Лечение", "лечения", "здоровее", Sick},
 {"Исцелить болезнь", "исцеления болезни", "здоровее", Sick},
 {"Исцелить яд", "противоядия", "здоровее", Poisoned},
@@ -71,7 +72,8 @@ ability_s get_state_ability(state_s id) {
 
 void creature::apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive) {
 	// Quality would be from 1 to 6 or from -1 to -4
-	static damageinfo healing[] = {{1, 5}, {5, 10}, {10, 20}, {15, 30}, {20, 40}, {30, 50}, {40, 60}};
+	static damageinfo restore_hits[] = {{1, 5}, {5, 10}, {10, 20}, {15, 30}, {20, 40}, {30, 50}, {40, 60}};
+	static damageinfo restore_mana[] = {{1, 3}, {4, 8}, {8, 16}, {12, 24}, {16, 32}, {20, 40}, {24, 48}};
 	bool isartifact = (magic == Artifact);
 	if(quality>0)
 		duration *= quality;
@@ -94,15 +96,26 @@ void creature::apply(state_s state, item_type_s magic, int quality, unsigned dur
 				set(state, duration + duration / 2);
 		}
 		break;
-	case HealState:
+	case RestoreHits:
 		if(quality<0) {
-			auto dice = maptbl(healing, -quality);
+			auto dice = maptbl(restore_hits, -quality);
 			damage(dice.roll(), Magic, false);
 		} else {
-			auto dice = maptbl(healing, quality);
+			auto dice = maptbl(restore_hits, quality);
 			if(isartifact) // Artifact permanently add health maximum
 				mhp += xrand(2, 8);
 			heal(dice.roll(), false);
+		}
+		break;
+	case RestoreMana:
+		if(quality<0) {
+			auto dice = maptbl(restore_mana, -quality);
+			consume(-dice.roll(), false);
+		} else {
+			auto dice = maptbl(restore_mana, quality);
+			if(isartifact) // Artifact permanently add mana maximum
+				mmp += xrand(2, 8);
+			consume(dice.roll(), false);
 		}
 		break;
 	case Experience:

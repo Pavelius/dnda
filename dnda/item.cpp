@@ -97,7 +97,10 @@ static state_s potion_state[] = {Anger, Armored, Blessed, Charmed, Hiding, Goodw
 Lighted, PoisonedWeak, Poisoned, PoisonedStrong,
 Shielded, Sick, Scared, Sleeped, Weaken,
 Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic,
-Experience, HealState, RemoveSick, RemovePoison};
+Experience,
+RestoreHits, RestoreHits, RestoreHits, 
+RestoreMana, RestoreMana,
+RemoveSick, RemovePoison};
 static skill_s manual_skills[] = {Athletics, Acrobatics, Bargaining, Bluff, Diplomacy,
 Acrobatics, Alertness, Athletics, Concetration, DisarmTraps, HearNoises, HideInShadow, Lockpicking, PickPockets,
 Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival, Swimming,
@@ -147,29 +150,29 @@ static struct item_info {
 {"Стрела", 2, 2 * CP, Female, Wood, {}, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 {"Болт", 3, 1 * CP, Male, Iron, {}, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 //
-{"Кожанная броня", 1000, 5 * GP, Female, Leather, {0, {}, 0, {10}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
-{"Клепанная броня", 1500, 15 * GP, Female, Leather, {0, {}, 0, {15}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Кожанная броня", 1000, 5 * GP, Female, Leather, {0, {}, 0, {10}, 4}, {}, {}, {Torso}, NoSkill, armor_effect},
+{"Клепанная броня", 1500, 15 * GP, Female, Leather, {0, {}, 0, {15}, 4}, {}, {}, {Torso}, NoSkill, armor_effect},
 {"Чешуйчатый доспех", 2500, 30 * GP, Male, Iron, {0, {}, 0, {25}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
 {"Кольчуга", 2600, 50 * GP, Female, Iron, {0, {}, 0, {25, 1}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
 {"Бахрец", 3000, 200 * GP, Male, Iron, {0, {}, 0, {30, 2}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
 {"Латы", 3500, 800 * GP, Female, Iron, {0, {}, 0, {40, 3}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
 //
 {"Щит", 1500, 20 * GP, Male, Iron, {0, {}, {}, {12}, 5}, {}, {}, {OffHand}, NoSkill, armor_effect},
-{"Шлем", 300, 5 * GP, Male, Iron, {0, {}, {}, {4}, 4}, {}, {}, {Head}, NoSkill, helm_effect},
-{"Наручи", 200, 3 * GP, Male, Leather, {0, {}, {}, {6}, 4}, {}, {}, {Elbows}, NoSkill, bracers_effect},
-{"Наручи", 400, 8 * GP, Male, Iron, {0, {}, {}, {7, 1}, 4}, {}, {}, {Elbows}, NoSkill, bracers_effect},
+{"Шлем", 300, 5 * GP, Male, Iron, {0, {}, {}, {3}, 2}, {}, {}, {Head}, NoSkill, helm_effect},
+{"Наручи", 200, 3 * GP, Male, Leather, {0, {}, {}, {3}, 2}, {}, {}, {Elbows}, NoSkill, bracers_effect},
+{"Наручи", 400, 8 * GP, Male, Iron, {0, {}, {}, {5, 1}, 2}, {}, {}, {Elbows}, NoSkill, bracers_effect},
 //
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {5, 0}, 2}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {6, 0}, 2}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {4, 0}, 3}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {5, 0}, 2}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
-{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {6, 0}, 2}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {1, 0}, 1}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 6 * GP, Male, Leather, {0, {}, {}, {2, 0}, 1}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {1, 0}, 2}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {1, 0}, 1}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
+{"Плащ", 200, 6 * GP, Male, Leather, {0, {}, {}, {2, 0}, 1}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
 //
-{"Сапоги", 300, 6 * GP, NoGender, Leather, {0, {}, {}, {3, 0}, 3}, {}, {}, {Legs}, NoSkill},
-{"Сапоги", 300, 6 * GP, NoGender, Leather, {0, {}, {}, {4, 0}, 3}, {}, {}, {Legs}, NoSkill},
-{"Сапоги", 350, 6 * GP, NoGender, Leather, {0, {}, {}, {7, 0}, 3}, {}, {}, {Legs}, NoSkill},
-{"Сапоги", 400, 6 * GP, NoGender, Leather, {0, {}, {}, {8, 0}, 3}, {}, {}, {Legs}, NoSkill},
-{"Сапоги", 450, 6 * GP, NoGender, Leather, {0, {}, {}, {9, 0}, 4}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 300, 6 * GP, NoGender, Leather, {0, {}, {}, {1, 0}, 1}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 300, 6 * GP, NoGender, Leather, {0, {}, {}, {2, 0}, 1}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 350, 6 * GP, NoGender, Leather, {0, {}, {}, {3, 0}, 1}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 400, 6 * GP, NoGender, Leather, {0, {}, {}, {4, 0}, 1}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 450, 6 * GP, NoGender, Leather, {0, {}, {}, {4, 0}, 2}, {}, {}, {Legs}, NoSkill},
 //
 {"Сухпаек", 100, 3 * SP, Male, Organic, {}, {}, {}, {}, NoSkill, {}, NoItem, 0, 0, {5, 0, {1, 0, 1, 0, 0, 0}, 10 * Minute}},
 {"Яблоко", 10, 1 * SP, NoGender, Organic, {}, {}, {}, {}, NoSkill, {}, NoItem, 0, 0, {1, 0, {2, 0, 0, 0, 0, 0}, 2 * Minute}},
@@ -482,8 +485,11 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 			if(is(Melee) || is(Ranged)) {
 				attackinfo e = {0}; get(e);
 				szblock(sc, p, result_maximum, "урон %2i-%3i", e.bonus, e.damage.min, e.damage.max);
-			} else if(isarmor())
-				szblock(sc, p, result_maximum, "защита %+1i%% и %2i", getdefence(), getarmor());
+			} else if(isarmor()) {
+				szblock(sc, p, result_maximum, "защита %+1i%%", getdefence());
+				if(getarmor())
+					sc.prints(zend(p), result_maximum, "и % 1i", getarmor());
+			}
 		}
 		if(forsale)
 			szblock(sc, p, result_maximum, "цена %1i", getcost());
