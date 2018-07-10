@@ -859,7 +859,7 @@ void creature::makemove() {
 		return;
 	}
 	// Make move depends on conditions
-	if(horror && distance(horror->position, position) <= 10)
+	if(horror && distance(horror->position, position) <= (getlos() + 1))
 		moveaway(horror->position);
 	else if(enemy)
 		moveto(enemy->position);

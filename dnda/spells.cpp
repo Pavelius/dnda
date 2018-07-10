@@ -23,13 +23,22 @@ static void setdamage(effectparam& e) {
 	e.cre->damage(damage.roll(), e.damage.type, true);
 }
 
-void healdamage(effectparam& e) {
+static void healdamage(effectparam& e) {
 	// Heal damage according level
 	e.cre->heal(e.damage.roll() + e.level - 1, true);
 }
 
 static void repair(effectparam& e) {
 	e.itm->repair(e.level);
+}
+
+static void bless_item(effectparam& e) {
+	// Bless item has chance to make item cursed and dependson level.
+	auto chance = 60 + e.level * 5;
+	if(d100() < chance)
+		e.itm->set(BlessedItem);
+	else
+		e.itm->set(Cursed);
 }
 
 static void detect_evil(effectparam& e) {
@@ -58,6 +67,10 @@ static void detect_magic(effectparam& e) {
 static void identify(effectparam& e) {
 	char temp[260];
 	e.player.act("%1 на мгновение осветился белым светом.", e.itm->getname(temp, zendof(temp)));
+	// Identify has little chance to curse item
+	auto chance = 30 - e.level * 2;
+	if(d100() < chance && e.itm->getmagic()!=Artifact)
+		e.itm->set(Cursed);
 	e.itm->set(KnowEffect);
 }
 
@@ -65,42 +78,56 @@ static struct spell_info {
 	const char*			name;
 	const char*			nameof;
 	short unsigned		cost;
-	short unsigned		cost_reduce_by_level;
+	char				levels[2];
 	effectinfo			effect;
 } spell_data[] = {{"", ""},
-{"Броня", "брони", 10, 0, {{TargetSelf}, {}, {setstate}, {Armored, 4 * Hour}, "%герой озарил%ась синим светом."}},
-{"Благословение", "благословения", 8, 0, {{TargetFriendly, 2}, {}, {setstate}, {Blessed, Turn}, "%герой озарил%ась желтым светом."}},
-{"Очаровать персону", "шарма", 13, 0, {{TargetFriendly, 4}, ResistCharm, {setstate}, {Charmed, Day}, "Внезапно %герой стал%а вести себя дружелюбно."}},
-{"Определить зло", "определения зла", 12, 0, {{TargetInvertory}, {}, {detect_evil}, {}}},
-{"Определить магию", "определения магии", 8, 0, {{TargetInvertory}, {}, {detect_magic}, {}}},
-{"Страх", "страха", 5, 0, {{TargetHostile, 5, 2}, ResistCharm, {setstate}, {Scared, 5 * Minute}, "%герой запаниковал%а и начал%а бежать.", {}}},
-{"Лечение", "лечения", 7, 0, {{TargetFriendly, 1}, {}, {healdamage}, {}, "%герой озарился белым светом.", {1, 8, Magic}}},
-{"Опознать предмет", "опознания", 20, 2, {{TargetItemUnidentified}, {}, {identify}, {}}},
-{"Невидимость", "невидимости", 8, 0, {{TargetFriendly, 1}, {}, {setstate}, {Hiding, Hour}, "%герой исчез%ла из виду."}},
-{"Свет", "света", 1, 0, {{TargetFriendly, 1}, {}, {setstate}, {Lighted, Hour}, "Вокруг %героя появилось несколько светящихся шариков."}},
-{"Волшебный снаряд", "колдовства", 3, 0, {{TargetHostile, 6}, {}, {setdamage}, {}, "Из пальцев %ГЕРОЯ вылетело несколько светящихся шариков.", {2, 8, Magic}}},
-{"Починка", "ремонта", 10, 1, {{TargetItemDamaged}, {}, {repair}, {}, "%герой на мгновение зажгл%ась синим светом и теперь выглядит не таким сломанным."}},
-{"Исцелить яд", "лечения яда", 15, 1, {{TargetFriendly}, {}, {setstate}, {RemovePoison}, "%герой на мгновение окутался желтым свечением."}},
-{"Исцелить болезнь", "лечения болезней", 15, 1, {{TargetFriendly}, {}, {setstate}, {RemoveSick}, "%герой на мгновение окутался зеленым свечением."}},
-{"Щит", "щита", 6, 0, {{TargetSelf}, {}, {setstate}, {Shielded, Hour / 2}, "Перед %героем появился полупрозрачный барьер."}},
-{"Шокирующая хватка", "электричества", 4, 0, {{TargetHostile, 1}, {}, {setdamage}, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
-{"Усыпление", "усыпления", 5, 0, {{TargetHostile, 4}, ResistCharm, {setstate}, {Sleeped, Minute}, "Внезапно %герой заснул%а.", {}}},
+{"Броня", "брони", 10, {}, {{TargetSelf}, {}, {setstate}, {Armored, 4 * Hour}, "%герой озарил%ась синим светом."}},
+{"Благословение", "благословения", 8, {}, {{TargetFriendly, 2}, {}, {setstate}, {Blessed, Turn}, "%герой озарил%ась желтым светом."}},
+{"Благословить предмет", "благословения", 10, {0, 10}, {{TargetItemMundane}, {}, {bless_item}, {}}},
+{"Очаровать персону", "шарма", 13, {}, {{TargetFriendly, 4}, ResistCharm, {setstate}, {Charmed, Day}, "Внезапно %герой стал%а вести себя дружелюбно."}},
+{"Определить зло", "определения зла", 12, {}, {{TargetInvertory}, {}, {detect_evil}, {}}},
+{"Определить магию", "определения магии", 8, {}, {{TargetInvertory}, {}, {detect_magic}, {}}},
+{"Страх", "страха", 5, {}, {{TargetHostile, 5, 2}, ResistCharm, {setstate}, {Scared, 5 * Minute}, "%герой запаниковал%а и начал%а бежать.", {}}},
+{"Лечение", "лечения", 7, {}, {{TargetFriendly, 1}, {}, {healdamage}, {}, "%герой озарился белым светом.", {1, 8, Magic}}},
+{"Опознать предмет", "опознания", 20, {3}, {{TargetItemUnidentified}, {}, {identify}, {}}},
+{"Невидимость", "невидимости", 8, {}, {{TargetFriendly, 1}, {}, {setstate}, {Hiding, Hour}, "%герой исчез%ла из виду."}},
+{"Свет", "света", 1, {}, {{TargetFriendly, 1}, {}, {setstate}, {Lighted, Hour}, "Вокруг %героя появилось несколько светящихся шариков."}},
+{"Волшебный снаряд", "колдовства", 3, {}, {{TargetHostile, 6}, {}, {setdamage}, {}, "Из пальцев %ГЕРОЯ вылетело несколько светящихся шариков.", {2, 8, Magic}}},
+{"Починка", "ремонта", 10, {}, {{TargetItemDamaged}, {}, {repair}, {}, "%герой на мгновение зажгл%ась синим светом и теперь выглядит не таким сломанным."}},
+{"Исцелить яд", "лечения яда", 15, {}, {{TargetFriendly}, {}, {setstate}, {RemovePoison}, "%герой на мгновение окутался желтым свечением."}},
+{"Исцелить болезнь", "лечения болезней", 15, {}, {{TargetFriendly}, {}, {setstate}, {RemoveSick}, "%герой на мгновение окутался зеленым свечением."}},
+{"Щит", "щита", 6, {}, {{TargetSelf}, {}, {setstate}, {Shielded, Hour / 2}, "Перед %героем появился полупрозрачный барьер."}},
+{"Шокирующая хватка", "электричества", 4, {}, {{TargetHostile, 1}, {}, {setdamage}, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
+{"Усыпление", "усыпления", 5, {}, {{TargetHostile, 4}, ResistCharm, {setstate}, {Sleeped, Minute}, "Внезапно %герой заснул%а.", {}}},
 };
 assert_enum(spell, LastSpell);
 getstr_enum(spell);
+
+static int get_index(class_s id) {
+	switch(id) {
+	case Paladin:
+	case Cleric:
+		return 1;
+	case Mage:
+		return 0;
+	default:
+		return -1;
+	}
+}
 
 const char* item::getname(spell_s value) {
 	return spell_data[value].nameof;
 }
 
+bool creature::isallow(spell_s value) const {
+	auto index = get_index(type);
+	if(index == -1)
+		return spell_data[value].levels[0] == 0 && spell_data[value].levels[1] == 0;
+	return level >= spell_data[value].levels[index];
+}
+
 int creature::getcost(spell_s value) const {
-	auto level = get(value);
-	if(level <= 1)
-		return spell_data[value].cost;
-	auto cost = spell_data[value].cost - spell_data[value].cost_reduce_by_level*(level - 1);
-	if(cost < 1)
-		cost = 1;
-	return cost;
+	return spell_data[value].cost;
 }
 
 bool creature::use(spell_s value) {

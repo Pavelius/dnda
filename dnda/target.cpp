@@ -32,6 +32,10 @@ static bool readable(const creature& player, const item& it) {
 	return it.isreadable();
 }
 
+static bool mundane_item(const creature& player, const item& it) {
+	return it.getmagic()==Mundane && it.getidentify() != Unknown;
+}
+
 static bool undefined_item(const creature& player, const item& it) {
 	return it.getidentify() < KnowEffect;
 }
@@ -93,6 +97,7 @@ static struct target_info {
 {"Раненный союзник", wounded_friendly, false, true},
 {"Враг", enemy},
 //
+{"Обычный предмет", mundane_item},
 {"Неопознанный предмет", undefined_item},
 {"Съедобный предмет", damaged_item},
 {"Поврежденный предмет", edible},

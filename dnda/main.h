@@ -71,7 +71,7 @@ enum class_s : unsigned char {
 	Cleric, Fighter, Mage, Paladin, Ranger, Theif,
 };
 enum gender_s : unsigned char {
-	NoGender, Male, Female
+	NoGender, Male, Female, They,
 };
 enum role_s : unsigned char {
 	GoblinWarrior, OrcWarrior, LargeBat, GiantRat,
@@ -88,7 +88,7 @@ enum ability_s : unsigned char {
 enum skill_s : unsigned char {
 	NoSkill,
 	Bargaining, Bluff, Diplomacy,
-	Acrobatics, Alertness, Athletics, Concetration, DisarmTraps, HearNoises, HideInShadow, Lockpicking, PickPockets,
+	Acrobatics, Alertness, Athletics, Backstabbing, Concetration, DisarmTraps, HearNoises, HideInShadow, Lockpicking, PickPockets,
 	Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival, Swimming,
 	WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting,
 	LastSkill = TwoWeaponFighting,
@@ -153,14 +153,14 @@ enum img_s : unsigned char {
 enum target_s : unsigned char {
 	NoTarget,
 	TargetSelf, TargetFriendly, TargetFriendlyWounded, TargetHostile,
-	TargetItemUnidentified, TargetItemDamaged, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
+	TargetItemMundane, TargetItemUnidentified, TargetItemDamaged, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
 	TargetObject,
 	TargetDoor, TargetDoorSealed, TargetHiddenObject,
 	TargetTrap,
 };
 enum spell_s : unsigned char {
 	NoSpell,
-	Armor, Bless, CharmPerson, DetectEvil, DetectMagic, Fear, HealingSpell,
+	Armor, Bless, BlessItem, CharmPerson, DetectEvil, DetectMagic, Fear, HealingSpell,
 	Identify, Invisibility, LightSpell, MagicMissile,
 	Repair, RemovePoisonSpell, RemoveSickSpell,
 	ShieldSpell, ShokingGrasp, Sleep,
@@ -177,7 +177,7 @@ enum duration_s : unsigned {
 	Permanent = 100 * Year
 };
 enum identify_s : unsigned char {
-	Unknown, KnowQuality, KnowEffect, KnowHistory
+	Unknown, KnowQuality, KnowColor, KnowEffect
 };
 enum item_type_s : unsigned char {
 	Mundane, Cursed, BlessedItem, Artifact,
@@ -267,7 +267,7 @@ struct effectinfo {
 		void(*success)(effectparam& e);
 		void(*fail)(effectparam& e);
 		bool(*test)(effectparam& e);
-		bool(*validate)(effectparam& e);
+		bool(*validate)(const creature& e);
 	};
 	struct stateinfo {
 		state_s		type;
@@ -505,6 +505,7 @@ struct creature {
 	bool			is(special_s value) const;
 	bool			is(encumbrance_s value) const { return encumbrance == value; }
 	bool			isagressive() const;
+	bool			isallow(spell_s id) const;
 	static bool		isbooming();
 	bool			ischaracter() const { return role == Character; }
 	bool			isenemy(const creature* target) const;

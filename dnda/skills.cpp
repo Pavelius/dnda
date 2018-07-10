@@ -97,6 +97,9 @@ static void failgamble(effectparam& e) {
 	e.player.act("%герой проиграл%а [%1i] монет.", e.param);
 }
 
+static void killing(effectparam& e) {
+}
+
 static struct skill_info {
 	const char*		name;
 	const char*		nameof;
@@ -112,6 +115,7 @@ static struct skill_info {
 {"Акробатика", "акробатики", {Dexterity, Dexterity}},
 {"Внимательность", "внимательности", {Wisdow, Dexterity}},
 {"Атлетика", "атлетики", {Strenght, Dexterity}, {{TargetDoor, 1}, {}, {bashdoor, 0, testbash}, {}, "%герой разнес%ла двери в щепки.", {}, 20}},
+{"Убийство", "убийства", {Dexterity, Dexterity}, {{TargetFriendly, 1}, {}, {killing}, {}, "%герой нанес%ла подлый удар.", {}, 50}},
 {"Концентрация", "концетрации", {Wisdow, Constitution}},
 {"Обезвредить ловушки", "ловушек", {Dexterity, Intellegence}, {{TargetTrap, 1}, {}, {removetrap}, {}, "%герой обезвредил%а ловушку.", {}, 30}},
 {"Слышать звуки", "слуха", {Wisdow, Intellegence}},
@@ -188,6 +192,10 @@ void creature::use(skill_s value) {
 	if(e.effect.type.target == NoTarget) {
 		hint("Навык %1 не используется подобным образом", getstr(value));
 		return;
+	}
+	if(e.effect.proc.validate) {
+		if(!e.effect.proc.validate(*this))
+			return;
 	}
 	apply(e.effect, 0, isplayer(), 0, 0, d100(), get(value), failskill);
 	wait(Minute * 2);

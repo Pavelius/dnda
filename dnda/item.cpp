@@ -66,17 +66,10 @@ static struct enchantment_info {
 assert_enum(enchantment, LastEnchantment);
 getstr_enum(enchantment);
 
-static const char* key_names[][2] = {{"simple", "простой"},
-// Металлические ключи
-{"bronze", "бронзовый"},
-{"cooper", "медный"},
-{"steel", "стальной"},
-{"silver", "серебрянный"},
-{"golden", "золотой"},
-// Редкие ключи для дверей подземелья
-{"bone", "костяной"},
-{"stone", "каменный"},
-{"crystal", "кристальный"},
+static const char* item_adv[][4] = {{"", "", "", ""},
+{"проклятое", "проклятый", "проклятая", "проклятые"},
+{"благословенное", "благословенный", "благословенная", "благословенные"},
+{"реликт", "реликт", "реликт", "реликт"},
 };
 static enchantment_s swords_effect[] = {OfCold, OfDefence, OfDexterity, OfFire, OfSpeed, OfPrecision, OfSharping, OfVampirism, OfWeakness};
 static enchantment_s axe_effect[] = {OfCold, OfFire, OfStrenght, OfSharping, OfSmashing};
@@ -98,7 +91,7 @@ Lighted, PoisonedWeak, Poisoned, PoisonedStrong,
 Shielded, Sick, Scared, Sleeped, Weaken,
 Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic,
 Experience,
-RestoreHits, RestoreHits, RestoreHits, 
+RestoreHits, RestoreHits, RestoreHits,
 RestoreMana, RestoreMana,
 RemoveSick, RemovePoison};
 static skill_s manual_skills[] = {Athletics, Acrobatics, Bargaining, Bluff, Diplomacy,
@@ -159,8 +152,8 @@ static struct item_info {
 //
 {"Щит", 1500, 20 * GP, Male, Iron, {0, {}, {}, {12}, 5}, {}, {}, {OffHand}, NoSkill, armor_effect},
 {"Шлем", 300, 5 * GP, Male, Iron, {0, {}, {}, {3}, 2}, {}, {}, {Head}, NoSkill, helm_effect},
-{"Наручи", 200, 3 * GP, Male, Leather, {0, {}, {}, {3}, 2}, {}, {}, {Elbows}, NoSkill, bracers_effect},
-{"Наручи", 400, 8 * GP, Male, Iron, {0, {}, {}, {5, 1}, 2}, {}, {}, {Elbows}, NoSkill, bracers_effect},
+{"Наручи", 200, 3 * GP, They, Leather, {0, {}, {}, {3}, 2}, {}, {}, {Elbows}, NoSkill, bracers_effect},
+{"Наручи", 400, 8 * GP, They, Iron, {0, {}, {}, {5, 1}, 2}, {}, {}, {Elbows}, NoSkill, bracers_effect},
 //
 {"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {1, 0}, 1}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
 {"Плащ", 200, 6 * GP, Male, Leather, {0, {}, {}, {2, 0}, 1}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
@@ -168,11 +161,11 @@ static struct item_info {
 {"Плащ", 200, 5 * GP, Male, Leather, {0, {}, {}, {1, 0}, 1}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
 {"Плащ", 200, 6 * GP, Male, Leather, {0, {}, {}, {2, 0}, 1}, {}, {}, {TorsoBack}, NoSkill, cloack_effect},
 //
-{"Сапоги", 300, 6 * GP, NoGender, Leather, {0, {}, {}, {1, 0}, 1}, {}, {}, {Legs}, NoSkill},
-{"Сапоги", 300, 6 * GP, NoGender, Leather, {0, {}, {}, {2, 0}, 1}, {}, {}, {Legs}, NoSkill},
-{"Сапоги", 350, 6 * GP, NoGender, Leather, {0, {}, {}, {3, 0}, 1}, {}, {}, {Legs}, NoSkill},
-{"Сапоги", 400, 6 * GP, NoGender, Leather, {0, {}, {}, {4, 0}, 1}, {}, {}, {Legs}, NoSkill},
-{"Сапоги", 450, 6 * GP, NoGender, Leather, {0, {}, {}, {4, 0}, 2}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 300, 6 * GP, They, Leather, {0, {}, {}, {1, 0}, 1}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 300, 6 * GP, They, Leather, {0, {}, {}, {2, 0}, 1}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 350, 6 * GP, They, Leather, {0, {}, {}, {3, 0}, 1}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 400, 6 * GP, They, Leather, {0, {}, {}, {4, 0}, 1}, {}, {}, {Legs}, NoSkill},
+{"Сапоги", 450, 6 * GP, They, Leather, {0, {}, {}, {4, 0}, 2}, {}, {}, {Legs}, NoSkill},
 //
 {"Сухпаек", 100, 3 * SP, Male, Organic, {}, {}, {}, {}, NoSkill, {}, NoItem, 0, 0, {5, 0, {1, 0, 1, 0, 0, 0}, 10 * Minute}},
 {"Яблоко", 10, 1 * SP, NoGender, Organic, {}, {}, {}, {}, NoSkill, {}, NoItem, 0, 0, {1, 0, {2, 0, 0, 0, 0, 0}, 2 * Minute}},
@@ -205,11 +198,11 @@ static struct item_info {
 {"Кольцо", 2, 70 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
 {"Кольцо", 2, 80 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
 //
-{"Амулет", 2, 50 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
-{"Амулет", 2, 50 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
-{"Амулет", 2, 50 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
-{"Амулет", 2, 50 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
-{"Амулет", 2, 50 * GP, NoGender, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+{"Амулет", 2, 50 * GP, Male, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+{"Амулет", 2, 50 * GP, Male, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+{"Амулет", 2, 50 * GP, Male, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+{"Амулет", 2, 50 * GP, Male, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
+{"Амулет", 2, 50 * GP, Male, Iron, {}, {}, {}, {}, NoSkill, ring_effect},
 //
 {"Ключ", 10, 0, Male, Iron},
 {"Монета", 1, 1 * CP, Female, Iron, {}, {}, {}, {}, NoSkill, {}, NoItem, 50},
@@ -227,12 +220,11 @@ item::item(item_s type, int chance_artifact, int chance_magic, int chance_cursed
 	if(d100() < chance_artifact)
 		magic = Artifact;
 	else if(d100() < chance_cursed) {
-		if(d100()<50)
+		if(d100() < 50)
 			magic = BlessedItem;
 		else
 			magic = Cursed;
-	}
-	else
+	} else
 		magic = Mundane;
 	// Quality depend on level
 	auto r = d100();
@@ -247,11 +239,11 @@ item::item(item_s type, int chance_artifact, int chance_magic, int chance_cursed
 	// Several effect types
 	switch(item_data[type].magic.type) {
 	case effectlist::Echantments:
-		if(d100()<chance_magic)
+		if(d100() < chance_magic)
 			effect = item_data[type].magic.effects.data[rand() % item_data[type].magic.effects.count];
 		break;
 	case effectlist::Spells:
-		if((is(Melee) && (d100()<chance_magic)) || !is(Melee))
+		if((is(Melee) && (d100() < chance_magic)) || !is(Melee))
 			effect = (enchantment_s)item_data[type].magic.spells.data[rand() % item_data[type].magic.spells.count];
 		break;
 	case effectlist::States:
@@ -446,8 +438,7 @@ int item::getarmor() const {
 
 int item::getdefence() const {
 	auto result = item_data[type].combat.armor[0];
-	if(result)
-		result += getquality() * item_data[type].combat.armor_magic_bonus;
+	result += getquality() * item_data[type].combat.armor_magic_bonus;
 	return result + getbonus(OfDefence) * 5;
 }
 
@@ -467,7 +458,6 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 	auto spell = getspell();
 	auto state = getstate();
 	auto skill = getskill();
-	auto identify = getidentify();
 	sc.prints(result, result_maximum, item_data[type].name);
 	if(effect && identify >= KnowEffect) {
 		sc.prints(zend(result), result_maximum, " %1%", iscursed() ? enchantment_data[effect].name_cursed : enchantment_data[effect].name);
@@ -488,7 +478,7 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 			} else if(isarmor()) {
 				szblock(sc, p, result_maximum, "защита %+1i%%", getdefence());
 				if(getarmor())
-					sc.prints(zend(p), result_maximum, "и % 1i", getarmor());
+					sc.prints(zend(p), result_maximum, " и %1i", getarmor());
 			}
 		}
 		if(forsale)

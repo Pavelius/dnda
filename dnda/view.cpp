@@ -160,18 +160,12 @@ static int textf(int x, int y, int width, const char* value) {
 static int textl(int x, int y, int width, item& value) {
 	char temp[260]; value.getname(temp, zendof(temp));
 	draw::state push;
-	switch(value.getidentify()) {
-	case KnowHistory:
-	case KnowEffect:
+	if(value.getidentify()>=KnowColor) {
 		switch(value.getmagic()) {
 		case Artifact: draw::fore = draw::fore.mix(colors::yellow, 128); break;
 		case Cursed: draw::fore = draw::fore.mix(colors::red, 128); break;
 		case BlessedItem: draw::fore = draw::fore.mix(colors::green, 128); break;
 		}
-		break;
-		//case Unknown:
-		//	draw::fore = draw::fore.mix(colors::black, 192);
-		//	break;
 	}
 	draw::text(x, y, temp);
 	return x + width;
