@@ -2,14 +2,12 @@
 
 using namespace game;
 
-struct roominfo {
-	short unsigned		index;
-	direction_s			dir;
+struct vector {
+	short unsigned			index;
+	direction_s				dir;
 };
-enum corridor_content_s {
-	DungeonTreasure, DungeonMonster, DungeonDoor, DungeonItem,
-	DungeonTrap
-};
+static vector rooms[256];
+static unsigned char stack_put, stack_get;
 const int chance_generate_room = 40;
 const int chance_special_area = 5;
 const int chance_corridor_content = 10;
@@ -17,6 +15,7 @@ const int chance_door_closed = 30;
 const int dense_forest = 15;
 const int max_building_size = 15;
 extern tile_s location_type;
+static direction_s connectors_side[] = {Up, Left, Right, Down};
 static slot_s slots_weapons_armor[] = {Melee, Ranged, OffHand, Head, Elbows, Legs, Torso};
 static item_s item_treasure[] = {Coin, Coin, Coin, Coin, RingRed};
 static item_s item_food[] = {Ration, Ration, Ration, BreadEvlen, BreadHalflings, BreadDwarven, Sausage};
@@ -28,8 +27,6 @@ Boot1, Boot2, IronBoot1, IronBoot2, IronBoot3,
 PotionRed, PotionGreen, PotionBlue,
 WandRed, WandGreen, WandBlue,
 RingRed, RingGreen, RingBlue};
-static roominfo	rooms[256];
-static unsigned char stack_put, stack_get;
 
 static void create_objects(int x, int y, int w, int h, int count, map_object_s object) {
 	for(int i = 0; i < count; i++) {
@@ -96,6 +93,10 @@ static int bpoint(short unsigned index, int width, int height, direction_s dir) 
 
 static short unsigned center(int x, int y, int w, int h) {
 	return get(x + w / 2, y + (h / 2));
+}
+
+static short unsigned center(const rect& rc) {
+	return get(rc.x1 + rc.width() / 2, rc.y1 + rc.height() / 2);
 }
 
 static short unsigned random(int x, int y, int w, int h) {
@@ -453,13 +454,17 @@ static void create_city(int x, int y, int w, int h, int level) {
 	}
 }
 
+static void clear_rooms() {
+	stack_get = stack_put = 0;
+}
+
 static void put_block(short unsigned index, direction_s dir) {
 	auto& e = rooms[stack_put++];
 	e.index = index;
 	e.dir = dir;
 }
 
-static roominfo& get_block() {
+static vector& get_block() {
 	return rooms[stack_get++];
 }
 
@@ -534,7 +539,7 @@ static void create_corridor(short unsigned index, direction_s dir) {
 	direction_s rnd[] = {Right, Left};
 	if(d100() < 50)
 		iswap(rnd[0], rnd[1]);
-	short unsigned start = 0xFFFF;
+	short unsigned start = Blocked;
 	auto iterations = xrand(3, 10);
 	while(true) {
 		int new_index = to(index, dir);
@@ -635,6 +640,23 @@ static void create_dungeon(int x, int y, int w, int h, bool visualize) {
 	}
 }
 
+static void create_corridor(int x, int y, int w, int h, direction_s dir) {
+	switch(dir) {
+	case Up:
+		put_block(game::get(x + rand() % w, y), Up);
+		break;
+	case Left:
+		put_block(game::get(x, y + rand() % h), Left);
+		break;
+	case Down:
+		put_block(game::get(x + rand() % w, y + h - 1), Down);
+		break;
+	default:
+		put_block(game::get(x + w - 1, y + rand() % h), Right);
+		break;
+	}
+}
+
 static void create_room(int x, int y, int w, int h) {
 	for(auto x1 = x; x1 < x + w; x1++) {
 		for(auto y1 = y; y1 < y + h; y1++) {
@@ -643,28 +665,168 @@ static void create_room(int x, int y, int w, int h) {
 	}
 }
 
-static void create_dungeon2(int x, int y, int w, int h, int level, bool visualize) {
-	if(h < max_building_size*2 && w < max_building_size*2) {
-		auto dw = xrand(max_building_size / 4, max_building_size - 2);
-		auto dh = xrand(max_building_size / 4, max_building_size - 2);
+static void change_tile(tile_s t1, tile_s t2) {
+	for(short unsigned i = 0; i <= max_map_x * max_map_y; i++) {
+		if(gettile(i) == t1)
+			set(i, t2);
+	}
+}
+
+static int compare_rect(const void* p1, const void* p2) {
+	auto e1 = (rect*)p1;
+	auto e2 = (rect*)p2;
+	return e2->width()*e2->height() - e1->width()*e1->height();
+}
+
+static void create_rooms(int x, int y, int w, int h, adat<rect, 64>& rooms) {
+	if(h < max_building_size * 2 && w < max_building_size * 2) {
+		auto dw = xrand(max_building_size - 4 - 6, max_building_size - 4);
+		auto dh = xrand(max_building_size - 4 - 6, max_building_size - 4);
 		auto x1 = x + 1 + rand() % (w - dw - 2);
 		auto y1 = y + 1 + rand() % (h - dh - 2);
-		create_room(x1, y1, dw, dh);
-		if(visualize) {
-			creature player;
-			player.clear();
-			player.position = game::get(x1 + dw / 2, y1 + dh / 2);
-			logs::minimap(player);
-		}
+		rooms.add({x1, y1, x1 + dw, y1 + dh});
 	} else if(w > h) {
 		auto w1 = w / 2 + (rand() % 8) - 4;
-		create_dungeon2(x, y, w1, h, level + 1, visualize);
-		create_dungeon2(x + w1, y, w - w1, h, level + 1, visualize);
+		create_rooms(x, y, w1, h, rooms);
+		create_rooms(x + w1, y, w - w1, h, rooms);
 	} else {
 		auto h1 = h / 2 + (rand() % 6) - 3;
-		create_dungeon2(x, y, w, h1, level + 1, visualize);
-		create_dungeon2(x, y + h1, w, h - h1, level + 1, visualize);
+		create_rooms(x, y, w, h1, rooms);
+		create_rooms(x, y + h1, w, h - h1, rooms);
 	}
+}
+
+static void show_minimap_step(short unsigned index, bool visualize) {
+	if(visualize) {
+		creature player;
+		player.clear();
+		player.position = index;
+		logs::minimap(player);
+	}
+}
+
+static bool ispassable(short unsigned index, const rect& correct) {
+	if(index == Blocked)
+		return false;
+	auto x = game::getx(index);
+	auto y = game::gety(index);
+	if(x < correct.x1 || x >= correct.x2 || y < correct.y1 || y >= correct.y2)
+		return false;
+	return true;
+}
+
+static bool ispassagepart(short unsigned index, direction_s dir, const rect& correct) {
+	auto i0 = to(index, dir);
+	if(i0 == Blocked)
+		return false;
+	if(!ispassable(index, correct))
+		return false;
+	if(game::gettile(i0) == Floor)
+		return false;
+	return true;
+}
+
+static bool ispassage(short unsigned index, direction_s dir, const rect& correct) {
+	if(!ispassagepart(index, dir, correct))
+		return true;
+	if(!ispassagepart(to(index, turn(dir, Left)), dir, correct))
+		return false;
+	if(!ispassagepart(to(index, turn(dir, Right)), dir, correct))
+		return false;
+	return game::gettile(index) != Floor;
+}
+
+static void create_connector(short unsigned index, direction_s dir, const rect& correct) {
+	short unsigned start = Blocked;
+	auto iterations = xrand(5, 12);
+	while(true) {
+		int new_index = to(index, dir);
+		if(!ispassable(new_index, correct))
+			return;
+		if(gettile(new_index) == Floor)
+			return;
+		if(!ispassage(new_index, dir, correct))
+			break;
+		if(start == Blocked)
+			start = new_index;
+		index = new_index;
+		set(index, Floor);
+		if(d100() < chance_corridor_content)
+			create_corridor_content(index);
+		if(--iterations == 0)
+			break;
+	}
+	if(start != Blocked) {
+		if(d100() < 60)
+			game::set(start, Door);
+		direction_s rnd[] = {Right, Left, Up};
+		zshuffle(rnd, 3);
+		int count = 1;
+		if(d100() < 50)
+			count++;
+		if(d100() < 20)
+			count++;
+		for(auto e : rnd) {
+			put_block(index, turn(dir, e));
+			if(--count == 0)
+				break;
+		}
+	}
+}
+
+rect* getnearest(short unsigned index, adat<rect, 64>& rooms) {
+	auto d1 = max_map_x * 10;
+	rect* result = 0;
+	for(auto& e : rooms) {
+		auto d = distance(index, center(e));
+		if(d < d1) {
+			d1 = d;
+			result = &e;
+		}
+	}
+	return result;
+}
+
+static direction_s direction(short unsigned i1, short unsigned i2) {
+	auto x1 = game::getx(i1);
+	auto y1 = game::gety(i1);
+	auto x2 = game::getx(i2);
+	auto y2 = game::gety(i2);
+	auto w = iabs(x1 - x2);
+	auto h = iabs(y1 - y2);
+	if(h < w) {
+		if(y1 < y2)
+			return Down;
+		return Up;
+	} else {
+		if(x1 < x2)
+			return Right;
+		return Left;
+	}
+}
+
+static void create_dungeon_simple_dungeon(int x, int y, int w, int h) {
+	clear_rooms();
+	adat<rect, 64> rooms;
+	create_rooms(1, 1, max_map_x - 2, max_map_y - 2, rooms);
+	qsort(rooms.data, rooms.count, sizeof(rooms.data[0]), compare_rect);
+	rooms.count -= 2;
+	zshuffle(rooms.data, rooms.count);
+	rect rc = {x, y, x + w, y + h};
+	for(auto& e : rooms)
+		create_room(e.x1, e.y1, e.width(), e.height());
+	for(auto& e : rooms) {
+		auto p = getnearest(center(e), rooms);
+		create_corridor(e.x1, e.y1, e.width(), e.height(), direction(center(e), center(*p)));
+	}
+	//for(auto& e : rooms)
+	//	create_corridor(e.x1, e.y1, e.width(), e.height(), maprnd(connectors_side));
+	while(stack_get != stack_put) {
+		auto& e = get_block();
+		create_connector(e.index, e.dir, rc);
+		show_minimap_step(e.index, true);
+	}
+	change_tile(NoTile, Wall);
 }
 
 static void update_rect(int offset, bool test_valid = true) {
@@ -675,19 +837,6 @@ static void update_rect(int offset, bool test_valid = true) {
 		e.y2 += offset;
 		if(e.width() <= 3 || e.height() <= 3)
 			e.clear();
-	}
-}
-
-static int compare_location(const void* p1, const void* p2) {
-	auto e1 = (site*)p1;
-	auto e2 = (site*)p2;
-	return e2->width()*e2->height() - e1->width()*e1->height();
-}
-
-static void change_tile(tile_s t1, tile_s t2) {
-	for(short unsigned i = 0; i <= max_map_x * max_map_y; i++) {
-		if(gettile(i) == t1)
-			set(i, t2);
 	}
 }
 
@@ -729,7 +878,7 @@ static void area_create(bool explored, bool visualize) {
 	if(location_type == City) {
 		create_city(2, 2, max_map_x - 2, max_map_y - 2, 0);
 		update_rect(-3);
-		qsort(sites.data, sites.count, sizeof(sites.data[0]), compare_location);
+		qsort(sites.data, sites.count, sizeof(sites.data[0]), compare_rect);
 		sites.count = zlen(sites.data);
 		// Set start and finsh
 		int current = 1;
@@ -753,8 +902,7 @@ static void area_create(bool explored, bool visualize) {
 		}
 	} else {
 		//create_dungeon(1, 1, max_map_x - 2, max_map_y - 2, visualize);
-		create_dungeon2(1, 1, max_map_x - 2, max_map_y - 2, 0, visualize);
-		change_tile(NoTile, Wall);
+		create_dungeon_simple_dungeon(1, 1, max_map_x - 2, max_map_y - 2);
 	}
 	update_doors();
 	for(auto& e : sites) {
