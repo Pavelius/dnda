@@ -206,6 +206,7 @@ enum manual_s : unsigned char {
 };
 struct attackinfo;
 struct creature;
+struct dialog;
 struct effectparam;
 struct site;
 struct targetdesc;
@@ -582,6 +583,15 @@ struct site : rect {
 	constexpr site() : rect({0, 0, 0, 0}), type(EmpthyRoom), diety(NoGod), name(), owner() {}
 	operator bool() const { return x1 != x2; }
 	char*			getname(char* result) const;
+};
+struct speech {
+	speech_s		type;
+	bool(*proc)(dialog& e, const speech& a, bool run);
+	const char*		text;
+	speech*			success;
+	speech*			fail;
+	skillvalue		skill;
+	explicit operator bool() const { return text != 0; }
 };
 struct groundinfo {
 	item			object;

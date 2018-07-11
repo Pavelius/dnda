@@ -1,18 +1,7 @@
 #include "main.h"
 
-struct dialog;
-
-struct speech {
-	speech_s		type;
-	bool(*proc)(dialog& e, const speech& a, bool run);
-	const char*		text;
-	speech*			success;
-	speech*			fail;
-	skillvalue		skill;
-	explicit operator bool() const { return text != 0; }
-};
-
 struct dialog {
+
 	creature*		player;
 	creature*		opponent;
 	speech*			result;
@@ -22,41 +11,42 @@ struct dialog {
 	aref<const speech*> select(aref<const speech*> source, const speech* p, speech_s type) {
 		auto pb = source.data;
 		auto pe = pb + source.count;
-		for(; *p; p++) {
-			if(p->type != type)
-				continue;
-			if(p->proc) {
-				if(!p->proc(*this, *p, false))
+		if(p) {
+			for(; *p; p++) {
+				if(p->type != type)
 					continue;
+				if(p->proc) {
+					if(!p->proc(*this, *p, false))
+						continue;
+				}
+				// RULE: skills can show or hide answers
+				if(p->skill.id) {
+					if(player->get(p->skill.id) < p->skill.value)
+						continue;
+				}
+				if(pb < pe)
+					*pb++ = p;
+				else
+					break;
 			}
-			// RULE: skills can show or hide answers
-			if(p->skill.id) {
-				if(player->get(p->skill.id) < p->skill.value)
-					continue;
-			}
-			if(pb < pe)
-				*pb++ = p;
-			else
-				break;
 		}
 		return aref<const speech*>(source.data, pb - source.data);
 	}
 
-	bool say(const speech* pb, speech_s type) {
+	const speech* say(const speech* pb, speech_s type) {
 		const speech* source[32];
 		auto result = select(source, pb, type);
 		if(!result)
-			return false;
+			return 0;
 		if(type == Speech) {
 			zshuffle(result.data, result.count);
 			opponent->sayvs(*player, result.data[0]->text);
-		}
-		else {
+		} else {
 			for(auto p : result)
 				logs::add(p - pb, p->text);
 		}
 		logs::add("\n");
-		return true;
+		return pb;
 	}
 
 	speech* phase(const speech* p) {
@@ -65,10 +55,19 @@ struct dialog {
 			auto index = logs::input();
 			auto ap = p + index;
 			result = ap->success;
+			if(ap->fail && ap->skill.id) {
+				if(!player->roll(ap->skill.id, -ap->skill.value))
+					result = ap->fail;
+			}
+			// Procedure call after skill check.
+			// This due to result is known.
 			if(ap->proc)
 				ap->proc(*this, *ap, true);
-		} else
+		} else {
 			result = p->success;
+			if(result)
+				logs::next();
+		}
 		return result;
 	}
 
@@ -147,6 +146,14 @@ static bool chat_location(creature* player, creature* opponent) {
 	return true;
 }
 
+static speech party_member[] = {{Speech, 0, "Какие планы?"},
+{Speech, 0, "Что будем делать?"},
+{Speech, 0, "Говори."},
+{Answer, 0, "Пошли со мной.", old_house},
+{Answer, 0, "Охраняй это место."},
+{Answer, 0, "Ничего особенного. Продолжаем движение."},
+{}};
+
 void creature::chat(creature* e) {
 	enum boss_commands {
 		NoBossCommand,
@@ -169,7 +176,7 @@ void creature::chat(creature* e) {
 			e->guard = e->position;
 			break;
 		case FollowMe:
-			e->guard = 0xFFFF;
+			e->guard = Blocked;
 			e->party = this;
 			break;
 		}
