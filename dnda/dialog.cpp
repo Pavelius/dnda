@@ -1,82 +1,72 @@
 #include "main.h"
 
-struct dialog {
-
-	creature*		player;
-	creature*		opponent;
-	speech*			result;
-
-	constexpr dialog(creature* player, creature* opponent) : player(player), opponent(opponent), result(0) {}
-
-	aref<const speech*> select(aref<const speech*> source, const speech* p, speech_s type) {
-		auto pb = source.data;
-		auto pe = pb + source.count;
-		if(p) {
-			for(; *p; p++) {
-				if(p->type != type)
+aref<const speech*> dialog::select(aref<const speech*> source, const speech* p, speech_s type) {
+	auto pb = source.data;
+	auto pe = pb + source.count;
+	if(p) {
+		for(; *p; p++) {
+			if(p->type != type)
+				continue;
+			if(p->proc) {
+				if(!p->proc(*this, *p, false))
 					continue;
-				if(p->proc) {
-					if(!p->proc(*this, *p, false))
-						continue;
-				}
-				// RULE: skills can show or hide answers
-				if(p->skill.id) {
-					if(player->get(p->skill.id) < p->skill.value)
-						continue;
-				}
-				if(pb < pe)
-					*pb++ = p;
-				else
-					break;
 			}
-		}
-		return aref<const speech*>(source.data, pb - source.data);
-	}
-
-	const speech* say(const speech* pb, speech_s type) {
-		const speech* source[32];
-		auto result = select(source, pb, type);
-		if(!result)
-			return 0;
-		if(type == Speech) {
-			zshuffle(result.data, result.count);
-			opponent->sayvs(*player, result.data[0]->text);
-		} else {
-			for(auto p : result)
-				logs::add(p - pb, p->text);
-		}
-		logs::add("\n");
-		return pb;
-	}
-
-	speech* phase(const speech* p) {
-		say(p, Speech);
-		if(say(p, Answer)) {
-			auto index = logs::input();
-			auto ap = p + index;
-			result = ap->success;
-			if(ap->fail && ap->skill.id) {
-				if(!player->roll(ap->skill.id, -ap->skill.value))
-					result = ap->fail;
+			// RULE: skills can show or hide answers
+			if(p->skill.id) {
+				if(player->get(p->skill.id) < p->skill.value)
+					continue;
 			}
-			// Procedure call after skill check.
-			// This due to result is known.
-			if(ap->proc)
-				ap->proc(*this, *ap, true);
-		} else {
-			result = p->success;
-			if(result)
-				logs::next();
+			if(pb < pe)
+				*pb++ = p;
+			else
+				break;
 		}
-		return result;
 	}
+	return aref<const speech*>(source.data, pb - source.data);
+}
 
-	void start(const speech* p) {
-		while(p)
-			p = phase(p);
+const speech* dialog::say(const speech* pb, speech_s type) {
+	const speech* source[32];
+	auto result = select(source, pb, type);
+	if(!result)
+		return 0;
+	if(type == Speech) {
+		zshuffle(result.data, result.count);
+		opponent->sayvs(*player, result.data[0]->text);
+	} else {
+		for(auto p : result)
+			logs::add(p - pb, p->text);
 	}
+	logs::add("\n");
+	return pb;
+}
 
-};
+const speech* dialog::phase(const speech* p) {
+	say(p, Speech);
+	if(say(p, Answer)) {
+		auto index = logs::input();
+		auto ap = p + index;
+		result = ap->success;
+		if(ap->fail && ap->skill.id) {
+			if(!player->roll(ap->skill.id, -ap->skill.value))
+				result = ap->fail;
+		}
+		// Procedure call after skill check.
+		// This due to result is known.
+		if(ap->proc)
+			ap->proc(*this, *ap, true);
+	} else {
+		result = p->success;
+		if(result)
+			logs::next();
+	}
+	return result;
+}
+
+void dialog::start(const speech* p) {
+	while(p)
+		p = phase(p);
+}
 
 static speech old_house[] = {{Speech, 0, "А что рассказывать? Он был разрушен еще со времен войны орков. Сейчас зарос бурьяном и там никто не живет."},
 {Speech, 0, "Много разных слухов ходят об этом старом доме. Говрят там когда-то повесился какой-то знаменитый дворянин."},
@@ -88,6 +78,17 @@ static speech test_dialog[] = {{Speech, 0, "Привет %ГЕРОЙ. Чем могу быть полезен
 {Answer, 0, "Где мы могли бы найти достойное оружие или броню?"},
 {Answer, 0, "Возможно нам стоит обсудить переспективы дальнейшего сотрудничества?", 0, 0, {Diplomacy, 20}},
 {Answer, 0, "Пока ничего не надо."},
+{}};
+static speech party_member[] = {{Speech, 0, "Какие планы?"},
+{Speech, 0, "Что будем делать?"},
+{Speech, 0, "Говори."},
+{Answer, 0, "Пошли со мной.", old_house},
+{Answer, 0, "Охраняй это место."},
+{Answer, 0, "Ничего особенного. Продолжаем движение."},
+{}};
+static speech smalltalk[] = {{Speech, 0, "Привет! Как дела?"},
+{Speech, 0, "Хороший день, да?"},
+{Speech, 0, "Эх! Устал%а я..."},
 {}};
 
 static void chat_smalltalk(creature* player, creature* opponent) {
@@ -145,14 +146,6 @@ static bool chat_location(creature* player, creature* opponent) {
 	player->say(temp);
 	return true;
 }
-
-static speech party_member[] = {{Speech, 0, "Какие планы?"},
-{Speech, 0, "Что будем делать?"},
-{Speech, 0, "Говори."},
-{Answer, 0, "Пошли со мной.", old_house},
-{Answer, 0, "Охраняй это место."},
-{Answer, 0, "Ничего особенного. Продолжаем движение."},
-{}};
 
 void creature::chat(creature* e) {
 	enum boss_commands {

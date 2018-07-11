@@ -916,7 +916,7 @@ bool creature::isplayer() const {
 }
 
 bool creature::isparty(const creature* value) const {
-	return party == value;
+	return value && getleader()==value->getleader();
 }
 
 bool creature::isfriend(const creature* value) const {

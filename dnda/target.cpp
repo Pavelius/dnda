@@ -12,6 +12,10 @@ static bool wounded_friendly(const creature& player, const creature* opponent) {
 	return !player.isenemy(opponent) && player.gethits() < player.getmaxhits();
 }
 
+static bool neutral(const creature& player, const creature* opponent) {
+	return !player.isenemy(opponent) && !player.isparty(opponent);
+}
+
 static bool enemy(const creature& player, const creature* opponent) {
 	return player.isenemy(opponent);
 }
@@ -95,6 +99,7 @@ static struct target_info {
 {"Вы", you, true},
 {"Союзник", friendly},
 {"Раненный союзник", wounded_friendly, false, true},
+{"Нейтрал", neutral},
 {"Враг", enemy},
 //
 {"Обычный предмет", mundane_item},

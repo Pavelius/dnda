@@ -152,7 +152,7 @@ enum img_s : unsigned char {
 };
 enum target_s : unsigned char {
 	NoTarget,
-	TargetSelf, TargetFriendly, TargetFriendlyWounded, TargetHostile,
+	TargetSelf, TargetFriendly, TargetFriendlyWounded, TargetNeutral, TargetHostile,
 	TargetItemMundane, TargetItemUnidentified, TargetItemDamaged, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
 	TargetObject,
 	TargetDoor, TargetDoorSealed, TargetHiddenObject,
@@ -592,6 +592,17 @@ struct speech {
 	speech*			fail;
 	skillvalue		skill;
 	explicit operator bool() const { return text != 0; }
+};
+struct dialog {
+	creature*		player;
+	creature*		opponent;
+	speech*			result;
+	constexpr dialog(creature* player, creature* opponent) : player(player), opponent(opponent), result(0) {}
+	void			start(const speech* p);
+private:
+	aref<const speech*>	select(aref<const speech*> source, const speech* p, speech_s type);
+	const speech*	say(const speech* pb, speech_s type);
+	const speech*	phase(const speech* p);
 };
 struct groundinfo {
 	item			object;
