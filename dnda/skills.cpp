@@ -204,7 +204,8 @@ void creature::use(skill_s value) {
 			return;
 	}
 	apply(e.effect, 0, isplayer(), 0, 0, d100(), get(value), failskill);
-	wait(Minute * 2);
+	// Use skill is one minute
+	wait(Minute);
 }
 
 skill_s creature::aiskill(aref<creature*> creatures) {

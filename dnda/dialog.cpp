@@ -13,17 +13,16 @@ struct speech {
 };
 
 struct dialog {
-
 	creature*		player;
 	creature*		opponent;
 	speech*			result;
 
 	constexpr dialog(creature* player, creature* opponent) : player(player), opponent(opponent), result(0) {}
 
-	int say(const speech* p, speech_s type, int maximum = 1) {
-		auto count = 0;
-		auto pb = p;
-		for(; count<maximum && *p; p++) {
+	aref<const speech*> select(aref<const speech*> source, const speech* p, speech_s type) {
+		auto pb = source.data;
+		auto pe = pb + source.count;
+		for(; *p; p++) {
 			if(p->type != type)
 				continue;
 			if(p->proc) {
@@ -35,28 +34,41 @@ struct dialog {
 				if(player->get(p->skill.id) < p->skill.value)
 					continue;
 			}
-			if(p->type == Speech)
-				opponent->sayvs(*player, p->text);
+			if(pb < pe)
+				*pb++ = p;
 			else
-				logs::add(p - pb, p->text);
-			logs::add("\n");
-			count++;
+				break;
 		}
-		return count;
+		return aref<const speech*>(source.data, pb - source.data);
+	}
+
+	bool say(const speech* pb, speech_s type) {
+		const speech* source[32];
+		auto result = select(source, pb, type);
+		if(!result)
+			return false;
+		if(type == Speech) {
+			zshuffle(result.data, result.count);
+			opponent->sayvs(*player, result.data[0]->text);
+		}
+		else {
+			for(auto p : result)
+				logs::add(p - pb, p->text);
+		}
+		logs::add("\n");
+		return true;
 	}
 
 	speech* phase(const speech* p) {
-		say(p, Speech, 1);
-		if(say(p, Answer, 20)) {
+		say(p, Speech);
+		if(say(p, Answer)) {
 			auto index = logs::input();
 			auto ap = p + index;
 			result = ap->success;
 			if(ap->proc)
 				ap->proc(*this, *ap, true);
-		} else {
+		} else
 			result = p->success;
-			logs::next();
-		}
 		return result;
 	}
 
@@ -68,13 +80,14 @@ struct dialog {
 };
 
 static speech old_house[] = {{Speech, 0, "А что рассказывать? Он был разрушен еще со времен войны орков. Сейчас зарос бурьяном и там никто не живет."},
-//{Answer, 0, "Понятно."},
+{Speech, 0, "Много разных слухов ходят об этом старом доме. Говрят там когда-то повесился какой-то знаменитый дворянин."},
+{Speech, 0, "У нас ходит легенда, что по ночам что-то появляется у того дома в полнолуние. Но это лишь легенда - никто никогда ничего не видел."},
+{Speech, 0, "Обычный такой дом. Со странностями, правда."},
 {}};
-
 static speech test_dialog[] = {{Speech, 0, "Привет %ГЕРОЙ. Чем могу быть полезен?"},
 {Answer, 0, "Что вы можете рассказать про старый дом у обочины?", old_house},
 {Answer, 0, "Где мы могли бы найти достойное оружие или броню?"},
-{Answer, 0, "Тебе следет знать %сын_мой, я не буду приходить в эти земли больше. Возможно нам стоит обсудить переспективы дальнейшего сотрудничества?", 0, 0, {Diplomacy, 50}},
+{Answer, 0, "Возможно нам стоит обсудить переспективы дальнейшего сотрудничества?", 0, 0, {Diplomacy, 20}},
 {Answer, 0, "Пока ничего не надо."},
 {}};
 
@@ -174,7 +187,7 @@ int creature::getreaction(creature* opponent) const {
 	if(!opponent)
 		return 0;
 	auto result = opponent->get(Charisma) * 2;
-	if(opponent->gender!=gender)
+	if(opponent->gender != gender)
 		result += opponent->get(Charisma) - 8;
 	if(is(Anger))
 		result -= 40;

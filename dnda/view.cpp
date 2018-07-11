@@ -80,10 +80,12 @@ void logs::addnc(const char* format, ...) {
 void logs::add(int id, const char* format, ...) {
 	if(current_key_index >= sizeof(answers) / sizeof(answers[0]))
 		return;
+	stringcreator sc;
 	answers[current_key_index] = id;
-	add("\n[%1i)] ", current_key_index + 1);
-	addv(format, xva_start(format));
+	addnc("\n[%1i)] ", current_key_index + 1);
+	addvnc(sc, format, xva_start(format));
 	current_key_index++;
+	p_message = zend(state_message);
 }
 
 void logs::addvnc(stringcreator& sc, const char* format, const char* vl) {
