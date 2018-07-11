@@ -324,10 +324,13 @@ bool effectparam::applyfull() {
 	}
 	if(saving())
 		return false;
-	if(skill_roll && skill_roll >= skill_value - skill_bonus) {
-		if(proc.fail)
-			proc.fail(*this);
-		return false;
+	if(skill_roll) {
+		auto total = skill_value + skill_bonus;
+		if(skill_roll >= total) {
+			if(proc.fail)
+				proc.fail(*this);
+			return false;
+		}
 	}
 	if(text) {
 		if(cre)

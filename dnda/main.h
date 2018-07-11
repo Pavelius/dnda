@@ -477,6 +477,7 @@ struct creature {
 	int				getdefence() const;
 	int				getdiscount(creature* customer) const;
 	encumbrance_s	getencumbrance() const { return encumbrance; }
+	creature*		getenemy() const;
 	char*			getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
 	creature*		gethenchmen(int index) const;
 	int				gethits() const { return hp; }
@@ -491,7 +492,6 @@ struct creature {
 	static const char* getname(tile_s id);
 	static const char* getname(state_s id, bool cursed);
 	static const char* getname(skill_s id);
-	creature*		getparty() const;
 	static creature* getplayer();
 	short unsigned	getposition() const { return position; }
 	damageinfo		getraise(skill_s id) const;
@@ -520,7 +520,7 @@ struct creature {
 	void			lookfloor();
 	void			makemove();
 	void			manipulate(short unsigned index);
-	void			meleeattack(creature* target);
+	void			meleeattack(creature* target, int bonus = 0, int multiplier = 0);
 	bool			move(short unsigned index);
 	bool			moveto(short unsigned index);
 	bool			moveaway(short unsigned index);

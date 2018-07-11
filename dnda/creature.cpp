@@ -38,7 +38,7 @@ static struct equipment_info {
 {NoRace, Paladin, {SwordLong, ScaleMail}},
 {NoRace, Ranger, {SwordLong, SwordShort, LeatherArmour}},
 {NoRace, Theif, {SwordShort, LeatherArmour}},
-{NoRace, Mage, {Staff, WandGreen, ScrollRed, ScrollGreen, ScrollBlue, PotionBlue}},
+{NoRace, Mage, {Staff, WandGreen, ScrollRed, ScrollGreen, PotionBlue}},
 };
 
 static constexpr struct race_info {
@@ -66,7 +66,7 @@ static struct class_info {
 {"Маг", 4, 1, Intellegence, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
 {"Паладин", 10, 2, Strenght, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}},
 {"Следопыт", 10, 2, Strenght, {Survival, WeaponFocusBows}, {}},
-{"Вор", 6, 1, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff}},
+{"Вор", 6, 1, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff, Backstabbing}},
 };
 assert_enum(class, Theif);
 getstr_enum(class);
@@ -493,10 +493,13 @@ int creature::getdefence() const {
 	return result;
 }
 
-creature* creature::getparty() const {
-	if(charmer && is(Charmed))
-		return charmer;
-	return party;
+creature* creature::getenemy() const {
+	if(enemy)
+		return enemy;
+	auto p = getleader();
+	if(p && p->enemy)
+		return p->enemy;
+	return 0;
 }
 
 bool creature::is(state_s value) const {
@@ -862,20 +865,16 @@ void creature::makemove() {
 	// Make move depends on conditions
 	if(horror && distance(horror->position, position) <= (getlos() + 1))
 		moveaway(horror->position);
-	else if(enemy)
-		moveto(enemy->position);
+	else if(getenemy())
+		moveto(getenemy()->position);
 	else if(guard != Blocked)
 		moveto(guard);
-	else if(charmer) {
-		if(distance(charmer->position, position) <= 2)
+	else if(!isleader() && getleader()) {
+		auto target = getleader();
+		if(distance(target->position, position) <= 2)
 			walkaround();
 		else
-			moveto(charmer->position);
-	} else if(party && !isleader()) {
-		if(distance(party->position, position) <= 3)
-			walkaround();
-		else
-			moveto(party->position);
+			moveto(target->position);
 	} else if(order.move != Blocked)
 		moveto(order.move);
 	else if(order.skill) {
@@ -932,14 +931,8 @@ bool creature::isfriend(const creature* value) const {
 bool creature::isenemy(const creature* target) const {
 	if(!target || target == this)
 		return false;
-	if(target->enemy == this || enemy == target)
-		return true;
-	auto p1 = target->getparty();
-	auto p2 = getparty();
-	if(p1 && p2
-		&& (p1->enemy == this || p1->enemy == p2 || p2->enemy == target || p2->enemy == p1))
-		return true;
-	return false;
+	return getenemy() == target
+		|| target->getenemy() == this;
 }
 
 void creature::manipulate(short unsigned index) {
@@ -1020,6 +1013,8 @@ bool creature::interact(short unsigned index) {
 }
 
 void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier) {
+	if(!(*defender))
+		return;
 	if(!enemy)
 		enemy = defender;
 	if(!defender->enemy)
@@ -1236,16 +1231,16 @@ void creature::rangeattack() {
 		wears[Amunitions].setcount(wears[Amunitions].getcount() - 1);
 }
 
-void creature::meleeattack(creature* enemy) {
+void creature::meleeattack(creature* enemy, int bonus, int multiplier) {
 	if(!(*enemy))
 		return;
 	if(wears[Melee].is(Melee) && wears[OffHand].is(Melee)) {
-		attack(enemy, Melee, -4);
-		attack(enemy, OffHand, -6);
+		attack(enemy, Melee, bonus - 4, multiplier);
+		attack(enemy, OffHand, bonus - 6, multiplier);
 	} else if(wears[OffHand].is(Melee))
-		attack(enemy, OffHand);
+		attack(enemy, OffHand, bonus, multiplier);
 	else
-		attack(enemy, Melee);
+		attack(enemy, Melee, bonus, multiplier);
 	wait(getattacktime(Melee));
 }
 
@@ -1604,7 +1599,7 @@ void creature::consume(int value, bool interactive) {
 }
 
 bool creature::alertness() {
-	if(getplayer() != getparty())
+	if(getplayer() != getleader())
 		return false;
 	// RULE: for party only alertness check secrect doors and traps
 	short unsigned source_data[5 * 5];

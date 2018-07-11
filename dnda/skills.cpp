@@ -98,6 +98,12 @@ static void failgamble(effectparam& e) {
 }
 
 static void killing(effectparam& e) {
+	auto total = e.skill_value + e.skill_bonus;
+	e.player.meleeattack(e.cre, total / 2, total / 30);
+}
+
+static void killing_fail(effectparam& e) {
+	e.player.meleeattack(e.cre);
 }
 
 static struct skill_info {
@@ -115,7 +121,7 @@ static struct skill_info {
 {"Акробатика", "акробатики", {Dexterity, Dexterity}},
 {"Внимательность", "внимательности", {Wisdow, Dexterity}},
 {"Атлетика", "атлетики", {Strenght, Dexterity}, {{TargetDoor, 1}, {}, {bashdoor, 0, testbash}, {}, "%герой разнес%ла двери в щепки.", {}, 20}},
-{"Убийство", "убийства", {Dexterity, Dexterity}, {{TargetFriendly, 1}, {}, {killing}, {}, "%герой нанес%ла подлый удар.", {}, 50}},
+{"Убийство", "убийства", {Dexterity, Dexterity}, {{TargetFriendly, 1}, {}, {killing, killing_fail}, {}, "%герой нанес%ла подлый удар.", {}, 50}},
 {"Концентрация", "концетрации", {Wisdow, Constitution}},
 {"Обезвредить ловушки", "ловушек", {Dexterity, Intellegence}, {{TargetTrap, 1}, {}, {removetrap}, {}, "%герой обезвредил%а ловушку.", {}, 30}},
 {"Слышать звуки", "слуха", {Wisdow, Intellegence}},

@@ -139,12 +139,12 @@ void creature::chat(creature* e) {
 		NoBossCommand,
 		GuardPlace, FollowMe,
 	};
-	if(isfriend(e) && e->getparty() == this && e->role == Character) {
+	if(isfriend(e) && e->getleader() == this && e->role == Character) {
 		dialog dg(this, e);
 		dg.start(test_dialog);
 		return;
 	}
-	if(isfriend(e) && e->getparty() == this && e->role == Character) {
+	if(isfriend(e) && e->getleader() == this && e->role == Character) {
 		chat_boss(e, this);
 		if(e->isguard())
 			logs::add(FollowMe, "Пошли со мной.");
