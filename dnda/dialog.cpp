@@ -96,8 +96,8 @@ static void chat_boss(creature* player, creature* opponent) {
 	player->say(maprnd(talk), opponent->getname());
 }
 
-static location* get_non_explored_location() {
-	location* source[128];
+static site* get_non_explored_location() {
+	site* source[128];
 	auto pb = source;
 	auto pe = source + sizeof(source) / sizeof(source[0]);
 	for(auto& e : locations) {

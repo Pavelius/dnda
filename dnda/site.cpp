@@ -1,8 +1,8 @@
 #include "main.h"
 
-static struct location_info {
+static struct site_info {
 	const char*		name;
-} location_data[] = {{"Комната"},
+} site_data[] = {{"Комната"},
 {"Комната"},
 {"Лестница вниз"},
 {"Лестница вверх"},
@@ -13,5 +13,5 @@ static struct location_info {
 {"Магазин свитков и зельев"},
 {"Магазин еды"},
 };
-assert_enum(location, ShopFood);
-getstr_enum(location);
+assert_enum(site, ShopFood);
+getstr_enum(site);

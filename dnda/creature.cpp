@@ -255,7 +255,7 @@ void creature::select(creature** result, rect rc) {
 		auto i = mget(rc.x1, rc.y1, game::getx(e.position), game::gety(e.position));
 		if(i == -1)
 			continue;
-		if(!game::isvisible(e.position))
+		if(!game::is(e.position, Visible))
 			continue;
 		result[i] = &e;
 	}
@@ -876,14 +876,14 @@ void creature::makemove() {
 			walkaround();
 		else
 			moveto(party->position);
-	//} else if(order.move != Blocked)
-	//	moveto(order.move);
-	//else if(order.skill) {
-	//	use(order.skill);
-	//	order.skill = NoSkill;
-	//} else if(order.spell) {
-	//	use(order.spell);
-	//	order.spell = NoSpell;
+	} else if(order.move != Blocked)
+		moveto(order.move);
+	else if(order.skill) {
+		use(order.skill);
+		order.skill = NoSkill;
+	} else if(order.spell) {
+		use(order.spell);
+		order.spell = NoSpell;
 	} else
 		walkaround();
 }
@@ -945,8 +945,8 @@ bool creature::isenemy(const creature* target) const {
 void creature::manipulate(short unsigned index) {
 	switch(getobject(index)) {
 	case Door:
-		if(!isopen(index)) {
-			if(isseal(index))
+		if(!game::is(index, Opened)) {
+			if(game::is(index, Sealed))
 				say("Здесь заперто.");
 			else
 				game::set(index, Opened, true);
@@ -960,8 +960,8 @@ void creature::manipulate(short unsigned index) {
 bool creature::interact(short unsigned index) {
 	switch(getobject(index)) {
 	case Door:
-		if(!isopen(index)) {
-			if(isseal(index))
+		if(!game::is(index, Opened)) {
+			if(game::is(index, Sealed))
 				say("Здесь заперто.");
 			else
 				game::set(index, Opened, true);
@@ -1019,37 +1019,37 @@ bool creature::interact(short unsigned index) {
 	return false;
 }
 
-void creature::attack(creature* defender, slot_s slot, int bonus) {
+void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier) {
+	if(!enemy)
+		enemy = defender;
 	if(!defender->enemy)
 		defender->enemy = this;
 	auto ai = getattackinfo(slot);
 	auto s = d100();
 	auto r = s + ai.bonus + bonus - defender->getdefence();
+	auto damage = ai.damage;
 	if(s == 1 || (r < chance_to_hit)) {
 		act("%герой промазал%а.");
 		return;
 	}
-	bool critical_hit = s >= (95 - ai.critical * 5);
+	// RULE: basic chance critical hit is 4% per point
+	bool critical_hit = s >= (95 - ai.critical * 4);
 	act(critical_hit ? "%герой критически попал%а." : "%герой попал%а.");
-	auto damage = ai.damage;
-	if(critical_hit) {
-		auto step = imax(damage.max, damage.min) - damage.min;
-		if(step < 2)
-			step = 2;
-		if(step > 10)
-			step = 10;
-		for(auto i = ai.multiplier; i > 0; i--)
-			damage.max += step;
-	}
-	if(ai.weapon) {
+	if(critical_hit)
+		multiplier += ai.multiplier;
+	// RULE: Each multiplier step add one maximum value (minimum 2 and maximum 10)
+	auto step = imax(2, imin(12, imax(damage.max, damage.min) - damage.min));
+	for(auto i = ai.multiplier; i > 0; i--)
+		damage.max += step;
+	if(wears[slot]) {
 		// RULE: artifact is unbreakable
-		if(!ai.weapon->isartifact()) {
-			if(d100() < ai.weapon->getspecial().chance_broke) {
-				if(ai.weapon->damageb()) {
-					act("%1 сломался.");
-					ai.weapon->clear();
+		if(!wears[slot].isunbreakable()) {
+			if(d100() < wears[slot].getspecial().chance_broke) {
+				if(wears[slot].damageb()) {
+					wears[slot].act("%герой сломал%ась.");
+					wears[slot].clear();
 				} else
-					act("%1 треснул.");
+					wears[slot].act("%герой треснул%а.");
 			}
 		}
 	}
@@ -1063,7 +1063,8 @@ void creature::attack(creature* defender, slot_s slot, int bonus) {
 		defender->damage(xrand(1, 4) + ai.quality, Cold, true);
 		break;
 	case OfVampirism:
-		heal(-(xrand(1, 4) + ai.quality), false);
+		// RULE: weapon of vampirism heal owner
+		heal(xrand(1, 4) + ai.quality, false);
 		break;
 	case OfSickness:
 		// RULE: sickness effect are long
@@ -1328,8 +1329,6 @@ attackinfo creature::getattackinfo(slot_s slot) const {
 			result.damage.min += 1;
 			result.damage.max += 1;
 		}
-		if(!weapon.isnatural())
-			result.weapon = (item*)&weapon;
 	} else
 		result.damage.max = 2;
 	switch(slot) {

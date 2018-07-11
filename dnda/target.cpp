@@ -45,7 +45,7 @@ static bool damaged_item(const creature& player, const item& it) {
 }
 
 static bool visible_trap(const creature& player, short unsigned index) {
-	return !game::ishidden(index) && game::gettrap(index) != NoTrap;
+	return !game::is(index, Hidden) && game::gettrap(index) != NoTrap;
 }
 
 static bool any_door(const creature& player, short unsigned index) {
@@ -53,15 +53,15 @@ static bool any_door(const creature& player, short unsigned index) {
 }
 
 static bool door(const creature& player, short unsigned index) {
-	return game::getobject(index) == Door && !game::isseal(index);
+	return game::getobject(index) == Door && !game::is(index, Sealed);
 }
 
 static bool door_locked(const creature& player, short unsigned index) {
-	return game::getobject(index) == Door && game::isseal(index);
+	return game::getobject(index) == Door && game::is(index, Sealed);
 }
 
 static bool hidden_object(const creature& player, short unsigned index) {
-	return game::getobject(index) != 0 && game::ishidden(index);
+	return game::getobject(index) != 0 && game::is(index, Hidden);
 }
 
 static bool any_item(const creature& player, const item& it) {
@@ -69,7 +69,7 @@ static bool any_item(const creature& player, const item& it) {
 }
 
 static bool any_object(const creature& player, short unsigned index) {
-	if(game::ishidden(index))
+	if(game::is(index, Hidden))
 		return false;
 	auto value = game::getobject(index);
 	return value == NoTileObject;

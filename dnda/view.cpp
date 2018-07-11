@@ -292,14 +292,14 @@ static int input() {
 
 inline bool wget(short unsigned i, direction_s direction, tile_s value) {
 	auto i1 = game::to(i, direction);
-	if(i1 == 0xFFFF)
+	if(i1 == Blocked)
 		return true;
 	return game::gettile(i1) == value;
 }
 
 inline bool wget(short unsigned i, direction_s direction, tile_s value, bool default_result) {
 	auto i1 = game::to(i, direction);
-	if(i1 == 0xFFFF)
+	if(i1 == Blocked)
 		return default_result;
 	return game::gettile(i1) == value;
 }
@@ -314,9 +314,9 @@ int mget(int ox, int oy, int mx, int my) {
 
 inline bool xget(short unsigned i, direction_s direction) {
 	auto i1 = game::to(i, direction);
-	if(i1 == 0xFFFF)
+	if(i1 == Blocked)
 		return false;
-	return !game::isexplore(i1);
+	return !game::is(i1, Explored);
 }
 
 static int getorder(item_s type) {
@@ -556,7 +556,7 @@ static void view_board(point camera, bool show_fow = true, fxeffect* effects = 0
 			// Объекты на земле
 			switch(o) {
 			case Trap:
-				if(!game::ishidden(i))
+				if(!game::is(i, Hidden))
 					draw::image(x, y, gres(ResFeature), 59 + game::gettrap(i) - TrapAnimal, 0);
 				break;
 			}
@@ -627,7 +627,7 @@ static void view_board(point camera, bool show_fow = true, fxeffect* effects = 0
 				draw::image(x, y, gres(ResFeature), 57, 0);
 				break;
 			case Door:
-				r = game::isopen(i) ? 0 : 1;
+				r = game::is(i, Opened) ? 0 : 1;
 				if(game::gettile(game::to(i, Left)) == Wall && game::gettile(game::to(i, Right)) == Wall)
 					draw::image(x, y + 16, gres(ResDoors), r, 0);
 				else if(game::gettile(game::to(i, Up)) == Wall && game::gettile(game::to(i, Down)) == Wall)
@@ -689,7 +689,7 @@ static void view_board(point camera, bool show_fow = true, fxeffect* effects = 0
 				auto x = x0 + mx * elx - camera.x;
 				auto y = y0 + my * ely - camera.y - ely / 2;
 				auto i = game::get(mx, my);
-				if(!game::isexplore(i))
+				if(!game::is(i, Explored))
 					draw::rectf({x - elx / 2, y - ely / 2, x + elx / 2, y + ely / 2}, colors::fow);
 				else {
 					bool dw = xget(i, Down);
@@ -857,7 +857,7 @@ static void view_mini(int x, int y, point camera) {
 		int x3 = x;
 		for(int x1 = 0; x1 < max_map_x; x1++, x3 += mmaps) {
 			auto i = game::get(x1, y1);
-			if(!game::isexplore(i))
+			if(!game::is(i, Explored))
 				continue;
 			switch(game::gettile(i)) {
 			case Hill:

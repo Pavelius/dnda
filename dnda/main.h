@@ -12,7 +12,7 @@ const int SP = 10;
 const int CP = 1;
 const int max_map_x = 80;
 const int max_map_y = 80;
-const int chance_to_hit = 40;
+const int chance_to_hit = 40; // Dexterity add to this value. Mediaval dexterity is 10, so medium chance to hit is 50%.
 const unsigned short Blocked = 0xFFFF;
 const unsigned short BlockedCreature = Blocked - 1;
 
@@ -117,7 +117,7 @@ enum tile_s : unsigned char {
 	Swamp, Hill,
 	City,
 };
-enum location_s : unsigned char {
+enum site_s : unsigned char {
 	EmpthyRoom, TreasureRoom,
 	StairsDownRoom, StairsUpRoom,
 	House, Temple, Tavern,
@@ -207,7 +207,7 @@ enum manual_s : unsigned char {
 struct attackinfo;
 struct creature;
 struct effectparam;
-struct location;
+struct site;
 struct targetdesc;
 class item;
 struct variant {
@@ -337,7 +337,7 @@ public:
 	void			act(const char* format, ...) const;
 	void			clear();
 	bool			damageb();
-	void			damage() { damageb(); }
+	void			damage();
 	void			get(attackinfo& e) const;
 	item_s			getammo() const;
 	int				getarmor() const;
@@ -383,6 +383,7 @@ public:
 	bool			istome() const;
 	bool			istwohanded() const;
 	bool			isversatile() const;
+	bool			isunbreakable() const;
 	void			loot();
 	void			repair(int level);
 	void			setcharges(int count);
@@ -401,7 +402,6 @@ struct attackinfo {
 	char			multiplier;
 	enchantment_s	effect;
 	char			quality;
-	item*			weapon;
 };
 struct command {
 	unsigned short	move;
@@ -444,7 +444,7 @@ struct creature {
 	bool			apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value, void(*fail_proc)(effectparam& e) = 0);
 	bool			askyn(creature* opponent, const char* format, ...);
 	void			athletics(bool interactive);
-	void			attack(creature* defender, slot_s slot, int bonus = 0);
+	void			attack(creature* defender, slot_s slot, int bonus = 0, int multiplier = 0);
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);
 	item*			choose(aref<item*> source, bool interactive) const;
@@ -574,11 +574,12 @@ private:
 	static bool		playturn();
 	void			updateweight();
 };
-struct location : rect {
-	location_s		type;
+struct site : rect {
+	site_s		type;
 	diety_s			diety;
 	unsigned char	name[2];
 	creature*		owner;
+	constexpr site() : rect({0, 0, 0, 0}), type(EmpthyRoom), diety(NoGod), name(), owner() {}
 	operator bool() const { return x1 != x2; }
 	char*			getname(char* result) const;
 };
@@ -612,7 +613,7 @@ const attackinfo&	getattackinfo(trap_s slot);
 direction_s			getdirection(point s, point d);
 short unsigned		getfree(short unsigned i);
 int					getindex(short unsigned i, tile_s value);
-location*			getlocation(short unsigned i);
+site*			getlocation(short unsigned i);
 int					getitems(item** result, unsigned maximum_count, short unsigned index);
 short unsigned		getmovement(short unsigned i);
 const char*			getnamepart(unsigned short value);
@@ -631,14 +632,9 @@ inline unsigned char gety(short unsigned i) { return i / max_map_x; }
 void				initialize();
 bool				is(short unsigned i, map_flag_s v);
 bool				isdungeon();
-bool				isexplore(short unsigned i);
-bool				ishidden(short unsigned i);
-bool				isopen(short unsigned i);
 bool				ispassable(short unsigned i);
 bool				ispassabledoor(short unsigned i);
 bool				ispassablelight(short unsigned i);
-bool				isseal(short unsigned i);
-bool				isvisible(short unsigned i);
 void				looktarget(short unsigned index);
 void				lookhere(short unsigned index);
 void				makewave(short unsigned index, bool(*proc)(short unsigned) = ispassabledoor);
@@ -684,7 +680,7 @@ void				next();
 void				raise(creature& e, int left);
 void				turn(creature& e);
 }
-extern adat<location, 128>		locations;
+extern adat<site, 128>		locations;
 extern adat<groundinfo, 2048>	grounditems;
 unsigned			getday();
 unsigned			gethour();

@@ -3,7 +3,7 @@
 using namespace game;
 
 int main(int argc, char* argv[]) {
-	//return 0;
+	return 0;
 	//test_data();
 	logs::initialize();
 	create(City, get(10, 10), 1, false, false);

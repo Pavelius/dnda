@@ -9,7 +9,7 @@ areainfo				game::statistic;
 int						isqrt(int num);
 static unsigned			start_year;
 unsigned				segments = 7 * Hour;
-adat<location, 128>		locations;
+adat<site, 128>		locations;
 adat<groundinfo, 2048>	grounditems;
 tile_s					location_type;
 static tile_s			mptil[max_map_x*max_map_y];
@@ -33,26 +33,6 @@ void areainfo::clear() {
 
 bool game::is(short unsigned i, map_flag_s v) {
 	return (mpflg[i] & (1 << v)) != 0;
-}
-
-bool game::isvisible(short unsigned i) {
-	return (mpflg[i] & (1 << Visible)) != 0;
-}
-
-bool game::ishidden(short unsigned i) {
-	return (mpflg[i] & (1 << Hidden)) != 0;
-}
-
-bool game::isopen(short unsigned i) {
-	return (mpflg[i] & (1 << Opened)) != 0;
-}
-
-bool game::isseal(short unsigned i) {
-	return (mpflg[i] & (1 << Sealed)) != 0;
-}
-
-bool game::isexplore(short unsigned i) {
-	return (mpflg[i] & (1 << Explored)) != 0;
 }
 
 void game::set(short unsigned i, map_flag_s type, bool value) {
@@ -235,7 +215,7 @@ bool game::ispassable(short unsigned i) {
 	case Tree:
 		return false;
 	case Door:
-		return isopen(i);
+		return is(i, Opened);
 	default:
 		break;
 	}
@@ -255,7 +235,7 @@ bool game::ispassabledoor(short unsigned i) {
 	case Tree:
 		return false;
 	case Door:
-		return !isseal(i);
+		return !is(i, Sealed);
 	default:
 		break;
 	}
@@ -274,7 +254,7 @@ bool game::ispassablelight(short unsigned i) {
 	}
 	switch(mpobj[i]) {
 	case Door:
-		return isopen(i);
+		return is(i, Opened);
 	case Tree:
 		return false;
 	default:
@@ -504,7 +484,7 @@ void game::looktarget(short unsigned index) {
 void game::lookhere(short unsigned index) {
 	char temp[260];
 	item* source[32];
-	if(!isexplore(index)) {
+	if(!is(index, Explored)) {
 		logs::add("Это место надо исследовать.");
 		return;
 	}
@@ -515,16 +495,16 @@ void game::lookhere(short unsigned index) {
 		logs::add("Выское дерево выросло прямо посредине.");
 		break;
 	case Door:
-		if(isopen(index))
+		if(is(index, Opened))
 			logs::add("Здесь находится дверь.");
 		else {
 			logs::add("Здесь находится закрытая дверь.");
-			if(isseal(index))
+			if(is(index, Sealed))
 				logs::add("На двери висит замок.");
 		}
 		break;
 	case Trap:
-		if(!ishidden(index))
+		if(!is(index, Hidden))
 			logs::add("Здесь находится %1.", getstr(gettrap(index)));
 		break;
 	}
@@ -533,17 +513,17 @@ void game::lookhere(short unsigned index) {
 		logs::add("%1 стоит здесь.", pc->getname());
 	auto item_count = getitems(source, sizeof(source) / sizeof(source[0]), index);
 	if(item_count > 0) {
-		logs::add("Внизу лежит");
+		logs::addnc("Внизу лежит");
 		for(int i = 0; i < item_count; i++) {
 			if(i) {
 				if(i == item_count - 1)
-					logs::add("и");
+					logs::addnc("и");
 				else
-					logs::add(",");
+					logs::addnc(",");
 			}
 			source[i]->getname(temp, zendof(temp));
 			szlower(temp, 1);
-			logs::add(temp);
+			logs::addnc(temp);
 		}
 		logs::add(".");
 	}
@@ -567,7 +547,7 @@ creature* game::getnearest(aref<creature*> source, short unsigned position) {
 	return source[0];
 }
 
-location* game::getlocation(short unsigned i) {
+site* game::getlocation(short unsigned i) {
 	point pt;
 	pt.x = getx(i);
 	pt.y = gety(i);
@@ -580,12 +560,12 @@ location* game::getlocation(short unsigned i) {
 	return 0;
 }
 
-char* location::getname(char* result) const {
+char* site::getname(char* result) const {
 	zcpy(result, getstr(type));
 	return result;
 }
 
-template<> void archive::set<location>(location& e) {
+template<> void archive::set<site>(site& e) {
 	set(e.type);
 	set(e.x1); set(e.y1); set(e.x2); set(e.y2);
 	set(e.diety);

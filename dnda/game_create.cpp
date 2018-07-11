@@ -193,7 +193,7 @@ static void create_location(int x, int y, int w, int h) {
 
 static void create_commoner(short unsigned index) {}
 
-static creature* create_shopkeeper(location& e, short unsigned index) {
+static creature* create_shopkeeper(site& e, short unsigned index) {
 	e.owner = game::add(index, new creature(Shopkeeper));
 	return e.owner;
 }
@@ -204,7 +204,7 @@ static creature* create_adventurer(short unsigned index) {
 		(class_s)xrand(Fighter, Mage)));
 }
 
-static creature* create_bartender(location& e, short unsigned index) {
+static creature* create_bartender(site& e, short unsigned index) {
 	e.owner = game::add(index, new creature(Shopkeeper));
 	return e.owner;
 }
@@ -215,7 +215,7 @@ static void create_monster(short unsigned index) {
 		game::add(index, new creature((role_s)(maprnd(monsters))));
 }
 
-static creature* create_priest(location& e, short unsigned index) {
+static creature* create_priest(site& e, short unsigned index) {
 	e.diety = (diety_s)xrand(GodBane, GodTyr);
 	switch(e.diety) {
 	case GodGruumsh:
@@ -279,7 +279,7 @@ static void create_shop(int x0, int y0, int w, int h, int chance, unsigned char 
 	}
 }
 
-static void create_objects(location& e, int x, int y, int w, int h, location_s type) {
+static void create_objects(site& e, int x, int y, int w, int h, site_s type) {
 	if(w < 1 || h < 1)
 		return;
 	auto pt = center(x, y, w, h);
@@ -311,7 +311,7 @@ static void create_objects(location& e, int x, int y, int w, int h, location_s t
 	}
 }
 
-static void create_interior(location& e, int x, int y, int w, int h, short unsigned i, location_s type, bool visualize) {
+static void create_interior(site& e, int x, int y, int w, int h, short unsigned i, site_s type, bool visualize) {
 	if(w < 5 && h < 5) {
 		create_objects(e, x + 1, y + 1, w - 2, h - 2, type);
 		return;
@@ -382,7 +382,7 @@ static void create_interior(location& e, int x, int y, int w, int h, short unsig
 	}
 }
 
-static void create_content(location& e, location_s type, bool visualize = false) {
+static void create_content(site& e, site_s type, bool visualize = false) {
 	e.type = type;
 	auto door = create_building(e.x1, e.y1, e.width(), e.height());
 #ifdef _DEBUG
@@ -644,8 +644,8 @@ static void update_rect(int offset, bool test_valid = true) {
 }
 
 static int compare_location(const void* p1, const void* p2) {
-	auto e1 = (location*)p1;
-	auto e2 = (location*)p2;
+	auto e1 = (site*)p1;
+	auto e2 = (site*)p2;
 	return e2->width()*e2->height() - e1->width()*e1->height();
 }
 
@@ -705,7 +705,7 @@ static void area_create(bool explored, bool visualize) {
 		iswap(locations.data[0], locations.data[biggest]);
 		bool placed_stairs = false;
 		for(auto& e : locations) {
-			auto t = (location_s)xrand(House, ShopFood);
+			auto t = (site_s)xrand(House, ShopFood);
 			if(current > max_possible_points)
 				t = House;
 			create_content(e, t, visualize);

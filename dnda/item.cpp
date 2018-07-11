@@ -408,6 +408,10 @@ bool item::isnatural() const {
 	return item_data[type].flags.is(Natural);
 }
 
+bool item::isunbreakable() const {
+	return magic==Artifact || isnatural();
+}
+
 gender_s item::getgender() const {
 	return item_data[type].gender;
 }
@@ -531,6 +535,11 @@ bool item::damageb() {
 	else if(magic==Mundane)
 		return true;
 	return false;
+}
+
+void item::damage() {
+	if(damageb())
+		clear();
 }
 
 void item::act(const char* format, ...) const {
