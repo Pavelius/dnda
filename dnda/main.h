@@ -444,6 +444,7 @@ struct creature {
 	bool			apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value, void(*fail_proc)(effectparam& e) = 0);
 	bool			askyn(creature* opponent, const char* format, ...);
 	void			athletics(bool interactive);
+	void			attack(creature* defender, slot_s slot, int bonus = 0);
 	bool			canhear(short unsigned index) const;
 	void			chat(creature* opponent);
 	item*			choose(aref<item*> source, bool interactive) const;

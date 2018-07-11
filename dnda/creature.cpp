@@ -1019,17 +1019,18 @@ bool creature::interact(short unsigned index) {
 	return false;
 }
 
-static void attack(creature* attacker, creature* defender, const attackinfo& ai, int bonus = 0) {
+void creature::attack(creature* defender, slot_s slot, int bonus) {
 	if(!defender->enemy)
-		defender->enemy = attacker;
+		defender->enemy = this;
+	auto ai = getattackinfo(slot);
 	auto s = d100();
 	auto r = s + ai.bonus + bonus - defender->getdefence();
 	if(s == 1 || (r < chance_to_hit)) {
-		attacker->act("%герой промазал%а.");
+		act("%герой промазал%а.");
 		return;
 	}
 	bool critical_hit = s >= (95 - ai.critical * 5);
-	attacker->act(critical_hit ? "%герой критически попал%а." : "%герой попал%а.");
+	act(critical_hit ? "%герой критически попал%а." : "%герой попал%а.");
 	auto damage = ai.damage;
 	if(critical_hit) {
 		auto step = imax(damage.max, damage.min) - damage.min;
@@ -1045,10 +1046,10 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 		if(!ai.weapon->isartifact()) {
 			if(d100() < ai.weapon->getspecial().chance_broke) {
 				if(ai.weapon->damageb()) {
-					attacker->act("%1 сломался.");
+					act("%1 сломался.");
 					ai.weapon->clear();
 				} else
-					attacker->act("%1 треснул.");
+					act("%1 треснул.");
 			}
 		}
 	}
@@ -1062,7 +1063,7 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 		defender->damage(xrand(1, 4) + ai.quality, Cold, true);
 		break;
 	case OfVampirism:
-		attacker->heal(-(xrand(1, 4) + ai.quality), false);
+		heal(-(xrand(1, 4) + ai.quality), false);
 		break;
 	case OfSickness:
 		// RULE: sickness effect are long
@@ -1071,15 +1072,15 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 				defender->set(Sick, Hour*ai.quality);
 		} else {
 			// Cursed sickness item affect attacker
-			if(!attacker->roll(ResistPoison))
-				attacker->set(Sick, (Hour / 2)*(-ai.quality));
+			if(!roll(ResistPoison))
+				set(Sick, (Hour / 2)*(-ai.quality));
 		}
 		break;
 	case OfPoison:
 		if(ai.quality < 0) {
 			// RULE: cused poison weapon wound owner instead
-			if(!defender->roll(ResistPoison, 10 - value))
-				defender->set(PoisonedWeak, Minute*poison_update * 2 * (-ai.quality));
+			if(!roll(ResistPoison, 10 - value))
+				set(PoisonedWeak, Minute*poison_update * 2 * (-ai.quality));
 		} else {
 			// RULE: power of poison depends on magical bonus
 			static state_s quality_state[] = {PoisonedWeak, PoisonedWeak, PoisonedWeak, Poisoned, Poisoned, PoisonedStrong};
@@ -1090,8 +1091,8 @@ static void attack(creature* attacker, creature* defender, const attackinfo& ai,
 		break;
 	case OfWeakness:
 		if(ai.quality < 0) {
-			if(!defender->roll(ResistPoison, 10 - value))
-				defender->set(Weaken, Minute * 3);
+			if(!roll(ResistPoison, 10 - value))
+				set(Weaken, Minute * 3);
 		} else {
 			// RULE: chance be poisoned depends on damage deal
 			if(!defender->roll(ResistPoison, 10 - value))
@@ -1228,7 +1229,7 @@ void creature::rangeattack() {
 		return;
 	}
 	if(wears[Ranged])
-		attack(this, enemy, getattackinfo(Ranged));
+		attack(enemy, Ranged);
 	wait(getattacktime(Ranged));
 	if(ammo)
 		wears[Amunitions].setcount(wears[Amunitions].getcount() - 1);
@@ -1238,12 +1239,12 @@ void creature::meleeattack(creature* enemy) {
 	if(!(*enemy))
 		return;
 	if(wears[Melee].is(Melee) && wears[OffHand].is(Melee)) {
-		attack(this, enemy, getattackinfo(Melee), -4);
-		attack(this, enemy, getattackinfo(OffHand), -6);
+		attack(enemy, Melee, -4);
+		attack(enemy, OffHand, -6);
 	} else if(wears[OffHand].is(Melee))
-		attack(this, enemy, getattackinfo(OffHand));
+		attack(enemy, OffHand);
 	else
-		attack(this, enemy, getattackinfo(Melee));
+		attack(enemy, Melee);
 	wait(getattacktime(Melee));
 }
 

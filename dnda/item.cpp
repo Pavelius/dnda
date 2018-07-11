@@ -524,9 +524,11 @@ material_s item::getmaterial() const {
 }
 
 bool item::damageb() {
+	if(magic == Artifact)
+		return false;
 	if(damaged < 3)
 		damaged++;
-	else
+	else if(magic==Mundane)
 		return true;
 	return false;
 }
