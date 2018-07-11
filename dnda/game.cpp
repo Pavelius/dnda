@@ -9,7 +9,7 @@ areainfo				game::statistic;
 int						isqrt(int num);
 static unsigned			start_year;
 unsigned				segments = 7 * Hour;
-adat<site, 128>		locations;
+adat<site, 128>			sites;
 adat<groundinfo, 2048>	grounditems;
 tile_s					location_type;
 static tile_s			mptil[max_map_x*max_map_y];
@@ -31,8 +31,19 @@ void areainfo::clear() {
 	memset(this, 0, sizeof(*this));
 }
 
+site* game::add(site_s type, rect rc) {
+	auto p = sites.add();
+	p->type = type;
+	*((rect*)p) = rc;
+	return p;
+}
+
 bool game::is(short unsigned i, map_flag_s v) {
 	return (mpflg[i] & (1 << v)) != 0;
+}
+
+aref<site> game::getsites() {
+	return sites;
 }
 
 void game::set(short unsigned i, map_flag_s type, bool value) {
@@ -86,7 +97,7 @@ void game::initialize() {
 	memset(mprnd, 0, sizeof(mprnd));
 	for(auto& e : mptil)
 		e = Plain;
-	locations.clear();
+	sites.clear();
 	grounditems.clear();
 	creature::initialize();
 	statistic.clear();
@@ -548,10 +559,10 @@ creature* game::getnearest(aref<creature*> source, short unsigned position) {
 }
 
 site* game::getlocation(short unsigned i) {
-	point pt;
-	pt.x = getx(i);
-	pt.y = gety(i);
-	for(auto& e : locations) {
+	if(i == Blocked)
+		return 0;
+	point pt; pt.x = getx(i); pt.y = gety(i);
+	for(auto& e : sites) {
 		if(!e)
 			continue;
 		if(pt.in(e))
@@ -599,6 +610,6 @@ bool game::serialize(bool writemode) {
 	a.setr(mpobj);
 	a.setr(mprnd);
 	creature_serialize(a);
-	a.set(locations);
+	a.set(sites);
 	return true;
 }

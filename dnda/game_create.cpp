@@ -19,15 +19,16 @@ const int max_building_size = 15;
 extern tile_s location_type;
 static slot_s slots_weapons_armor[] = {Melee, Ranged, OffHand, Head, Elbows, Legs, Torso};
 static item_s item_treasure[] = {Coin, Coin, Coin, Coin, RingRed};
+static item_s item_food[] = {Ration, Ration, Ration, BreadEvlen, BreadHalflings, BreadDwarven, Sausage};
 static item_s item_potion_scrolls[] = {ScrollRed, ScrollRed, ScrollRed,
 ScrollGreen, ScrollGreen, ScrollBlue,
 Book1, Book2, Book3, Book4, Book5,
 Amulet1, Amulet2, Amulet3, Amulet4, Amulet5,
+Boot1, Boot2, IronBoot1, IronBoot2, IronBoot3,
 PotionRed, PotionGreen, PotionBlue,
 WandRed, WandGreen, WandBlue,
 RingRed, RingGreen, RingBlue};
-static item_s item_food[] = {Ration, Ration, Ration, BreadEvlen, BreadHalflings, BreadDwarven, Sausage};
-static roominfo	rooms[256]; // Кольцевой буфер генератора. Главное чтобы разница не была 256 значений.
+static roominfo	rooms[256];
 static unsigned char stack_put, stack_get;
 
 static void create_objects(int x, int y, int w, int h, int count, map_object_s object) {
@@ -56,7 +57,7 @@ static int find(int x, int y, int w, int h, map_object_s value) {
 				return i;
 		}
 	}
-	return 0xFFFF;
+	return Blocked;
 }
 
 static void ellipse(int x0, int y0, int x1, int y1, tile_s object) {
@@ -104,7 +105,7 @@ static short unsigned random(int x, int y, int w, int h) {
 // Set horizontal wall in interior room
 static short unsigned setiwh(int x, int y, int s, tile_s o, map_object_s r, bool locked_doors) {
 	if(s <= 2)
-		return 0xFFFF;
+		return Blocked;
 	set(get(x, y), o, s, 1);
 	auto i = get(x + xrand(1, s - 2), y);
 	set(i, Floor);
@@ -119,7 +120,7 @@ static short unsigned setiwh(int x, int y, int s, tile_s o, map_object_s r, bool
 // Set vertical wall in interior room
 static short unsigned setiwv(int x, int y, int s, tile_s o, map_object_s r, bool locked_doors) {
 	if(s <= 2)
-		return 0xFFFF;
+		return Blocked;
 	set(get(x, y), o, 1, s);
 	auto i = get(x, y + xrand(1, s - 2));
 	set(i, Floor);
@@ -185,8 +186,10 @@ static void create_road(int x, int y, int w, int h) {
 	set(get(x, y), Road, w, h);
 }
 
+extern adat<site, 128>		sites;
+
 static void create_location(int x, int y, int w, int h) {
-	auto p = locations.add();
+	auto p = sites.add();
 	p->type = House;
 	p->set(x, y, x + w, y + h);
 }
@@ -242,7 +245,7 @@ static item_s random(aref<slot_s> source) {
 static void create_item(short unsigned index, item_s type, int level, bool forsale, identify_s identify = Unknown, char chance_curse = 20) {
 	if(type == NoItem)
 		return;
-	auto chance_artifact = imax(0, level/4);
+	auto chance_artifact = imax(0, level / 4);
 	auto chance_quality = imax(0, 40 + level);
 	auto chance_magic = imax(0, 5 + level);
 	auto it = item(type, chance_artifact, chance_magic, chance_curse, chance_quality);
@@ -537,9 +540,9 @@ static void create_corridor(short unsigned index, direction_s dir) {
 		int new_index = to(index, dir);
 		if(gettile(new_index) == Floor)
 			return;
-		if(new_index == 0xFFFF || !isvalidcorridor(index, dir))
+		if(new_index == Blocked || !isvalidcorridor(index, dir))
 			break;
-		if(start == 0xFFFF)
+		if(start == Blocked)
 			start = index;
 		index = new_index;
 		set(index, Floor);
@@ -548,7 +551,7 @@ static void create_corridor(short unsigned index, direction_s dir) {
 		if(--iterations == 0)
 			break;
 	}
-	if(start != 0xFFFF) {
+	if(start != Blocked) {
 		direction_s rnd[] = {Right, Left, Up};
 		zshuffle(rnd, 3);
 		int count = 1;
@@ -632,8 +635,40 @@ static void create_dungeon(int x, int y, int w, int h, bool visualize) {
 	}
 }
 
+static void create_room(int x, int y, int w, int h) {
+	for(auto x1 = x; x1 < x + w; x1++) {
+		for(auto y1 = y; y1 < y + h; y1++) {
+			game::set(game::get(x1, y1), Floor);
+		}
+	}
+}
+
+static void create_dungeon2(int x, int y, int w, int h, int level, bool visualize) {
+	if(h < max_building_size*2 && w < max_building_size*2) {
+		auto dw = xrand(max_building_size / 4, max_building_size - 2);
+		auto dh = xrand(max_building_size / 4, max_building_size - 2);
+		auto x1 = x + 1 + rand() % (w - dw - 2);
+		auto y1 = y + 1 + rand() % (h - dh - 2);
+		create_room(x1, y1, dw, dh);
+		if(visualize) {
+			creature player;
+			player.clear();
+			player.position = game::get(x1 + dw / 2, y1 + dh / 2);
+			logs::minimap(player);
+		}
+	} else if(w > h) {
+		auto w1 = w / 2 + (rand() % 8) - 4;
+		create_dungeon2(x, y, w1, h, level + 1, visualize);
+		create_dungeon2(x + w1, y, w - w1, h, level + 1, visualize);
+	} else {
+		auto h1 = h / 2 + (rand() % 6) - 3;
+		create_dungeon2(x, y, w, h1, level + 1, visualize);
+		create_dungeon2(x, y + h1, w, h - h1, level + 1, visualize);
+	}
+}
+
 static void update_rect(int offset, bool test_valid = true) {
-	for(auto& e : locations) {
+	for(auto& e : sites) {
 		if(!e)
 			continue;
 		e.x2 += offset;
@@ -694,17 +729,17 @@ static void area_create(bool explored, bool visualize) {
 	if(location_type == City) {
 		create_city(2, 2, max_map_x - 2, max_map_y - 2, 0);
 		update_rect(-3);
-		qsort(locations.data, locations.count, sizeof(locations.data[0]), compare_location);
-		locations.count = zlen(locations.data);
+		qsort(sites.data, sites.count, sizeof(sites.data[0]), compare_location);
+		sites.count = zlen(sites.data);
 		// Set start and finsh
 		int current = 1;
-		int max_possible_points = locations.count / 3;
+		int max_possible_points = sites.count / 3;
 		if(max_possible_points > 25)
 			max_possible_points = 25;
-		int biggest = locations.count - 1;
-		iswap(locations.data[0], locations.data[biggest]);
+		int biggest = sites.count - 1;
+		iswap(sites.data[0], sites.data[biggest]);
 		bool placed_stairs = false;
-		for(auto& e : locations) {
+		for(auto& e : sites) {
 			auto t = (site_s)xrand(House, ShopFood);
 			if(current > max_possible_points)
 				t = House;
@@ -717,11 +752,12 @@ static void area_create(bool explored, bool visualize) {
 			}
 		}
 	} else {
-		create_dungeon(1, 1, max_map_x - 2, max_map_y - 2, visualize);
+		//create_dungeon(1, 1, max_map_x - 2, max_map_y - 2, visualize);
+		create_dungeon2(1, 1, max_map_x - 2, max_map_y - 2, 0, visualize);
 		change_tile(NoTile, Wall);
 	}
 	update_doors();
-	for(auto& e : locations) {
+	for(auto& e : sites) {
 		e.x2--;
 		e.y2--;
 	}

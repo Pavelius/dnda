@@ -113,7 +113,7 @@ static site* get_non_explored_location() {
 	site* source[128];
 	auto pb = source;
 	auto pe = source + sizeof(source) / sizeof(source[0]);
-	for(auto& e : locations) {
+	for(auto& e : game::getsites()) {
 		if(e.type == House)
 			continue;
 		rect rc = e;
@@ -148,12 +148,12 @@ static bool chat_location(creature* player, creature* opponent) {
 }
 
 void creature::chat(creature* e) {
+	dialog dg(this, e);
 	enum boss_commands {
 		NoBossCommand,
 		GuardPlace, FollowMe,
 	};
 	if(isfriend(e) && e->getleader() == this && e->role == Character) {
-		dialog dg(this, e);
 		dg.start(test_dialog);
 		return;
 	}
@@ -179,7 +179,7 @@ void creature::chat(creature* e) {
 		e->wait(3);
 		return;
 	}
-	chat_smalltalk(e, this);
+	dg.start(smalltalk);
 	e->wait(2);
 }
 

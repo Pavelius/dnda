@@ -624,6 +624,7 @@ struct manual {
 	explicit operator bool() const { return value.type != 0; }
 };
 namespace game {
+site*				add(site_s type, rect rc);
 creature*			add(short unsigned index, creature* element);
 void				create(tile_s type, short unsigned index, int level, bool explored = false, bool visualize = false);
 int					distance(short unsigned i1, short unsigned i2);
@@ -641,6 +642,7 @@ const char*			getnamepart(unsigned short value);
 creature*			getnearest(aref<creature*> source, short unsigned position);
 int					getnight();
 int					getrand(short unsigned i);
+aref<site>			getsites();
 short unsigned		getstepto(short unsigned index);
 short unsigned		getstepfrom(short unsigned index);
 const char*			getdate(char* result, const char* result_maximum, unsigned segments, bool show_time);
@@ -701,7 +703,6 @@ void				next();
 void				raise(creature& e, int left);
 void				turn(creature& e);
 }
-extern adat<site, 128>		locations;
 extern adat<groundinfo, 2048>	grounditems;
 unsigned			getday();
 unsigned			gethour();
