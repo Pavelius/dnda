@@ -832,7 +832,7 @@ static void outdoor_floor() {
 }
 
 static void create_settle(int x, int y, int w, int h, bool visualize) {
-	create_city(x, y, w-x, h-y, 0);
+	create_city(x, y, w + x, h + y, 0);
 	update_rect(-3);
 	qsort(sites.data, sites.count, sizeof(sites.data[0]), compare_rect);
 	sites.count = zlen(sites.data);
