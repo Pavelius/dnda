@@ -655,18 +655,10 @@ static void create_dungeon(int x, int y, int w, int h, bool visualize) {
 
 static void create_corridor(int x, int y, int w, int h, direction_s dir) {
 	switch(dir) {
-	case Up:
-		put_block(game::get(x + rand() % w, y), Up);
-		break;
-	case Left:
-		put_block(game::get(x, y + rand() % h), Left);
-		break;
-	case Down:
-		put_block(game::get(x + rand() % w, y + h - 1), Down);
-		break;
-	default:
-		put_block(game::get(x + w - 1, y + rand() % h), Right);
-		break;
+	case Up: put_block(game::get(x + rand() % w, y), Up); break;
+	case Left: put_block(game::get(x, y + rand() % h), Left); break;
+	case Down: put_block(game::get(x + rand() % w, y + h - 1), Down); break;
+	default: put_block(game::get(x + w - 1, y + rand() % h), Right); break;
 	}
 }
 
