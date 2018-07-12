@@ -115,6 +115,7 @@ enum tile_s : unsigned char {
 	NoTile,
 	Plain, Water, Floor, Wall, Road,
 	Swamp, Hill,
+	Sea, Foothills, Mountains, CloudPeaks, Forest,
 	City,
 };
 enum site_s : unsigned char {
@@ -147,6 +148,7 @@ enum img_s : unsigned char {
 	ResDoors,
 	ResFog,
 	ResFeature,
+	ResSea, ResPlains, ResFoothills, ResMountains, ResCloudPeaks, ResDecals,
 	ResUI,
 	ResPCmar, ResPCmbd, ResPCmac
 };
@@ -701,6 +703,7 @@ void				minimap(creature& e);
 void				next();
 void				raise(creature& e, int left);
 void				turn(creature& e);
+void				worldedit();
 }
 extern adat<groundinfo, 2048>	grounditems;
 unsigned			getday();

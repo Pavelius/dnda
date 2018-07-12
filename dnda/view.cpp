@@ -167,7 +167,7 @@ static int textf(int x, int y, int width, const char* value) {
 static int textl(int x, int y, int width, item& value) {
 	char temp[260]; value.getname(temp, zendof(temp));
 	draw::state push;
-	if(value.getidentify()>=KnowColor) {
+	if(value.getidentify() >= KnowColor) {
 		switch(value.getmagic()) {
 		case Artifact: draw::fore = draw::fore.mix(colors::yellow, 128); break;
 		case Cursed: draw::fore = draw::fore.mix(colors::red, 128); break;
@@ -414,6 +414,93 @@ static int view_dialog(rect rc, const char* title) {
 	draw::fore = colors::yellow;
 	draw::text(x + (w - draw::textw(title)) / 2, y, title);
 	return draw::texth() + padding;
+}
+
+static void view_world(point camera, bool show_fow = true, fxeffect* effects = 0) {
+	sprite* plain = gres(ResPlains);
+	sprite* hills = gres(ResFoothills);
+	sprite* mount = gres(ResMountains);
+	sprite* tmount = gres(ResCloudPeaks);
+	sprite* sea = gres(ResSea);
+	sprite* decals = gres(ResDecals);
+	viewport.x = draw::getwidth();
+	viewport.y = draw::getheight();
+	auto mmx = max_map_x * elx;
+	auto mmy = max_map_y * ely;
+	if(camera.x < 0)
+		camera.x = 0;
+	if(camera.y < 0)
+		camera.y = 0;
+	if(camera.x > mmx - viewport.x)
+		camera.x = mmx - viewport.x;
+	if(camera.y > mmy - viewport.y)
+		camera.y = mmy - viewport.y;
+	camera.x -= elx / 2;
+	camera.y -= ely / 2;
+	rect rc;
+	rc.x1 = camera.x / elx;
+	rc.y1 = camera.y / ely;
+	rc.x2 = rc.x1 + viewport.x / elx + 2;
+	rc.y2 = rc.y1 + viewport.y / ely + 3;
+	int x0 = 0;
+	int y0 = 0;
+	// Нижний уровень
+	for(auto my = rc.y1; my <= rc.y2; my++) {
+		if(my >= max_map_y)
+			break;
+		for(auto mx = rc.x1; mx <= rc.x2; mx++) {
+			if(mx >= max_map_x)
+				continue;
+			auto x = x0 + mx * elx - camera.x;
+			auto y = y0 + my * ely - camera.y;
+			auto i = game::get(mx, my);
+			auto t = game::gettile(i);
+			auto r = game::getrand(i) % 4;
+			switch(t) {
+			case Plain:
+			case Mountains:
+			case Forest:
+			case Swamp:
+				draw::image(x, y, plain, r, 0);
+				break;
+			case Sea:
+				draw::image(x, y, sea, game::getindex(i, Sea), 0);
+				break;
+			case Foothills:
+				draw::image(x, y, plain, r, 0);
+				draw::image(x, y, hills, game::getindex(i, Foothills), 0);
+				break;
+			}
+		}
+	}
+	// Средний уровень
+	for(auto my = rc.y1; my <= rc.y2; my++) {
+		if(my >= max_map_y)
+			break;
+		for(auto mx = rc.x1; mx <= rc.x2; mx++) {
+			if(mx >= max_map_x)
+				continue;
+			auto x = x0 + mx * elx - camera.x;
+			auto y = y0 + my * ely - camera.y;
+			auto i = game::get(mx, my);
+			auto t = game::gettile(i);
+			auto r = game::getrand(i) % 4;
+			switch(t) {
+			case Mountains:
+				draw::image(x, y, mount, game::getindex(i, Mountains), 0);
+				break;
+			case CloudPeaks:
+				draw::image(x, y, tmount, game::getindex(i, CloudPeaks), 0);
+				break;
+			case Forest:
+				draw::image(x, y, decals, 0 + (game::getrand(i) % 3), 0);
+				break;
+			case Swamp:
+				draw::image(x, y, decals, 3 + (game::getrand(i) % 3), 0);
+				break;
+			}
+		}
+	}
 }
 
 static void view_board(point camera, bool show_fow = true, fxeffect* effects = 0) {
@@ -820,7 +907,8 @@ static void view_info(const creature& e) {
 }
 
 static void view_zone(const creature* p, point camera, fxeffect* effects = 0) {
-	view_board(camera, true, effects);
+	view_world(camera, true, effects);
+	//view_board(camera, true, effects);
 	view_message();
 	if(p)
 		view_info(*p);
@@ -863,6 +951,7 @@ static void view_mini(int x, int y, point camera) {
 				continue;
 			switch(game::gettile(i)) {
 			case Hill:
+			case Foothills:
 			case Swamp:
 				pixel(x3, y3, object);
 				break;
@@ -873,9 +962,11 @@ static void view_mini(int x, int y, point camera) {
 				pixel(x3, y3, floor1);
 				break;
 			case Water:
+			case Sea:
 				pixel(x3, y3, water);
 				break;
 			case Wall:
+			case CloudPeaks:
 				pixel(x3, y3, wall);
 				break;
 			case Road:
@@ -1683,6 +1774,35 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {Ctrl + Alpha + 'M', "Открыть мануал", character_manual},
 {Ctrl + Alpha + 'L', "Просмотр сообщений", character_logs},
 };
+
+static struct edit_hotkey {
+	unsigned		key;
+	const char*		name;
+	void(*proc)();
+}edit_hotkeys[] = {{KeyLeft, "Двигаться влево"},
+{KeyHome, "Двигаться вверх и влево"},
+{KeyEnd, "Двигаться вниз и влево"},
+{KeyRight, "Двигаться вправо"},
+{KeyPageUp, "Двигаться вправо и вверх"},
+{KeyPageDown, "Двигаться вправо и вниз "},
+{KeyUp, "Двигаться вверх"},
+{KeyDown, "Двигаться вниз"},
+{KeyEscape, "Помощь"},
+};
+
+void logs::worldedit() {
+	short unsigned position = game::get(10, 10);
+	while(true) {
+		point camera = getcamera(game::getx(position), game::gety(position));
+		view_world(camera, true, 0);
+		view_message();
+		auto id = draw::input();
+		switch(id) {
+		case KeyEscape:
+			return;
+		}
+	}
+}
 
 int compare_hotkey(const void* p1, const void* p2) {
 	auto e1 = (hotkey*)p1;

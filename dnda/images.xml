@@ -430,4 +430,106 @@
     <png input="...\horiz"/>
     <png input="...\vert"/>
   </library>
+  <library output="...\plain" count="4">
+    <group input="...\maps\world\plains">
+      <png input="...\grass_1"/>
+      <png input="...\grass_2"/>
+      <png input="...\grass_3"/>
+      <png input="...\grass_4"/>
+    </group>
+  </library>
+  <library output="...\sea" count="20">
+    <group input="...\maps\world\water">
+      <png input="...\water_0"/>
+      <png input="...\water_1"/>
+      <png input="...\water_2"/>
+      <png input="...\water_3"/>
+      <png input="...\water_4"/>
+      <png input="...\water_5"/>
+      <png input="...\water_6"/>
+      <png input="...\water_7"/>
+      <png input="...\water_8"/>
+      <png input="...\water_9"/>
+      <png input="...\water_10"/>
+      <png input="...\water_11"/>
+      <png input="...\water_12"/>
+      <png input="...\water_13"/>
+      <png input="...\water_14"/>
+      <png input="...\water_15"/>
+      <png input="...\c_SE"/>
+      <png input="...\c_SW"/>
+      <png input="...\c_NW"/>
+      <png input="...\c_NE"/>
+    </group>
+  </library>
+  <library output="...\mount" count="16">
+    <group input="...\maps\world\mount">
+      <png input="...\mount_0"/>
+      <png input="...\mount_1"/>
+      <png input="...\mount_2"/>
+      <png input="...\mount_3"/>
+      <png input="...\mount_4"/>
+      <png input="...\mount_5"/>
+      <png input="...\mount_6"/>
+      <png input="...\mount_7"/>
+      <png input="...\mount_8"/>
+      <png input="...\mount_9"/>
+      <png input="...\mount_10"/>
+      <png input="...\mount_11"/>
+      <png input="...\mount_12"/>
+      <png input="...\mount_13"/>
+      <png input="...\mount_14"/>
+      <png input="...\mount_15"/>
+    </group>
+  </library>
+  <library output="...\tmount" count="16">
+    <group input="...\maps\world\tmount">
+      <png input="...\tmount_0"/>
+      <png input="...\tmount_1"/>
+      <png input="...\tmount_2"/>
+      <png input="...\tmount_3"/>
+      <png input="...\tmount_4"/>
+      <png input="...\tmount_5"/>
+      <png input="...\tmount_6"/>
+      <png input="...\tmount_7"/>
+      <png input="...\tmount_8"/>
+      <png input="...\tmount_9"/>
+      <png input="...\tmount_10"/>
+      <png input="...\tmount_11"/>
+      <png input="...\tmount_12"/>
+      <png input="...\tmount_13"/>
+      <png input="...\tmount_14"/>
+      <png input="...\tmount_15"/>
+    </group>
+  </library>
+  <library output="...\hills" count="16">
+    <group input="...\maps\world\hills">
+      <png input="...\hills_0"/>
+      <png input="...\hills_1"/>
+      <png input="...\hills_2"/>
+      <png input="...\hills_3"/>
+      <png input="...\hills_4"/>
+      <png input="...\hills_5"/>
+      <png input="...\hills_6"/>
+      <png input="...\hills_7"/>
+      <png input="...\hills_8"/>
+      <png input="...\hills_9"/>
+      <png input="...\hills_10"/>
+      <png input="...\hills_11"/>
+      <png input="...\hills_12"/>
+      <png input="...\hills_13"/>
+      <png input="...\hills_14"/>
+      <png input="...\hills_15"/>
+    </group>
+  </library>
+  <library output="...\decals" count="32">
+    <group input="...\maps\world\decals">
+      <png input="...\forrest_1"/>
+      <png input="...\forrest_2"/>
+      <png input="...\forrest_3"/>
+      <png input="...\swamp_1"/>
+      <png input="...\swamp_2"/>
+      <png input="...\swamp_3"/>
+    </group>
+  </library>
 </convert>

@@ -322,7 +322,7 @@ aref<creature*> creature::getcreatures(aref<creature*> result, short unsigned st
 }
 
 bool creature::isbooming() {
-	return creature_data.count >= sizeof(creature_data.data) / sizeof(creature_data.data[0]);
+	return creature_data.count >= sizeof(creature_data.data) / sizeof(creature_data.data[0]) - 4;
 }
 
 void creature::hint(const char* format, ...) const {
