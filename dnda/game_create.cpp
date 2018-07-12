@@ -675,10 +675,7 @@ static void create_maze(int x, int y, int w, int h, bool visualize) {
 	put_block(get(xrand(x + w - w / 4, x + w - 2), xrand(x + h - h / 4, x + h - 2)), Left);
 	while(stack_get != stack_put) {
 		auto& e = get_block();
-		if(isvalidroom(e.index, e.dir) && d100() < chance_generate_room)
-			create_room(e.index, e.dir);
-		else
-			create_corridor(e.index, e.dir);
+		create_corridor(e.index, e.dir);
 		show_minimap_step(e.index, visualize);
 	}
 	change_tile(NoTile, Wall);
