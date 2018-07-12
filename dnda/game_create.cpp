@@ -715,62 +715,46 @@ static bool ispassable(short unsigned index, const rect& correct) {
 	return true;
 }
 
-static bool ispassagepart(short unsigned index, direction_s dir, const rect& correct) {
-	auto i0 = to(index, dir);
-	if(i0 == Blocked)
-		return false;
-	if(!ispassable(index, correct))
-		return false;
-	if(game::gettile(i0) == Floor)
-		return false;
-	return true;
-}
-
-static bool ispassage(short unsigned index, direction_s dir, const rect& correct) {
-	if(!ispassagepart(index, dir, correct))
-		return true;
-	if(!ispassagepart(to(index, turn(dir, Left)), dir, correct))
-		return false;
-	if(!ispassagepart(to(index, turn(dir, Right)), dir, correct))
-		return false;
-	return game::gettile(index) != Floor;
-}
-
 static void create_connector(short unsigned index, direction_s dir, const rect& correct) {
-	short unsigned start = Blocked;
 	auto iterations = xrand(5, 12);
-	while(true) {
-		int new_index = to(index, dir);
-		if(!ispassable(new_index, correct))
+	auto start = Blocked;
+	auto tile = Floor;
+	for(; iterations > 0; iterations--) {
+		auto i0 = to(index, dir); // Forward
+		auto i1 = to(i0, dir); // Forward - Forward
+		auto i2 = to(i0, turn(dir, Left)); // Forward - Left
+		auto i3 = to(i0, turn(dir, Right)); // Forward - Right
+		auto i4 = to(i1, turn(dir, Left)); // Forward - Forward - Left
+		auto i5 = to(i1, turn(dir, Right)); // Forward - Forward - Right
+		if(!ispassable(i0, correct) || game::gettile(i0) == tile)
 			return;
-		if(gettile(new_index) == Floor)
-			return;
-		if(!ispassage(new_index, dir, correct))
+		if(iterations == 1
+			&& (game::gettile(i4) == tile || game::gettile(i5) == tile))
 			break;
-		if(start == Blocked)
-			start = new_index;
-		index = new_index;
+		index = i0;
 		set(index, Floor);
-		if(d100() < chance_corridor_content)
-			create_corridor_content(index);
-		if(--iterations == 0)
-			break;
-	}
-	if(start != Blocked) {
-		if(d100() < 60)
-			game::set(start, Door);
-		direction_s rnd[] = {Right, Left, Up};
-		zshuffle(rnd, 3);
-		int count = 1;
-		if(d100() < 50)
-			count++;
-		if(d100() < 20)
-			count++;
-		for(auto e : rnd) {
-			put_block(index, turn(dir, e));
-			if(--count == 0)
-				break;
+		if(start == Blocked) {
+			start = index;
+			if(d100() < 60)
+				game::set(start, Door);
+		} else {
+			if(d100() < chance_corridor_content)
+				create_corridor_content(index);
 		}
+		if(game::gettile(i2) == tile || game::gettile(i3) == tile)
+			return; // Maybe need `break`?
+	}
+	direction_s rnd[] = {Right, Left, Up};
+	zshuffle(rnd, 3);
+	int count = 1;
+	if(d100() < 50)
+		count++;
+	if(d100() < 20)
+		count++;
+	for(auto e : rnd) {
+		put_block(index, turn(dir, e));
+		if(--count == 0)
+			break;
 	}
 }
 
@@ -810,17 +794,13 @@ static void create_dungeon_simple_dungeon(int x, int y, int w, int h) {
 	adat<rect, 64> rooms;
 	create_rooms(1, 1, max_map_x - 2, max_map_y - 2, rooms);
 	qsort(rooms.data, rooms.count, sizeof(rooms.data[0]), compare_rect);
-	rooms.count -= 2;
+	rooms.count -= 2; // Two room of lesser size would cutted off
 	zshuffle(rooms.data, rooms.count);
 	rect rc = {x, y, x + w, y + h};
 	for(auto& e : rooms)
 		create_room(e.x1, e.y1, e.width(), e.height());
-	for(auto& e : rooms) {
-		auto p = getnearest(center(e), rooms);
-		create_corridor(e.x1, e.y1, e.width(), e.height(), direction(center(e), center(*p)));
-	}
-	//for(auto& e : rooms)
-	//	create_corridor(e.x1, e.y1, e.width(), e.height(), maprnd(connectors_side));
+	for(auto& e : rooms)
+		create_corridor(e.x1, e.y1, e.width(), e.height(), maprnd(connectors_side));
 	while(stack_get != stack_put) {
 		auto& e = get_block();
 		create_connector(e.index, e.dir, rc);

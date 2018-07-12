@@ -332,7 +332,8 @@ direction_s game::turn(direction_s from, direction_s side) {
 		case Down: return Left;
 		default: return Center;
 		}
-	default: return Center;
+	default:
+		return Center;
 	}
 }
 
