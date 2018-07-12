@@ -11,7 +11,6 @@ static unsigned			start_year;
 unsigned				segments = 7 * Hour;
 adat<site, 128>			sites;
 adat<groundinfo, 2048>	grounditems;
-tile_s					location_type;
 static tile_s			mptil[max_map_x*max_map_y];
 static map_object_s		mpobj[max_map_x*max_map_y];
 static unsigned char	mprnd[max_map_x*max_map_y];
@@ -26,10 +25,6 @@ static const direction_s orientations_5b5[25] = {
 	LeftDown, LeftDown, Down, RightDown, Right,
 	LeftDown, Down, Down, RightDown, RightDown
 };
-
-void areainfo::clear() {
-	memset(this, 0, sizeof(*this));
-}
 
 site* game::add(site_s type, rect rc) {
 	auto p = sites.add();
@@ -100,7 +95,7 @@ void game::initialize() {
 	sites.clear();
 	grounditems.clear();
 	creature::initialize();
-	statistic.clear();
+	memset(&statistic, 0, sizeof(statistic));
 }
 
 int	game::getnight() {
@@ -124,11 +119,7 @@ map_object_s game::getobject(short unsigned i) {
 }
 
 bool game::isdungeon() {
-	return gettile() == Floor;
-}
-
-tile_s game::gettile() {
-	return location_type;
+	return statistic.isdungeon;
 }
 
 tile_s game::gettile(short unsigned i) {
@@ -604,7 +595,6 @@ bool game::serialize(bool writemode) {
 		return false;
 	if(!a.version(0, 2))
 		return false;
-	a.set(location_type);
 	a.set(game::statistic);
 	a.setr(mpflg);
 	a.setr(mptil);
