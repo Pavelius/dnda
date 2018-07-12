@@ -119,8 +119,8 @@ enum tile_s : unsigned char {
 };
 enum site_s : unsigned char {
 	EmpthyRoom, TreasureRoom,
-	StairsDownRoom, StairsUpRoom,
-	House, Temple, Tavern,
+	StairsDownRoom, StairsUpRoom, House,
+	Temple, Tavern,
 	ShopWeaponAndArmor, ShopPotionAndScrolls, ShopFood,
 };
 enum map_object_s : unsigned char {
@@ -626,7 +626,7 @@ struct manual {
 namespace game {
 site*				add(site_s type, rect rc);
 creature*			add(short unsigned index, creature* element);
-void				create(const char* id, short unsigned index, int level, bool explored = false, bool visualize = false);
+bool				create(const char* id, short unsigned index, int level, bool explored = false, bool visualize = false);
 int					distance(short unsigned i1, short unsigned i2);
 void				drop(short unsigned i, item object);
 unsigned short		genname(race_s race, gender_s gender);

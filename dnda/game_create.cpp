@@ -217,12 +217,6 @@ static void create_road(int x, int y, int w, int h) {
 	set(get(x, y), Road, w, h);
 }
 
-static void create_location(int x, int y, int w, int h) {
-	auto p = sites.add();
-	p->type = House;
-	p->set(x, y, x + w, y + h);
-}
-
 static void create_commoner(short unsigned index) {}
 
 static creature* create_shopkeeper(site& e, short unsigned index) {
@@ -343,7 +337,7 @@ static void create_objects(site& e, int x, int y, int w, int h, site_s type) {
 	}
 }
 
-static void create_interior(site& e, int x, int y, int w, int h, short unsigned i, site_s type, bool visualize) {
+static void create_interior(site& e, int x, int y, int w, int h, short unsigned i, site_s type) {
 	if(w < 5 && h < 5) {
 		create_objects(e, x + 1, y + 1, w - 2, h - 2, type);
 		return;
@@ -397,29 +391,21 @@ static void create_interior(site& e, int x, int y, int w, int h, short unsigned 
 		}
 	}
 	create_objects(e, x2 + 1, y2 + 1, w2 - 2, h2 - 2, type);
-	if(visualize) {
-		logs::add("Создание внутренностей в (%1i, %2i)", e.x1, e.y1);
-		logs::focusing(center(e.x1, e.y1, e.width(), e.height()));
-	}
 	switch(type) {
 	case ShopPotionAndScrolls:
 	case ShopWeaponAndArmor:
-		create_interior(e, x1, y1, w1, h1, i, TreasureRoom, visualize);
+		create_interior(e, x1, y1, w1, h1, i, TreasureRoom);
 		break;
 	default:
-		create_interior(e, x1, y1, w1, h1, i, EmpthyRoom, visualize);
+		create_interior(e, x1, y1, w1, h1, i, EmpthyRoom);
 		break;
 	}
 }
 
-static void create_content(site& e, site_s type, bool visualize = false) {
+static void create_content(site& e, site_s type) {
 	e.type = type;
 	auto door = create_building(e.x1, e.y1, e.width(), e.height());
-	if(visualize) {
-		logs::add("Создание локации в (%1i, %2i)", e.x1, e.y1);
-		logs::focusing(center(e.x1, e.y1, e.width(), e.height()));
-	}
-	create_interior(e, e.x1, e.y1, e.width(), e.height(), door, e.type, visualize);
+	create_interior(e, e.x1, e.y1, e.width(), e.height(), door, e.type);
 }
 
 static void create_dungeon_item(short unsigned index) {
@@ -446,7 +432,7 @@ static void create_corridor_content(short unsigned index) {
 	maprnd(chances)(index);
 }
 
-static void create_city(int x, int y, int w, int h, int level) {
+static void create_city(int x, int y, int w, int h, int level, adat<rect, 64>& rooms) {
 	if(w > max_building_size && w<max_building_size * 3
 		&& h>max_building_size && h < max_building_size * 3
 		&& d100() < chance_special_area) {
@@ -461,7 +447,8 @@ static void create_city(int x, int y, int w, int h, int level) {
 		return;
 	}
 	if(w <= max_building_size && h <= max_building_size) {
-		create_location(x, y, w, h);
+		if(w > 6 && h > 6)
+			rooms.add({x, y, x + w - 3, y + h - 3});
 		return;
 	}
 	// Calculate direction
@@ -475,8 +462,8 @@ static void create_city(int x, int y, int w, int h, int level) {
 		r = (d100() < 50) ? 0 : 1;
 	if(r == 0) {
 		int w1 = (w*m) / 100; // horizontal
-		create_city(x, y, w1, h, level + 1);
-		create_city(x + w1, y, w - w1, h, level + 1);
+		create_city(x, y, w1, h, level + 1, rooms);
+		create_city(x + w1, y, w - w1, h, level + 1, rooms);
 		if(level <= 2) {
 			if(y == 1) {
 				y--;
@@ -488,8 +475,8 @@ static void create_city(int x, int y, int w, int h, int level) {
 		}
 	} else {
 		int h1 = (h*m) / 100; // vertial
-		create_city(x, y, w, h1, level + 1);
-		create_city(x, y + h1, w, h - h1, level + 1);
+		create_city(x, y, w, h1, level + 1, rooms);
+		create_city(x, y + h1, w, h - h1, level + 1, rooms);
 		if(level <= 2) {
 			if(x == 1) {
 				x--;
@@ -668,19 +655,6 @@ static void create_room(short unsigned index, direction_s dir) {
 		put_block(index, dir);
 }
 
-static void create_maze(int x, int y, int w, int h, bool visualize) {
-	if(statistic.level < 1)
-		statistic.level = 1;
-	put_block(get(xrand(x + w / 8, x + w / 4), xrand(x + h / 8, x + h / 4)), Right);
-	put_block(get(xrand(x + w - w / 4, x + w - 2), xrand(x + h - h / 4, x + h - 2)), Left);
-	while(stack_get != stack_put) {
-		auto& e = get_block();
-		create_corridor(e.index, e.dir);
-		show_minimap_step(e.index, visualize);
-	}
-	change_tile(NoTile, Wall);
-}
-
 static void create_corridor(int x, int y, int w, int h, direction_s dir) {
 	switch(dir) {
 	case Up: put_block(game::get(x + rand() % w, y), Up); break;
@@ -765,39 +739,6 @@ static void create_connector(short unsigned index, direction_s dir, const rect& 
 	}
 }
 
-static void create_dungeon(int x, int y, int w, int h, bool visualize) {
-	adat<rect, 64> rooms;
-	clear_rooms();
-	create_rooms(1, 1, max_map_x - 2, max_map_y - 2, rooms);
-	qsort(rooms.data, rooms.count, sizeof(rooms.data[0]), compare_rect);
-	rooms.count -= 2; // Two room of lesser size would cutted off
-	zshuffle(rooms.data, rooms.count);
-	rect rc = {x, y, x + w, y + h};
-	for(auto& e : rooms)
-		create_room(e.x1, e.y1, e.width(), e.height());
-	for(auto& e : rooms)
-		create_corridor(e.x1, e.y1, e.width(), e.height(), maprnd(connectors_side));
-	for(auto& e : rooms)
-		create_corridor(e.x1, e.y1, e.width(), e.height(), maprnd(connectors_side));
-	while(stack_get != stack_put) {
-		auto& e = get_block();
-		create_connector(e.index, e.dir, rc);
-		show_minimap_step(e.index, visualize);
-	}
-	change_tile(NoTile, Wall);
-}
-
-static void update_rect(int offset, bool test_valid = true) {
-	for(auto& e : sites) {
-		if(!e)
-			continue;
-		e.x2 += offset;
-		e.y2 += offset;
-		if(e.width() <= 3 || e.height() <= 3)
-			e.clear();
-	}
-}
-
 static bool iswall(short unsigned i, direction_s d1, direction_s d2) {
 	auto t1 = game::gettile(to(i, d1));
 	auto t2 = game::gettile(to(i, d2));
@@ -828,34 +769,64 @@ static void outdoor_floor() {
 	create_objects(0, 0, max_map_x - 1, max_map_y - 1, max_map_x*max_map_y*(dense_forest / 3) / 100, Tree);
 }
 
+static void create_dungeon(int x, int y, int w, int h, bool visualize) {
+	adat<rect, 64> rooms;
+	clear_rooms();
+	create_rooms(1, 1, max_map_x - 2, max_map_y - 2, rooms);
+	qsort(rooms.data, rooms.count, sizeof(rooms.data[0]), compare_rect);
+	rooms.count -= 2; // Two room of lesser size would cutted off
+	zshuffle(rooms.data, rooms.count);
+	rect rc = {x, y, x + w, y + h};
+	for(auto& e : rooms)
+		create_room(e.x1, e.y1, e.width(), e.height());
+	for(auto& e : rooms)
+		create_corridor(e.x1, e.y1, e.width(), e.height(), maprnd(connectors_side));
+	for(auto& e : rooms)
+		create_corridor(e.x1, e.y1, e.width(), e.height(), maprnd(connectors_side));
+	while(stack_get != stack_put) {
+		auto& e = get_block();
+		create_connector(e.index, e.dir, rc);
+		show_minimap_step(e.index, visualize);
+	}
+	change_tile(NoTile, Wall);
+}
+
 static void create_settle(int x, int y, int w, int h, bool visualize) {
-	create_city(x, y, w + x, h + y, 0);
-	update_rect(-3);
-	qsort(sites.data, sites.count, sizeof(sites.data[0]), compare_rect);
-	sites.count = zlen(sites.data);
+	adat<rect, 64> rooms;
+	create_city(x, y, w + x, h + y, 0, rooms);
+	qsort(rooms.data, rooms.count, sizeof(rooms.data[0]), compare_rect);
 	// Set start and finsh
 	int current = 1;
-	int max_possible_points = sites.count / 3;
+	int max_possible_points = rooms.getcount() / 3;
 	if(max_possible_points > 25)
 		max_possible_points = 25;
-	int biggest = sites.count - 1;
-	iswap(sites.data[0], sites.data[biggest]);
 	bool placed_stairs = false;
-	for(auto& e : sites) {
-		auto t = (site_s)xrand(House, ShopFood);
+	for(auto& e : rooms) {
+		auto t = (site_s)xrand(Temple, ShopFood);
 		if(current > max_possible_points)
 			t = House;
-		create_content(e, t, visualize);
+		auto p = sites.add();
+		*((rect*)p) = e;
+		create_content(*p, t);
 		if(!placed_stairs && t == House) {
-			if(d100() < 20 || current > max_possible_points) {
-				placed_stairs = true;
-				//t = StairsDown;
-			}
+			placed_stairs = true;
+			//t = StairsDown;
 		}
 	}
 }
 
-void game::create(const char* id, short unsigned index, int level, bool explored, bool visualize) {
+static void create_maze(int x, int y, int w, int h, bool visualize) {
+	put_block(get(xrand(x + w / 8, x + w / 4), xrand(x + h / 8, x + h / 4)), Right);
+	put_block(get(xrand(x + w - w / 4, x + w - 2), xrand(x + h - h / 4, x + h - 2)), Left);
+	while(stack_get != stack_put) {
+		auto& e = get_block();
+		create_corridor(e.index, e.dir);
+		show_minimap_step(e.index, visualize);
+	}
+	change_tile(NoTile, Wall);
+}
+
+bool game::create(const char* id, short unsigned index, int level, bool explored, bool visualize) {
 	static struct dungeon_info {
 		const char*	id;
 		bool		isdungeon;
@@ -865,15 +836,20 @@ void game::create(const char* id, short unsigned index, int level, bool explored
 	} source[] = {{"maze", true, {1, 1}, indoor_floor, create_maze},
 	{"dungeon", true, {1, 1}, indoor_floor, create_dungeon},
 	{"city", false, {2, 2}, outdoor_floor, create_settle},
+	{"forest", false, {1, 1}, outdoor_floor},
 	};
 	initialize();
 	if(!serialize(false)) {
-		statistic.index = index;
-		statistic.level = level;
 		auto p = findid(aref<dungeon_info>(source), id);
 		if(!p)
-			return;
+			return false;
+		statistic.index = index;
+		statistic.level = level;
 		statistic.isdungeon = p->isdungeon;
+		if(p->isdungeon) {
+			if(statistic.level < 1)
+				statistic.level = 1;
+		}
 		// Set new random values
 		auto count = max_map_x * max_map_y;
 		for(short unsigned i = 0; i < count; i++)
@@ -884,8 +860,10 @@ void game::create(const char* id, short unsigned index, int level, bool explored
 				set(i, Explored, true);
 		}
 		p->floor();
-		p->rooms(p->offset.x, p->offset.y, max_map_x - 1 - p->offset.x, max_map_y - 1 - p->offset.y, visualize);
+		if(p->rooms)
+			p->rooms(p->offset.x, p->offset.y, max_map_x - 1 - p->offset.x, max_map_y - 1 - p->offset.y, visualize);
 		update_doors();
 		serialize(true);
 	}
+	return true;
 }
