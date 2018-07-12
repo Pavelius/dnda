@@ -2,18 +2,21 @@
 
 using namespace game;
 
-struct vector {
-	short unsigned			index;
-	direction_s				dir;
-};
-static vector rooms[256];
-static unsigned char stack_put, stack_get;
 const int chance_generate_room = 40;
 const int chance_special_area = 5;
 const int chance_corridor_content = 10;
 const int chance_door_closed = 30;
 const int dense_forest = 15;
 const int max_building_size = 15;
+
+struct vector {
+	short unsigned			index;
+	direction_s				dir;
+	char					chance;
+};
+extern adat<site, 128>		sites;
+static vector				rooms[256];
+static unsigned char		stack_put, stack_get;
 extern tile_s location_type;
 static direction_s connectors_side[] = {Up, Left, Right, Down};
 static slot_s slots_weapons_armor[] = {Melee, Ranged, OffHand, Head, Elbows, Legs, Torso};
@@ -103,6 +106,24 @@ static short unsigned random(int x, int y, int w, int h) {
 	return getfree(get(xrand(x, x + w - 1), xrand(y, y + h - 1)));
 }
 
+static direction_s direction(short unsigned i1, short unsigned i2) {
+	auto x1 = game::getx(i1);
+	auto y1 = game::gety(i1);
+	auto x2 = game::getx(i2);
+	auto y2 = game::gety(i2);
+	auto w = iabs(x1 - x2);
+	auto h = iabs(y1 - y2);
+	if(h < w) {
+		if(y1 < y2)
+			return Down;
+		return Up;
+	} else {
+		if(x1 < x2)
+			return Right;
+		return Left;
+	}
+}
+
 // Set horizontal wall in interior room
 static short unsigned setiwh(int x, int y, int s, tile_s o, map_object_s r, bool locked_doors) {
 	if(s <= 2)
@@ -186,8 +207,6 @@ static void create_road(int x, int y, int w, int h) {
 	}
 	set(get(x, y), Road, w, h);
 }
-
-extern adat<site, 128>		sites;
 
 static void create_location(int x, int y, int w, int h) {
 	auto p = sites.add();
@@ -369,12 +388,10 @@ static void create_interior(site& e, int x, int y, int w, int h, short unsigned 
 		}
 	}
 	create_objects(e, x2 + 1, y2 + 1, w2 - 2, h2 - 2, type);
-#ifdef _DEBUG
 	if(visualize) {
 		logs::add("Создание внутренностей в (%1i, %2i)", e.x1, e.y1);
 		logs::focusing(center(e.x1, e.y1, e.width(), e.height()));
 	}
-#endif
 	switch(type) {
 	case ShopPotionAndScrolls:
 	case ShopWeaponAndArmor:
@@ -389,12 +406,10 @@ static void create_interior(site& e, int x, int y, int w, int h, short unsigned 
 static void create_content(site& e, site_s type, bool visualize = false) {
 	e.type = type;
 	auto door = create_building(e.x1, e.y1, e.width(), e.height());
-#ifdef _DEBUG
 	if(visualize) {
 		logs::add("Создание локации в (%1i, %2i)", e.x1, e.y1);
 		logs::focusing(center(e.x1, e.y1, e.width(), e.height()));
 	}
-#endif
 	create_interior(e, e.x1, e.y1, e.width(), e.height(), door, e.type, visualize);
 }
 
@@ -629,14 +644,12 @@ static void create_dungeon(int x, int y, int w, int h, bool visualize) {
 			create_room(e.index, e.dir);
 		else
 			create_corridor(e.index, e.dir);
-#ifdef _DEBUG
 		if(visualize) {
 			creature player;
 			player.clear();
 			player.position = e.index;
 			logs::minimap(player);
 		}
-#endif
 	}
 }
 
@@ -758,38 +771,7 @@ static void create_connector(short unsigned index, direction_s dir, const rect& 
 	}
 }
 
-rect* getnearest(short unsigned index, adat<rect, 64>& rooms) {
-	auto d1 = max_map_x * 10;
-	rect* result = 0;
-	for(auto& e : rooms) {
-		auto d = distance(index, center(e));
-		if(d < d1) {
-			d1 = d;
-			result = &e;
-		}
-	}
-	return result;
-}
-
-static direction_s direction(short unsigned i1, short unsigned i2) {
-	auto x1 = game::getx(i1);
-	auto y1 = game::gety(i1);
-	auto x2 = game::getx(i2);
-	auto y2 = game::gety(i2);
-	auto w = iabs(x1 - x2);
-	auto h = iabs(y1 - y2);
-	if(h < w) {
-		if(y1 < y2)
-			return Down;
-		return Up;
-	} else {
-		if(x1 < x2)
-			return Right;
-		return Left;
-	}
-}
-
-static void create_dungeon_simple_dungeon(int x, int y, int w, int h) {
+static void create_dungeon_simple_dungeon(int x, int y, int w, int h, bool visualize) {
 	clear_rooms();
 	adat<rect, 64> rooms;
 	create_rooms(1, 1, max_map_x - 2, max_map_y - 2, rooms);
@@ -801,10 +783,12 @@ static void create_dungeon_simple_dungeon(int x, int y, int w, int h) {
 		create_room(e.x1, e.y1, e.width(), e.height());
 	for(auto& e : rooms)
 		create_corridor(e.x1, e.y1, e.width(), e.height(), maprnd(connectors_side));
+	for(auto& e : rooms)
+		create_corridor(e.x1, e.y1, e.width(), e.height(), maprnd(connectors_side));
 	while(stack_get != stack_put) {
 		auto& e = get_block();
 		create_connector(e.index, e.dir, rc);
-		show_minimap_step(e.index, true);
+		show_minimap_step(e.index, visualize);
 	}
 	change_tile(NoTile, Wall);
 }
@@ -820,20 +804,20 @@ static void update_rect(int offset, bool test_valid = true) {
 	}
 }
 
+static bool iswall(short unsigned i, direction_s d1, direction_s d2) {
+	auto t1 = game::gettile(to(i, d1));
+	auto t2 = game::gettile(to(i, d2));
+	return (t1 == Wall || t1 == NoTile) && (t2 == Wall || t2 == NoTile);
+}
+
 static void update_doors() {
 	for(short unsigned i = 0; i <= max_map_x * max_map_y; i++) {
 		if(getobject(i) == Door) {
-			auto count = 0;
-			if(!ispassable(to(i, Left)))
-				count++;
-			if(!ispassable(to(i, Right)))
-				count++;
-			if(!ispassable(to(i, Up)))
-				count++;
-			if(!ispassable(to(i, Down)))
-				count++;
-			if(count != 2)
-				set(i, NoTileObject);
+			if(iswall(i, Left, Right))
+				continue;
+			if(iswall(i, Up, Down))
+				continue;
+			set(i, NoTileObject);
 		}
 	}
 }
@@ -882,7 +866,7 @@ static void area_create(bool explored, bool visualize) {
 		}
 	} else {
 		//create_dungeon(1, 1, max_map_x - 2, max_map_y - 2, visualize);
-		create_dungeon_simple_dungeon(1, 1, max_map_x - 2, max_map_y - 2);
+		create_dungeon_simple_dungeon(1, 1, max_map_x - 2, max_map_y - 2, visualize);
 	}
 	update_doors();
 	for(auto& e : sites) {
