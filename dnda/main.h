@@ -68,6 +68,7 @@ enum race_s : unsigned char {
 	Animal, Goblinoid,
 };
 enum class_s : unsigned char {
+	Commoner,
 	Cleric, Fighter, Mage, Paladin, Ranger, Theif,
 };
 enum gender_s : unsigned char {
@@ -452,7 +453,7 @@ struct creature {
 	item*				choose(aref<item*> source, bool interactive) const;
 	creature*			choose(aref<creature*> source, bool interactive) const;
 	short unsigned		choose(aref<short unsigned> source, bool interactive) const;
-	void				choosebestability();
+	void				applyability();
 	void				clear();
 	void				clear(state_s value) { states[value] = 0; }
 	void				consume(int value, bool interactive);

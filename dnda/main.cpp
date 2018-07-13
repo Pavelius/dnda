@@ -56,7 +56,7 @@ static void test_overland() {
 
 int main(int argc, char* argv[]) {
 	//test_overland();
-	return 0;
+	//return 0;
 	logs::initialize();
 	create("city", get(10, 10), 1, false, false);
 	auto p1 = add(get(8, 5), new creature(Human, Female, Mage));

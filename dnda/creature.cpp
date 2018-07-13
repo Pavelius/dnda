@@ -41,32 +41,35 @@ static struct equipment_info {
 {NoRace, Mage, {Staff, WandGreen, ScrollRed, ScrollGreen, PotionBlue}},
 };
 
-static constexpr struct race_info {
-	const char*		name;
-	cflags<skill_s>	skills;
-	skillvalue		skills_pregen[8];
-} race_data[] = {{"Человекооразный"},
-{"Человек", {Bargaining, Gambling, Swimming}},
-{"Гном", {Smithing, Mining, Athletics}, {{ResistPoison, 30}}},
-{"Эльф", {Survival, WeaponFocusBows, Swimming}},
-{"Полурослик", {HideInShadow, Acrobatics, Swimming}},
+static struct race_info {
+	const char*			name;
+	char				ability_minimum[6];
+	char				ability_maximum[6];
+	adat<skill_s, 4>	skills;
+	skillvalue			skills_pregen[8];
+} race_data[] = {{"Человеко-образный", {6, 6, 6, 6, 6, 6}, {12, 12, 12, 12, 12, 12}},
+{"Человек", {9, 9, 9, 9, 9, 9}, {11, 11, 11, 11, 11, 11}, {Bargaining, Gambling, Swimming}},
+{"Гном", {11, 6, 13, 9, 9, 9}, {14, 9, 15, 11, 11, 11}, {Smithing, Mining, Athletics}, {{ResistPoison, 30}}},
+{"Эльф", {8, 12, 6, 11, 10, 11}, {10, 14, 8, 13, 12, 13}, {Survival, WeaponFocusBows, Swimming}},
+{"Полурослик", {6, 10, 10, 9, 10, 9}, {8, 13, 11, 11, 12, 11}, {HideInShadow, Acrobatics, Swimming}},
 };
 assert_enum(race, Halfling);
 getstr_enum(race);
 
 static struct class_info {
-	const char*		name;
-	unsigned char	hp;
-	unsigned char	attack;
-	ability_s		ability;
-	cflags<skill_s>	skills;
-	cflags<spell_s>	spells;
-} class_data[] = {{"Клерик", 8, 1, Wisdow, {Diplomacy, History, Healing}, {Bless, HealingSpell}},
-{"Воин", 10, 2, Strenght, {Survival, WeaponFocusBlades, WeaponFocusAxes}},
-{"Маг", 4, 1, Intellegence, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
-{"Паладин", 10, 2, Strenght, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}},
-{"Следопыт", 10, 2, Strenght, {Survival, WeaponFocusBows}, {}},
-{"Вор", 6, 1, Dexterity, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff, Backstabbing}},
+	const char*			name;
+	unsigned char		hp;
+	unsigned char		attack;
+	char				ability[6];
+	adat<skill_s, 8>	skills;
+	adat<spell_s, 4>	spells;
+} class_data[] = {{"Крестьянин", 4, 1},
+{"Клерик", 8, 1, {0, 0, 0, 0, 2, 1}, {Diplomacy, History, Healing}, {Bless, HealingSpell}},
+{"Воин", 10, 2, {2, 0, 1, -2, 0, -1}, {Survival, WeaponFocusBlades, WeaponFocusAxes}},
+{"Маг", 4, 1, {-2, 0, 0, 2, 1, 2}, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
+{"Паладин", 10, 2, {2, 0, 1, 0, 1, 2}, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}},
+{"Следопыт", 10, 2, {0, 2, 1, 0, 1, -1}, {Survival, WeaponFocusBows}, {}},
+{"Вор", 6, 1, {0, 2, 0, 0, 0, 1}, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff, Backstabbing}},
 };
 assert_enum(class, Theif);
 getstr_enum(class);
@@ -334,15 +337,11 @@ void creature::hint(const char* format, ...) const {
 	logs::addv(driver, format, xva_start(format));
 }
 
-void creature::choosebestability() {
-	auto a = class_data[type].ability;
-	auto b = Strenght;
-	for(auto i = Strenght; i <= Charisma; i = (ability_s)(i + 1)) {
-		if(abilities[i] > abilities[b])
-			b = i;
-	}
-	if(a != b)
-		iswap(abilities[a], abilities[b]);
+void creature::applyability() {
+	for(auto i = Strenght; i <= Charisma; i = (ability_s)(i + 1))
+		abilities[i] = xrand(race_data[race].ability_minimum[i], race_data[race].ability_maximum[i]);
+	for(auto i = Strenght; i <= Charisma; i = (ability_s)(i + 1))
+		abilities[i] += class_data[type].ability[i];
 }
 
 void creature::raiseskills(int number) {
@@ -389,10 +388,7 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 	this->gender = gender;
 	this->type = type;
 	this->level = 1;
-	// Способности
-	for(auto& e : abilities)
-		e = roll3d6();
-	choosebestability();
+	applyability();
 	for(auto e : race_data[race].skills_pregen)
 		skills[e.id] += e.value;
 	for(auto e : race_data[race].skills)
