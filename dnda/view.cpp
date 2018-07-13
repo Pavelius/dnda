@@ -2,10 +2,19 @@
 #include "resources.h"
 #include "main.h"
 
+template<class T> static const T* findkey(const T* source, int key) {
+	for(auto p = source; *p; p++) {
+		if(p->key == key)
+			return p;
+	}
+	return 0;
+}
+
 struct hotkey {
 	unsigned		key;
 	const char*		command;
 	void(*proc)(creature& e);
+	explicit operator bool() const { return key != 0; }
 };
 
 struct fxeffect : point {
@@ -472,6 +481,11 @@ static void view_world(point camera, bool show_fow = true, fxeffect* effects = 0
 				break;
 			}
 		}
+	}
+	// Нижний уровень эффектов
+	if(effects) {
+		for(auto p = effects; p->res; p++)
+			p->paint(camera);
 	}
 	// Средний уровень
 	for(auto my = rc.y1; my <= rc.y2; my++) {
@@ -1772,35 +1786,81 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {Alpha + 'E', "Съесть что-то", character_eat},
 {Ctrl + Alpha + 'R', "Прочитать что-то", character_read},
 {Ctrl + Alpha + 'M', "Открыть мануал", character_manual},
-{Ctrl + Alpha + 'L', "Просмотр сообщений", character_logs},
-};
-
-static struct edit_hotkey {
-	unsigned		key;
-	const char*		name;
-	void(*proc)();
-}edit_hotkeys[] = {{KeyLeft, "Двигаться влево"},
-{KeyHome, "Двигаться вверх и влево"},
-{KeyEnd, "Двигаться вниз и влево"},
-{KeyRight, "Двигаться вправо"},
-{KeyPageUp, "Двигаться вправо и вверх"},
-{KeyPageDown, "Двигаться вправо и вниз "},
-{KeyUp, "Двигаться вверх"},
-{KeyDown, "Двигаться вниз"},
-{KeyEscape, "Помощь"},
+{Ctrl + Alpha + 'L', "Просмотр сообщений", character_logs}
 };
 
 void logs::worldedit() {
-	short unsigned position = game::get(10, 10);
-	while(true) {
-		point camera = getcamera(game::getx(position), game::gety(position));
-		view_world(camera, true, 0);
+	struct editor {
+		struct shortcut {
+			int				key;
+			const char*		name;
+			void			(editor::*proc)(const shortcut& e);
+			direction_s		direction;
+			tile_s			tile;
+			explicit operator bool() const { return key != 0; }
+		};
+
+		short unsigned		position;
+		tile_s				tile;
+		bool				stop;
+
+		void place(const shortcut& e) {
+			game::set(position, tile);
+		}
+
+		void move(const shortcut& e) {
+			auto new_position = game::to(position, e.direction);
+			if(new_position != Blocked)
+				position = new_position;
+		}
+
+		void cancel(const shortcut& e) {
+			stop = true;
+		}
+
+		void settile(const shortcut& e) {
+			tile = e.tile;
+		}
+
+		const shortcut* getshortcuts() const {
+			static editor::shortcut hotkeys[] = {{KeyLeft, "Двигаться влево", &editor::move, Left},
+			{KeyHome, "Двигаться вверх и влево", &editor::move, LeftUp},
+			{KeyEnd, "Двигаться вниз и влево", &editor::move, LeftDown},
+			{KeyRight, "Двигаться вправо", &editor::move, Right},
+			{KeyPageUp, "Двигаться вправо и вверх", &editor::move, RightUp},
+			{KeyPageDown, "Двигаться вправо и вниз ", &editor::move, RightDown},
+			{KeyUp, "Двигаться вверх", &editor::move, Up},
+			{KeyDown, "Двигаться вниз", &editor::move, Down},
+			{KeyEnter, "Расположить выбранный ландшафт", &editor::place},
+			{Alpha + '1', "Выбрать море", &editor::settile, Center, Sea},
+			{Alpha + '2', "Выбрать болото", &editor::settile, Center, Swamp},
+			{Alpha + '3', "Выбрать равнину", &editor::settile, Center, Plain},
+			{Alpha + '4', "Выбрать лес", &editor::settile, Center, Forest},
+			{Alpha + '5', "Выбрать холмы", &editor::settile, Center, Foothills},
+			{Alpha + '6', "Выбрать горы", &editor::settile, Center, Mountains},
+			{Alpha + '7', "Выбрать туманные пики", &editor::settile, Center, CloudPeaks},
+			{KeyEscape, "Помощь"},
+			};
+			return hotkeys;
+		}
+
+		editor() : position(game::get(10, 10)), tile(Sea), stop(false) {
+		}
+
+	};
+	editor context;
+	fxeffect ef[2];
+	ef[0].res = gres(ResUI);
+	while(!context.stop) {
+		point camera = getcamera(game::getx(context.position), game::gety(context.position));
+		ef[0].x = game::getx(context.position) * elx;
+		ef[0].y = game::gety(context.position) * ely;
+		view_world(camera, true, ef);
 		view_message();
 		auto id = draw::input();
-		switch(id) {
-		case KeyEscape:
-			return;
-		}
+		auto pid = findkey(context.getshortcuts(), id);
+		if(pid && pid->proc)
+			(context.*pid->proc)(*pid);
 	}
 }
 

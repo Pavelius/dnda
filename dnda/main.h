@@ -134,7 +134,8 @@ enum trap_s : unsigned char {
 	TrapLight, TrapPit, TrapSpikedPit, TrapSpear, TrapBleed, TrapCorrosion, TrapWater
 };
 enum direction_s : unsigned char {
-	Left, Right, Up, Down, LeftUp, LeftDown, RightUp, RightDown, Center,
+	Center,
+	Left, Right, Up, Down, LeftUp, LeftDown, RightUp, RightDown
 };
 enum img_s : unsigned char {
 	ResNone,
