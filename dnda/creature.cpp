@@ -917,7 +917,7 @@ bool creature::isplayer() const {
 }
 
 bool creature::isparty(const creature* value) const {
-	return value && getleader()==value->getleader();
+	return value && getleader() == value->getleader();
 }
 
 bool creature::isfriend(const creature* value) const {
@@ -1766,9 +1766,14 @@ void creature::play() {
 			}
 		}
 		if(exit_index != Blocked) {
+			serializep(true);
 			serialize(true);
-			// Кто-то активировал переход на другой уровень
-			// Загрузим карту следующего уровня и сохраним состояние этого
+			auto object = getobject(exit_index);
+			if(object == StairsDown)
+				create("dungeon", statistic.index, statistic.level + 1);
+			else
+				create("dungeon", statistic.index, statistic.level - 1);
+			serializep(false);
 		}
 	}
 }
@@ -1831,4 +1836,44 @@ archive::dataset creature_dataset() {
 
 void creature_serialize(archive& e) {
 	e.set(creature_data);
+}
+
+bool game::serializep(bool writemode) {
+	io::file file("maps/party.dat", writemode ? StreamWrite : StreamRead);
+	if(!file)
+		return false;
+	archive a(file, writemode);
+	if(!a.signature("PAR"))
+		return false;
+	if(!a.version(0, 1))
+		return false;
+	if(writemode) {
+		adat<creature, 16> party;
+		auto p = creature::getplayer();
+		if(!p)
+			return false;
+		p->remove(party);
+		p->clear();
+		for(auto& e : creature_data) {
+			if(&e == p)
+				continue;
+			if(!e.ishenchman(p))
+				continue;
+			e.remove(party);
+			e.clear();
+		}
+		a.set(party);
+	} else {
+		adat<creature, 16> party;
+		a.set(party);
+		adat<creature*, 16> party_reference;
+		for(auto& e : party) {
+			auto p = new creature();
+			*p = e;
+			party_reference.add(p);
+		}
+		for(auto p : party_reference)
+			p->join(party_reference[0]);
+	}
+	return true;
 }

@@ -515,6 +515,7 @@ struct creature {
 	bool				isenemy(const creature* target) const;
 	bool				isfriend(const creature* target) const;
 	bool				isguard() const { return guard != 0xFFFF; }
+	bool				ishenchman(const creature* target) const { return target == party; }
 	bool				isleader() const { return party == this; }
 	bool				isparty(const creature* target) const;
 	bool				isplayer() const;
@@ -666,6 +667,7 @@ void				looktarget(short unsigned index);
 void				lookhere(short unsigned index);
 void				makewave(short unsigned index, bool(*proc)(short unsigned) = ispassabledoor);
 bool				serialize(bool writemode);
+bool				serializep(bool writemode);
 bool				serializew(bool writemode);
 void				set(short unsigned i, tile_s value);
 void				set(short unsigned i, tile_s value, int w, int h);
