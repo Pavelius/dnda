@@ -34,6 +34,10 @@ static bool isundead(effectparam& e) {
 	return e.cre->is(Undead);
 }
 
+static bool test_dance(effectparam& e) {
+	return e.cre->getsite() != 0;
+}
+
 static bool test_pickpockets(effectparam& e) {
 	static const char* talk[] = {
 		"Слушай смешной анекдот. Так ... как же он начинается? ... Забыл. Ладно, давай в другой раз расскажу.",
@@ -129,7 +133,7 @@ static struct skill_info {
 {"Открыть замок", "взлома", {Dexterity, Intellegence}, {{TargetDoorSealed, 1}, {removelock}, {}, "%герой вскрыл%а замок.", {}, 50}},
 {"Очистить карманы", "воровства", {Dexterity, Charisma}, {{TargetFriendly, 1}, {pickpockets, 0, test_pickpockets}, {}, 0, {}, 25}},
 {"Алхимия", "алхимии", {Intellegence, Intellegence}},
-{"Танцы", "танцев", {Dexterity, Charisma}, {{TargetSelf}, {dance}, {}, "%герой станевал%а отличный танец.", {}, 10}},
+{"Танцы", "танцев", {Dexterity, Charisma}, {{TargetSelf}, {dance, 0, test_dance}, {}, "%герой станевал%а отличный танец.", {}, 10}},
 {"Инженерное дело", "инженерии", {Intellegence, Intellegence}},
 {"Азартные игры", "азартных игр", {Charisma, Dexterity}, {{TargetFriendly, 1}, {gamble, failgamble, test_gamble}, {}, 0, {}, 25}},
 {"История", "истории", {Intellegence, Intellegence}},

@@ -498,6 +498,7 @@ struct creature {
 	short unsigned		getposition() const { return position; }
 	damageinfo			getraise(skill_s id) const;
 	int					getreaction(creature* opponent) const;
+	site*				getsite() const { return current_site; }
 	int					getweight() const;
 	int					getweight(encumbrance_s id) const;
 	void				heal(int value, bool interactive) { damage(-value, Magic, interactive); }
