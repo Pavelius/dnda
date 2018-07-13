@@ -1790,47 +1790,38 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 };
 
 void logs::worldedit() {
-	
 	struct editor {
 		struct shortcut {
-			int				key;
-			const char*		name;
-			void			(editor::*proc)(const shortcut& e);
-			direction_s		direction;
-			tile_s			tile;
+			int			key;
+			const char*	name;
+			void		(editor::*proc)(const shortcut& e);
+			direction_s	direction;
+			tile_s		tile;
 			explicit operator bool() const { return key != 0; }
 		};
-
-		short unsigned		position;
-		tile_s				tile;
-		bool				stop;
-
+		short unsigned	position;
+		tile_s			tile;
+		bool			stop;
 		void place(const shortcut& e) {
 			game::set(position, tile);
 		}
-
 		void move(const shortcut& e) {
 			auto new_position = game::to(position, e.direction);
 			if(new_position != Blocked)
 				position = new_position;
 		}
-
 		void cancel(const shortcut& e) {
 			stop = true;
 		}
-
 		void settile(const shortcut& e) {
 			tile = e.tile;
 		}
-
 		void savemap(const shortcut& e) {
 			game::serializew(true);
 		}
-
 		void readmap(const shortcut& e) {
 			game::serializew(false);
 		}
-
 		const shortcut* getshortcuts() const {
 			static editor::shortcut hotkeys[] = {{KeyLeft, "Двигаться влево", &editor::move, Left},
 			{KeyHome, "Двигаться вверх и влево", &editor::move, LeftUp},
@@ -1853,10 +1844,7 @@ void logs::worldedit() {
 			};
 			return hotkeys;
 		}
-
-		editor() : position(game::get(10, 10)), tile(Sea), stop(false) {
-		}
-
+		editor() : position(game::get(10, 10)), tile(Sea), stop(false) {}
 	};
 	editor context;
 	fxeffect ef[2];
