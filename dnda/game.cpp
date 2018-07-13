@@ -604,3 +604,21 @@ bool game::serialize(bool writemode) {
 	a.set(sites);
 	return true;
 }
+
+bool game::serializew(bool writemode) {
+	io::file file("maps/worldmap.dat", writemode ? StreamWrite : StreamRead);
+	if(!file)
+		return false;
+	archive::dataset pointers[] = {creature_dataset()};
+	archive a(file, writemode, pointers);
+	if(!a.signature("WMP"))
+		return false;
+	if(!a.version(0, 1))
+		return false;
+	a.set(game::statistic);
+	a.setr(mpflg);
+	a.setr(mptil);
+	a.setr(mpobj);
+	a.setr(mprnd);
+	return true;
+}

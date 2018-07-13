@@ -1790,6 +1790,7 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 };
 
 void logs::worldedit() {
+	
 	struct editor {
 		struct shortcut {
 			int				key;
@@ -1822,6 +1823,14 @@ void logs::worldedit() {
 			tile = e.tile;
 		}
 
+		void savemap(const shortcut& e) {
+			game::serializew(true);
+		}
+
+		void readmap(const shortcut& e) {
+			game::serializew(false);
+		}
+
 		const shortcut* getshortcuts() const {
 			static editor::shortcut hotkeys[] = {{KeyLeft, "Двигаться влево", &editor::move, Left},
 			{KeyHome, "Двигаться вверх и влево", &editor::move, LeftUp},
@@ -1839,7 +1848,8 @@ void logs::worldedit() {
 			{Alpha + '5', "Выбрать холмы", &editor::settile, Center, Foothills},
 			{Alpha + '6', "Выбрать горы", &editor::settile, Center, Mountains},
 			{Alpha + '7', "Выбрать туманные пики", &editor::settile, Center, CloudPeaks},
-			{KeyEscape, "Помощь"},
+			{Ctrl + Alpha + 'S', "Сохранить карту", &editor::savemap},
+			{Ctrl + Alpha + 'R', "Восстановить карту", &editor::readmap},
 			};
 			return hotkeys;
 		}

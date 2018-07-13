@@ -4,33 +4,13 @@ using namespace game;
 
 static void test_overland() {
 	game::initialize();
+	game::serializew(false);
 	// Set new random values
 	auto count = max_map_x * max_map_y;
 	for(short unsigned i = 0; i < count; i++)
 		set(i, (unsigned char)(rand() % 256));
-	game::set(get(10, 10), Sea);
-	game::set(get(10, 11), Sea);
-	game::set(get(11, 11), Sea);
-	game::set(get(11, 12), Sea);
-	game::set(get(5, 5), Mountains);
-	game::set(get(5, 6), Mountains);
-	game::set(get(6, 6), Mountains);
-	game::set(get(8, 7), CloudPeaks);
-	game::set(get(8, 8), CloudPeaks);
-	game::set(get(9, 8), CloudPeaks);
-	game::set(get(10, 8), Mountains);
-	game::set(get(10, 9), Mountains);
-	game::set(get(9, 9), Mountains);
-	game::set(get(2, 2), Forest);
-	game::set(get(2, 3), Forest);
-	game::set(get(3, 3), Forest);
-	game::set(get(2, 5), Swamp);
-	game::set(get(2, 6), Swamp);
-	game::set(get(3, 6), Swamp);
-	game::set(get(8, 5), Foothills);
-	game::set(get(8, 6), Foothills);
-	game::set(get(9, 6), Foothills);
 	logs::worldedit();
+	game::serializew(true);
 }
 
 int main(int argc, char* argv[]) {
