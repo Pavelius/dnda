@@ -814,6 +814,7 @@ bool creature::move(short unsigned i) {
 	if(!ispassable(i))
 		return false;
 	position = i;
+	current_site = getlocation(position);
 	if(isplayer())
 		lookfloor();
 	trapeffect();
@@ -971,7 +972,7 @@ bool creature::interact(short unsigned index) {
 			meleeattack(p);
 			return true;
 		} else if(this != getplayer()) {
-			// Монстры и другие персонажи не меняются
+			// МонстрI и другие персонажи не меняются
 			wait(xrand(2, 8));
 			return true;
 		} else if(p->isguard()) {
@@ -1399,7 +1400,7 @@ void creature::remove(state_s value) {
 		states[value] = segments;
 }
 
-void creature::set(state_s value, unsigned segments_count, bool after_recoil) {
+void creature::set(state_s value, unsigned segments_count, bool after_recoil, bool can_save) {
 	switch(value) {
 	case RestoreHits:
 		heal(xrand(10, 20), false);
@@ -1419,8 +1420,11 @@ void creature::set(state_s value, unsigned segments_count, bool after_recoil) {
 	default:
 		if(value <= LastState) {
 			unsigned stop = ((after_recoil && recoil) ? recoil : segments) + segments_count;
-			if(states[value] < stop)
+			if(states[value] < stop) {
+				if(can_save) {
+				}
 				states[value] = stop;
+			}
 		}
 		break;
 	}
@@ -1724,6 +1728,21 @@ bool creature::unequip(item& it) {
 	return true;
 }
 
+bool creature::saving(bool interactive, skill_s save, int bonus) const {
+	if(save == NoSkill)
+		return false;
+	auto chance_save = get(save) + bonus;
+	if(chance_save > 0) {
+		auto r = d100();
+		if(r < chance_save) {
+			if(interactive)
+				act("%герой перенес%ла эффект без последствий.");
+			return true;
+		}
+	}
+	return false;
+}
+
 void creature::play() {
 	bool party_killed = false;
 	while(true) {
@@ -1756,6 +1775,8 @@ void creature::play() {
 
 void creature::remove(adat<creature, 16>& source) const {
 	auto p = source.add();
+	if(!p)
+		return;
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;

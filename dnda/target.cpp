@@ -307,28 +307,11 @@ creature* creature::choose(aref<creature*> source, bool interactive) const {
 	return source.data[rand() % source.count];
 }
 
-bool effectparam::saving() const {
-	if(cre && save != NoSkill) {
-		auto chance_save = cre->get(save);
-		if(chance_save > 0) {
-			auto r = d100();
-			if(r < chance_save) {
-				if(interactive)
-					cre->act("%герой перенес%ла эффект без последствий.");
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 bool effectparam::applyfull() {
 	if(proc.test) {
 		if(!proc.test(*this))
 			return false;
 	}
-	if(saving())
-		return false;
 	if(skill_roll) {
 		auto total = skill_value + skill_bonus;
 		if(skill_roll >= total) {

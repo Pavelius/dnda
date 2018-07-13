@@ -278,7 +278,6 @@ struct effectinfo {
 		unsigned		duration;
 	};
 	targetdesc			type;
-	skill_s				save;
 	callback			proc;
 	stateinfo			state;
 	const char*			text;
@@ -305,7 +304,6 @@ struct effectparam : effectinfo {
 	}
 	int					apply(const char* format, const char* format_param);
 	bool				applyfull();
-	bool				saving() const;
 };
 struct action {
 	char				chance; // Usually from 1 to 10
@@ -541,11 +539,12 @@ struct creature {
 	void				say(const char* format, ...);
 	bool				sayv(const char* format, const char* param, creature* opponent);
 	void				sayvs(creature& opponent, const char* format, ...);
+	bool				saving(bool interactive, skill_s save, int bonus) const;
 	static void			select(creature** result, rect rc);
 	aref<item*>			select(aref<item*> result, target_s target) const;
 	aref<creature*>		select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const;
 	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start, bool los = true) const;
-	void				set(state_s value, unsigned segments, bool after_recoil = false);
+	void				set(state_s value, unsigned segments, bool after_recoil = false, bool can_save = false);
 	void				set(spell_s value, int level);
 	static void			setblocks(short unsigned* movements, short unsigned value);
 	void				setplayer();

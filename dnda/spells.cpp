@@ -2,11 +2,21 @@
 
 void setstate(effectparam& e) {
 	// Set state and increase duration by level
-	e.cre->set(e.state.type, e.state.duration * e.level);
-	if(e.state.type == Scared)
-		e.cre->horror = &e.player;
-	else if(e.state.type == Charmed)
-		e.cre->charmer = &e.player;
+	auto duration = e.state.duration * e.level;
+	e.cre->set(e.state.type, duration);
+	if(e.state.type == Scared) {
+		if(!e.cre->saving(e.interactive, ResistCharm, 0)) {
+			e.cre->set(e.state.type, duration);
+			e.cre->horror = &e.player;
+		}
+	} else if(e.state.type == Charmed) {
+		if(!e.cre->saving(e.interactive, ResistCharm, 0)) {
+			e.cre->set(e.state.type, duration);
+			e.cre->charmer = &e.player;
+		}
+	}
+	else
+		e.cre->set(e.state.type, duration);
 }
 
 static void setdamage(effectparam& e) {
@@ -81,24 +91,24 @@ static struct spell_info {
 	char				levels[2];
 	effectinfo			effect;
 } spell_data[] = {{"", ""},
-{"Броня", "брони", 10, {}, {{TargetSelf}, {}, {setstate}, {Armored, 4 * Hour}, "%герой озарил%ась синим светом."}},
-{"Благословение", "благословения", 8, {}, {{TargetFriendly, 2}, {}, {setstate}, {Blessed, Turn}, "%герой озарил%ась желтым светом."}},
-{"Благословить предмет", "благословения", 10, {0, 10}, {{TargetItemMundane}, {}, {bless_item}, {}}},
-{"Очаровать персону", "шарма", 13, {}, {{TargetFriendly, 4}, ResistCharm, {setstate}, {Charmed, Day}, "Внезапно %герой стал%а вести себя дружелюбно."}},
-{"Определить зло", "определения зла", 12, {}, {{TargetInvertory}, {}, {detect_evil}, {}}},
-{"Определить магию", "определения магии", 8, {}, {{TargetInvertory}, {}, {detect_magic}, {}}},
-{"Страх", "страха", 5, {}, {{TargetHostile, 5, 2}, ResistCharm, {setstate}, {Scared, 5 * Minute}, "%герой запаниковал%а и начал%а бежать.", {}}},
-{"Лечение", "лечения", 7, {}, {{TargetFriendly, 1}, {}, {healdamage}, {}, "%герой озарился белым светом.", {1, 8, Magic}}},
-{"Опознать предмет", "опознания", 20, {3}, {{TargetItemUnidentified}, {}, {identify}, {}}},
-{"Невидимость", "невидимости", 8, {}, {{TargetFriendly, 1}, {}, {setstate}, {Hiding, Hour}, "%герой исчез%ла из виду."}},
-{"Свет", "света", 1, {}, {{TargetFriendly, 1}, {}, {setstate}, {Lighted, Hour}, "Вокруг %героя появилось несколько светящихся шариков."}},
-{"Волшебный снаряд", "колдовства", 3, {}, {{TargetHostile, 6}, {}, {setdamage}, {}, "Из пальцев %ГЕРОЯ вылетело несколько светящихся шариков.", {2, 8, Magic}}},
-{"Починка", "ремонта", 10, {}, {{TargetItemDamaged}, {}, {repair}, {}, "%герой на мгновение зажгл%ась синим светом и теперь выглядит не таким сломанным."}},
-{"Исцелить яд", "лечения яда", 15, {}, {{TargetFriendly}, {}, {setstate}, {RemovePoison}, "%герой на мгновение окутался желтым свечением."}},
-{"Исцелить болезнь", "лечения болезней", 15, {}, {{TargetFriendly}, {}, {setstate}, {RemoveSick}, "%герой на мгновение окутался зеленым свечением."}},
-{"Щит", "щита", 6, {}, {{TargetSelf}, {}, {setstate}, {Shielded, Hour / 2}, "Перед %героем появился полупрозрачный барьер."}},
-{"Шокирующая хватка", "электричества", 4, {}, {{TargetHostile, 1}, {}, {setdamage}, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
-{"Усыпление", "усыпления", 5, {}, {{TargetHostile, 4}, ResistCharm, {setstate}, {Sleeped, Minute}, "Внезапно %герой заснул%а.", {}}},
+{"Броня", "брони", 10, {}, {{TargetSelf}, {setstate}, {Armored, 4 * Hour}, "%герой озарил%ась синим светом."}},
+{"Благословение", "благословения", 8, {}, {{TargetFriendly, 2}, {setstate}, {Blessed, Turn}, "%герой озарил%ась желтым светом."}},
+{"Благословить предмет", "благословения", 10, {0, 10}, {{TargetItemMundane}, {bless_item}, {}}},
+{"Очаровать персону", "шарма", 13, {}, {{TargetFriendly, 4}, {setstate}, {Charmed, Day}, "Внезапно %герой стал%а вести себя дружелюбно."}},
+{"Определить зло", "определения зла", 12, {}, {{TargetInvertory}, {detect_evil}, {}}},
+{"Определить магию", "определения магии", 8, {}, {{TargetInvertory}, {detect_magic}, {}}},
+{"Страх", "страха", 5, {}, {{TargetHostile, 5, 2}, {setstate}, {Scared, 5 * Minute}, "%герой запаниковал%а и начал%а бежать.", {}}},
+{"Лечение", "лечения", 7, {}, {{TargetFriendly, 1}, {healdamage}, {}, "%герой озарился белым светом.", {1, 8, Magic}}},
+{"Опознать предмет", "опознания", 20, {3}, {{TargetItemUnidentified}, {identify}, {}}},
+{"Невидимость", "невидимости", 8, {}, {{TargetFriendly, 1}, {setstate}, {Hiding, Hour}, "%герой исчез%ла из виду."}},
+{"Свет", "света", 1, {}, {{TargetFriendly, 1}, {setstate}, {Lighted, Hour}, "Вокруг %героя появилось несколько светящихся шариков."}},
+{"Волшебный снаряд", "колдовства", 3, {}, {{TargetHostile, 6}, {setdamage}, {}, "Из пальцев %ГЕРОЯ вылетело несколько светящихся шариков.", {2, 8, Magic}}},
+{"Починка", "ремонта", 10, {}, {{TargetItemDamaged}, {repair}, {}, "%герой на мгновение зажгл%ась синим светом и теперь выглядит не таким сломанным."}},
+{"Исцелить яд", "лечения яда", 15, {}, {{TargetFriendly}, {setstate}, {RemovePoison}, "%герой на мгновение окутался желтым свечением."}},
+{"Исцелить болезнь", "лечения болезней", 15, {}, {{TargetFriendly}, {setstate}, {RemoveSick}, "%герой на мгновение окутался зеленым свечением."}},
+{"Щит", "щита", 6, {}, {{TargetSelf}, {setstate}, {Shielded, Hour / 2}, "Перед %героем появился полупрозрачный барьер."}},
+{"Шокирующая хватка", "электричества", 4, {}, {{TargetHostile, 1}, {setdamage}, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
+{"Усыпление", "усыпления", 5, {}, {{TargetHostile, 4}, {setstate}, {Sleeped, Minute}, "Внезапно %герой заснул%а.", {}}},
 };
 assert_enum(spell, LastSpell);
 getstr_enum(spell);
