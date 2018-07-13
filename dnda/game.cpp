@@ -87,11 +87,11 @@ const char* game::getdate(char* result, const char* result_maximum, unsigned seg
 	return result;
 }
 
-void game::initialize() {
+void game::initialize(tile_s tile) {
 	memset(mpobj, 0, sizeof(mpobj));
 	memset(mprnd, 0, sizeof(mprnd));
 	for(auto& e : mptil)
-		e = Plain;
+		e = tile;
 	sites.clear();
 	grounditems.clear();
 	creature::initialize();
@@ -557,7 +557,7 @@ site* game::getlocation(short unsigned i) {
 	for(auto& e : sites) {
 		if(!e)
 			continue;
-		if(pt.in(e))
+		if(pt.x >= e.x1 && pt.x < e.x2 && pt.y>=e.y1 && pt.y<e.y2)
 			return &e;
 	}
 	return 0;
@@ -609,13 +609,11 @@ bool game::serializew(bool writemode) {
 	io::file file("maps/worldmap.dat", writemode ? StreamWrite : StreamRead);
 	if(!file)
 		return false;
-	archive::dataset pointers[] = {creature_dataset()};
-	archive a(file, writemode, pointers);
+	archive a(file, writemode);
 	if(!a.signature("WMP"))
 		return false;
 	if(!a.version(0, 1))
 		return false;
-	a.set(game::statistic);
 	a.setr(mpflg);
 	a.setr(mptil);
 	a.setr(mpobj);

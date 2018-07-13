@@ -482,11 +482,6 @@ static void view_world(point camera, bool show_fow = true, fxeffect* effects = 0
 			}
 		}
 	}
-	// Нижний уровень эффектов
-	if(effects) {
-		for(auto p = effects; p->res; p++)
-			p->paint(camera);
-	}
 	// Средний уровень
 	for(auto my = rc.y1; my <= rc.y2; my++) {
 		if(my >= max_map_y)
@@ -514,6 +509,11 @@ static void view_world(point camera, bool show_fow = true, fxeffect* effects = 0
 				break;
 			}
 		}
+	}
+	// Нижний уровень эффектов
+	if(effects) {
+		for(auto p = effects; p->res; p++)
+			p->paint(camera);
 	}
 }
 
@@ -921,8 +921,7 @@ static void view_info(const creature& e) {
 }
 
 static void view_zone(const creature* p, point camera, fxeffect* effects = 0) {
-	view_world(camera, true, effects);
-	//view_board(camera, true, effects);
+	view_board(camera, true, effects);
 	view_message();
 	if(p)
 		view_info(*p);
@@ -1829,6 +1828,23 @@ void logs::worldedit() {
 		void minimap(const shortcut& e) {
 			logs::minimap(position);
 		}
+		void info() {
+			if(!show_gui_panel)
+				return;
+			char temp[512];
+			const int width = 300;
+			const int height = draw::texth() * 2;
+			auto x = (draw::getwidth() - width) / 2;
+			auto y = draw::getheight() - height - padding * 2;
+			auto y2 = y;
+			auto px = game::getx(position);
+			auto py = game::gety(position);
+			draw::state push;
+			draw::fore = colors::white;
+			view_dialog({x, y, x + width, y + height});
+			y += field(x, y, 80, "Ландшафт", getstr(tile));
+			y += field(x, y, 80, "Координаты", szprint(temp, "%1i, %2i", px, py));
+		}
 		const shortcut* getshortcuts() const {
 			static editor::shortcut hotkeys[] = {{KeyLeft, "Двигаться влево", &editor::move, Left},
 			{KeyHome, "Двигаться вверх и влево", &editor::move, LeftUp},
@@ -1838,7 +1854,7 @@ void logs::worldedit() {
 			{KeyPageDown, "Двигаться вправо и вниз ", &editor::move, RightDown},
 			{KeyUp, "Двигаться вверх", &editor::move, Up},
 			{KeyDown, "Двигаться вниз", &editor::move, Down},
-			{KeyEnter, "Расположить выбранный ландшафт", &editor::place},
+			{Alpha + 'Q', "Расположить выбранный ландшафт", &editor::place},
 			{Alpha + '1', "Выбрать море", &editor::settile, Center, Sea},
 			{Alpha + '2', "Выбрать болото", &editor::settile, Center, Swamp},
 			{Alpha + '3', "Выбрать равнину", &editor::settile, Center, Plain},
@@ -1864,10 +1880,13 @@ void logs::worldedit() {
 		ef[0].y = game::gety(context.position) * ely;
 		view_world(camera, true, ef);
 		view_message();
+		context.info();
 		auto id = draw::input();
 		auto pid = findkey(context.getshortcuts(), id);
-		if(pid && pid->proc)
+		if(pid && pid->proc) {
 			(context.*pid->proc)(*pid);
+			clear_state();
+		}
 	}
 }
 

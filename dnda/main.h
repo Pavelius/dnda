@@ -654,7 +654,7 @@ tile_s				gettile(short unsigned i);
 map_object_s		getobject(short unsigned i);
 inline unsigned char getx(short unsigned i) { return i % max_map_x; }
 inline unsigned char gety(short unsigned i) { return i / max_map_x; }
-void				initialize();
+void				initialize(tile_s tile);
 bool				is(short unsigned i, map_flag_s v);
 bool				isdungeon();
 bool				ispassable(short unsigned i);

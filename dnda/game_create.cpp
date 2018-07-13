@@ -822,6 +822,12 @@ static void create_maze(int x, int y, int w, int h, bool visualize) {
 	change_tile(NoTile, Wall);
 }
 
+static void worldmap_outdoor() {
+	auto count = max_map_x * max_map_y;
+	for(short unsigned i = 0; i < count; i++)
+		set(i, Plain);
+}
+
 bool game::create(const char* id, short unsigned index, int level, bool explored, bool visualize) {
 	static struct dungeon_info {
 		const char*	id;
@@ -834,7 +840,7 @@ bool game::create(const char* id, short unsigned index, int level, bool explored
 	{"city", false, {2, 2}, outdoor_floor, create_settle},
 	{"forest", false, {1, 1}, outdoor_floor},
 	};
-	initialize();
+	initialize(Plain);
 	if(!serialize(false)) {
 		auto p = findid(aref<dungeon_info>(source), id);
 		if(!p)

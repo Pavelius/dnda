@@ -2,22 +2,63 @@
 
 using namespace game;
 
+static void create_worldmap() {
+	static direction_s dir[] = {LeftDown, Left, LeftUp, Up, RightUp, Right, RightDown, Down};
+	static tile_s tiles[] = {Sea, Swamp, Plain, Forest, Foothills, Mountains, CloudPeaks, NoTile};
+	static tile_s chances[][8] = {{Sea, Sea, Sea, Sea, Sea, Forest, Foothills, Plain},
+	{Swamp, Swamp, Swamp, Swamp, Swamp, Plain, Plain, Sea},
+	{Foothills, Plain, Plain, Plain, Plain, Plain, Forest, Forest},
+	{Foothills, Forest, Forest, Forest, Forest, Forest, Plain, Plain},
+	{Mountains, Foothills, Foothills, Foothills, Foothills, Plain, Plain, Forest},
+	{CloudPeaks, Mountains, Mountains, Mountains, Mountains, Mountains, Foothills, Forest},
+	{CloudPeaks, CloudPeaks, CloudPeaks, CloudPeaks, CloudPeaks, Mountains, Mountains, Foothills},
+	};
+	unsigned short wolrdmaps[256 * 256];
+	unsigned short push = 0;
+	unsigned short pop = 0;
+	auto i = game::get(10, 10);
+	game::set(i, CloudPeaks);
+	wolrdmaps[push++] = i;
+	while(pop < push) {
+		auto e = wolrdmaps[pop++];
+		auto t = game::gettile(e);
+		if(t == NoTile)
+			continue;
+		auto n = zfind(tiles, t);
+		if(n == -1)
+			continue;
+		for(auto d : dir) {
+			auto i = to(e, d);
+			if(i == Blocked)
+				continue;
+			if(game::gettile(i) != NoTile)
+				continue;
+			if(n == -1)
+				continue;
+			auto t = maprnd(chances[n]);
+			game::set(i, t);
+			wolrdmaps[push++] = i;
+		}
+	}
+}
+
 static void test_overland() {
-	game::initialize();
+	logs::initialize();
+	game::initialize(Plain);
 	game::serializew(false);
 	// Set new random values
 	auto count = max_map_x * max_map_y;
 	for(short unsigned i = 0; i < count; i++)
 		set(i, (unsigned char)(rand() % 256));
+	//create_worldmap();
 	logs::worldedit();
-	game::serializew(true);
 }
 
 int main(int argc, char* argv[]) {
+	//test_overland();
+	//return 0;
 	logs::initialize();
-	create("city", get(10, 10), 1, true, false);
-	test_overland();
-	return 0;
+	create("city", get(10, 10), 1, false, false);
 	auto p1 = add(get(8, 5), new creature(Human, Female, Mage));
 	auto p2 = add(get(8, 5), new creature(Dwarf, Male, Fighter));
 	auto p3 = add(get(2, 2), new creature(Elf, Male, Theif));
