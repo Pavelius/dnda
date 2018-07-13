@@ -32,12 +32,8 @@ WandRed, WandGreen, WandBlue,
 RingRed, RingGreen, RingBlue};
 
 static void show_minimap_step(short unsigned index, bool visualize) {
-	if(visualize) {
-		creature player;
-		player.clear();
-		player.position = index;
-		logs::minimap(player);
-	}
+	if(visualize)
+		logs::minimap(index);
 }
 
 static void create_objects(int x, int y, int w, int h, int count, map_object_s object) {

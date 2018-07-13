@@ -701,7 +701,7 @@ void				focusing(short unsigned index);
 bool				getindex(const creature& e, short unsigned& result, targetdesc ti);
 void				initialize();
 int					input();
-void				minimap(creature& e);
+void				minimap(short unsigned position);
 void				next();
 void				raise(creature& e, int left);
 void				turn(creature& e);

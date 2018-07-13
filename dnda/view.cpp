@@ -1481,11 +1481,11 @@ static void dungeon_lookaround(creature& e) {
 	}
 }
 
-void logs::minimap(creature& e) {
+void logs::minimap(short unsigned position) {
 	char temp[128]; temp[0] = 0;
 	int w = max_map_x * mmaps + 280;
 	int h = max_map_y * mmaps;
-	point camera = getcamera(game::getx(e.position), game::gety(e.position));
+	point camera = getcamera(game::getx(position), game::gety(position));
 	while(true) {
 		draw::rectf({0, 0, draw::getwidth(), draw::getheight()}, colors::form);
 		if(game::statistic.level)
@@ -1753,6 +1753,10 @@ static void character_logs(creature& e) {
 	}
 }
 
+static void character_minimap(creature& e) {
+	logs::minimap(e.position);
+}
+
 static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {KeyHome, "Двигаться вверх и влево"},
 {KeyEnd, "Двигаться вниз и влево"},
@@ -1764,7 +1768,7 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {Alpha + 'I', "Одетые предметы", character_invertory},
 {Alpha + 'P', "Поднять предмет", character_pickup},
 {Alpha + 'D', "Положить предмет", character_dropdown},
-{Alpha + 'M', "Карта местности", logs::minimap},
+{Alpha + 'M', "Карта местности", character_minimap},
 {Alpha + 'V', "Предметы в рюкзаке", character_stuff},
 {Alpha + 'L', "Осмотреться вокруг", dungeon_lookaround},
 {Alpha + 'C', "Поговорить с кем-то рядом", character_chat},
@@ -1822,6 +1826,9 @@ void logs::worldedit() {
 		void readmap(const shortcut& e) {
 			game::serializew(false);
 		}
+		void minimap(const shortcut& e) {
+			logs::minimap(position);
+		}
 		const shortcut* getshortcuts() const {
 			static editor::shortcut hotkeys[] = {{KeyLeft, "Двигаться влево", &editor::move, Left},
 			{KeyHome, "Двигаться вверх и влево", &editor::move, LeftUp},
@@ -1841,6 +1848,8 @@ void logs::worldedit() {
 			{Alpha + '7', "Выбрать туманные пики", &editor::settile, Center, CloudPeaks},
 			{Ctrl + Alpha + 'S', "Сохранить карту", &editor::savemap},
 			{Ctrl + Alpha + 'R', "Восстановить карту", &editor::readmap},
+			{Alpha + 'M', "Карта мира", &editor::minimap},
+			{KeyEscape, "Вернуться назад в главное меню", &editor::cancel},
 			};
 			return hotkeys;
 		}
