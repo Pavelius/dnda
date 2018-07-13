@@ -137,8 +137,8 @@ static bool chat_location(creature* player, creature* opponent) {
 		"Если пойдешь в том направлении найдешь %1.",
 	};
 	// Исследуем область
-	for(auto x = p->x1; x <= p->x2; x++)
-		for(auto y = p->y1; y <= p->y2; y++)
+	for(auto x = p->x1; x < p->x2; x++)
+		for(auto y = p->y1; y < p->y2; y++)
 			game::set(game::get(x, y), Explored, true);
 	char temp[4096];
 	char name[260]; p->getname(name);

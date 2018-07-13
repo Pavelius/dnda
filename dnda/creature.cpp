@@ -944,6 +944,10 @@ void creature::manipulate(short unsigned index) {
 			game::set(index, Opened, false);
 		wait(Minute / 4);
 		break;
+	case StairsUp:
+	case StairsDown:
+		exit_index = position;
+		break;
 	}
 }
 
@@ -1762,14 +1766,16 @@ void creature::play() {
 			}
 		}
 		if(exit_index != Blocked) {
-			serializep(true);
+			serializep(statistic.positions[0], true);
 			serialize(true);
 			auto object = getobject(exit_index);
-			if(object == StairsDown)
+			if(object == StairsDown) {
 				create("dungeon", statistic.index, statistic.level + 1);
-			else
+				serializep(statistic.positions[1], false);
+			} else {
 				create("dungeon", statistic.index, statistic.level - 1);
-			serializep(false);
+				serializep(statistic.positions[0], false);
+			}
 		}
 	}
 }
@@ -1800,30 +1806,29 @@ template<> void archive::set<creature>(creature& e) {
 	set(e.gender);
 	set(e.role);
 	set(e.direction);
-	set(e.abilities);
-	set(e.abilities_raise);
-	set(e.skills);
-	set(e.spells);
 	set(e.name);
 	set(e.level);
-	set(e.hp);
-	set(e.mhp);
-	set(e.mp);
-	set(e.mmp);
-	set(e.recoil);
-	set(e.restore_hits);
-	set(e.restore_mana);
 	set(e.experience);
 	set(e.money);
 	set(e.position);
 	set(e.guard);
-	set(e.states);
 	set(e.wears);
-	set(e.encumbrance);
 	set(e.charmer);
 	set(e.enemy);
 	set(e.horror);
+	set(e.abilities);
+	set(e.abilities_raise);
+	set(e.hp); set(e.mhp); set(e.mp); set(e.mmp);
+	set(e.restore_hits);
+	set(e.restore_mana);
+	set(e.skills);
+	set(e.spells);
+	set(e.states);
+	set(e.recoil);
 	set(e.party);
+	set(e.current_site);
+	set(e.encumbrance);
+	set(e.order);
 }
 
 archive::dataset creature_dataset() {
@@ -1834,7 +1839,7 @@ void creature_serialize(archive& e) {
 	e.set(creature_data);
 }
 
-bool game::serializep(bool writemode) {
+bool game::serializep(short unsigned index, bool writemode) {
 	io::file file("maps/party.dat", writemode ? StreamWrite : StreamRead);
 	if(!file)
 		return false;
@@ -1843,26 +1848,24 @@ bool game::serializep(bool writemode) {
 		return false;
 	if(!a.version(0, 1))
 		return false;
+	adat<creature, 16> party;
+	adat<creature*, 16> party_reference;
 	if(writemode) {
-		adat<creature, 16> party;
 		auto p = creature::getplayer();
 		if(!p)
 			return false;
-		p->remove(party);
-		p->clear();
 		for(auto& e : creature_data) {
-			if(&e == p)
-				continue;
 			if(!e.ishenchman(p))
 				continue;
-			e.remove(party);
-			e.clear();
+			party_reference.add(&e);
+		}
+		for(auto p : party_reference) {
+			p->remove(party);
+			p->clear();
 		}
 		a.set(party);
 	} else {
-		adat<creature, 16> party;
 		a.set(party);
-		adat<creature*, 16> party_reference;
 		for(auto& e : party) {
 			auto p = new creature();
 			*p = e;
@@ -1870,6 +1873,9 @@ bool game::serializep(bool writemode) {
 		}
 		for(auto p : party_reference)
 			p->join(party_reference[0]);
+		party_reference[0]->setplayer();
+		for(auto p : party_reference)
+			p->position = getfree(index);
 	}
 	return true;
 }

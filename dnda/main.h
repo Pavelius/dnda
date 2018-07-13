@@ -199,7 +199,7 @@ enum encumbrance_s : unsigned char {
 };
 enum variant_s : unsigned char {
 	NoVariant,
-	Ability, Skill, State, Enchantment,
+	Ability, Item, Skill, State, Enchantment,
 	Text
 };
 enum speech_s : unsigned char {
@@ -215,24 +215,6 @@ struct effectparam;
 struct site;
 struct targetdesc;
 class item;
-struct variant {
-	variant_s			type;
-	union {
-		ability_s		ability;
-		enchantment_s	enchantment;
-		skill_s			skill;
-		state_s			state;
-		const char*		text;
-	};
-	constexpr variant() : type(NoVariant), skill(NoSkill) {}
-	constexpr variant(skill_s v) : type(Skill), skill(v) {}
-	constexpr variant(state_s v) : type(State), state(v) {}
-	constexpr variant(enchantment_s v) : type(Enchantment), enchantment(v) {}
-	constexpr variant(ability_s v) : type(Ability), ability(v) {}
-	constexpr variant(const char* v) : type(Text), text(v) {}
-	explicit operator bool() const { return type != NoVariant; }
-	const char*			getname() const;
-};
 struct skillvalue {
 	skill_s				id;
 	char				value;
@@ -305,18 +287,6 @@ struct effectparam : effectinfo {
 	}
 	int					apply(const char* format, const char* format_param);
 	bool				applyfull();
-};
-struct action {
-	char				chance; // Usually from 1 to 10
-	const char*			text;
-	void(*proc)(creature& player, item& it, const action& e);
-	damageinfo			damage;
-	variant				value;
-	unsigned			duration;
-	explicit operator bool() const { return chance != 0; }
-	void				apply(creature& player, item& it) const;
-	void				applyrnd(creature & player, item & it) const;
-	const action*		random() const;
 };
 class item {
 	item_s				type;
@@ -396,6 +366,38 @@ public:
 	void				set(enchantment_s value) { effect = value; }
 	void				setforsale() { forsale = 1; }
 	void				setsold() { forsale = 0; }
+};
+struct variant {
+	variant_s			type;
+	union {
+		ability_s		ability;
+		enchantment_s	enchantment;
+		skill_s			skill;
+		state_s			state;
+		item_s			item;
+		const char*		text;
+	};
+	constexpr variant() : type(NoVariant), skill(NoSkill) {}
+	constexpr variant(skill_s v) : type(Skill), skill(v) {}
+	constexpr variant(state_s v) : type(State), state(v) {}
+	constexpr variant(enchantment_s v) : type(Enchantment), enchantment(v) {}
+	constexpr variant(ability_s v) : type(Ability), ability(v) {}
+	constexpr variant(item_s v) : type(Item), item(v) {}
+	constexpr variant(const char* v) : type(Text), text(v) {}
+	explicit operator bool() const { return type != NoVariant; }
+	const char*			getname() const;
+};
+struct action {
+	char				chance; // Usually from 1 to 10
+	const char*			text;
+	void(*proc)(creature& player, item& it, const action& e);
+	damageinfo			damage;
+	variant				value;
+	unsigned			duration;
+	explicit operator bool() const { return chance != 0; }
+	void				apply(creature& player, item& it) const;
+	void				applyrnd(creature & player, item & it) const;
+	const action*		random() const;
 };
 struct attackinfo {
 	char				speed;
@@ -617,9 +619,11 @@ struct groundinfo {
 };
 struct areainfo {
 	short unsigned	index; // Позиция на карте мира
+	short unsigned	positions[8]; // Several positions
 	unsigned char	level; // Уровень поздземелья
 	unsigned char	rooms; // Количество комнат
 	bool			isdungeon;
+	void			clear();
 };
 struct manual {
 	typedef void(*proc)(stringbuffer& sc, manual& e);
@@ -642,7 +646,7 @@ const attackinfo&	getattackinfo(trap_s slot);
 direction_s			getdirection(point s, point d);
 short unsigned		getfree(short unsigned i);
 int					getindex(short unsigned i, tile_s value);
-site*			getlocation(short unsigned i);
+site*				getlocation(short unsigned i);
 int					getitems(item** result, unsigned maximum_count, short unsigned index);
 short unsigned		getmovement(short unsigned i);
 const char*			getnamepart(unsigned short value);
@@ -658,7 +662,7 @@ tile_s				gettile(short unsigned i);
 map_object_s		getobject(short unsigned i);
 inline unsigned char getx(short unsigned i) { return i % max_map_x; }
 inline unsigned char gety(short unsigned i) { return i / max_map_x; }
-void				initialize(tile_s tile);
+void				initialize(short unsigned index, int level, tile_s tile);
 bool				is(short unsigned i, map_flag_s v);
 bool				isdungeon();
 bool				ispassable(short unsigned i);
@@ -668,7 +672,7 @@ void				looktarget(short unsigned index);
 void				lookhere(short unsigned index);
 void				makewave(short unsigned index, bool(*proc)(short unsigned) = ispassabledoor);
 bool				serialize(bool writemode);
-bool				serializep(bool writemode);
+bool				serializep(short unsigned index, bool writemode);
 bool				serializew(bool writemode);
 void				set(short unsigned i, tile_s value);
 void				set(short unsigned i, tile_s value, int w, int h);

@@ -76,7 +76,7 @@ static bool any_object(const creature& player, short unsigned index) {
 	if(game::is(index, Hidden))
 		return false;
 	auto value = game::getobject(index);
-	return value == NoTileObject;
+	return value != NoTileObject;
 }
 
 static struct target_info {

@@ -279,7 +279,7 @@ static int fielp(int x, int y, int w, const char* name, int p1, int p2) {
 static int fielr(int x, int y, int w, const char* name, int p1, int p2) {
 	char temp[128];
 	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
-	draw::text(x + w, y, szprints(temp, zendof(temp), (p2 < 0) ? "%+1i%% и [-%2i]" : "%+1i%% и %2i", p1, p2));
+	draw::text(x + w, y, szprints(temp, zendof(temp), (p2 < 0) ? "%+1i%% и [-%+2i]" : "%+1i%% и %2i", p1, p2));
 	return draw::texth();
 }
 
@@ -1511,7 +1511,7 @@ static void character_chat(creature& e) {
 
 static void character_use(creature& e) {
 	short unsigned source_data[3 * 3 + 1];
-	auto source = e.select(source_data, NoTarget, 1, e.position);
+	auto source = e.select(source_data, TargetObject, 1, e.position);
 	if(!source) {
 		logs::add("Вокруг вас нету ничего, что можно было бы использовать.");
 		return;

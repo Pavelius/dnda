@@ -31,6 +31,13 @@ PotionRed, PotionGreen, PotionBlue,
 WandRed, WandGreen, WandBlue,
 RingRed, RingGreen, RingBlue};
 
+void areainfo::clear() {
+	memset(this, 0, sizeof(*this));
+	index = Blocked;
+	for(auto& e : positions)
+		e = Blocked;
+}
+
 static void show_minimap_step(short unsigned index, bool visualize) {
 	if(visualize)
 		logs::minimap(index);
@@ -773,6 +780,10 @@ static void create_dungeon(int x, int y, int w, int h, bool visualize) {
 	rooms.count -= 2; // Two room of lesser size would cutted off
 	zshuffle(rooms.data, rooms.count);
 	rect rc = {x, y, x + w, y + h};
+	statistic.positions[0] = center(rooms[0]);
+	game::set(statistic.positions[0], StairsDown);
+	statistic.positions[1] = center(rooms[1]);
+	game::set(statistic.positions[1], StairsUp);
 	for(auto& e : rooms)
 		create_room(e.x1, e.y1, e.width(), e.height());
 	for(auto& e : rooms)
@@ -792,11 +803,11 @@ static void create_settle(int x, int y, int w, int h, bool visualize) {
 	create_city(x, y, w + x, h + y, 0, rooms);
 	qsort(rooms.data, rooms.count, sizeof(rooms.data[0]), compare_rect);
 	// Set start and finsh
-	int current = 1;
-	int max_possible_points = rooms.getcount() / 3;
+	auto current = 1;
+	auto max_possible_points = rooms.getcount() / 3;
 	if(max_possible_points > 25)
 		max_possible_points = 25;
-	bool placed_stairs = false;
+	auto placed_stairs = false;
 	for(auto& e : rooms) {
 		auto t = (site_s)xrand(Temple, ShopFood);
 		if(current > max_possible_points)
@@ -806,8 +817,11 @@ static void create_settle(int x, int y, int w, int h, bool visualize) {
 		create_content(*p, t);
 		if(!placed_stairs && t == House) {
 			placed_stairs = true;
-			//t = StairsDown;
+			statistic.positions[0] = center(e);
+			statistic.positions[0] = getfree(statistic.positions[0]);
+			game::set(statistic.positions[0], StairsDown);
 		}
+		current++;
 	}
 }
 
@@ -840,7 +854,7 @@ bool game::create(const char* id, short unsigned index, int level, bool explored
 	{"city", false, {2, 2}, outdoor_floor, create_settle},
 	{"forest", false, {1, 1}, outdoor_floor},
 	};
-	initialize(Plain);
+	initialize(index, level, Plain);
 	if(!serialize(false)) {
 		auto p = findid(aref<dungeon_info>(source), id);
 		if(!p)

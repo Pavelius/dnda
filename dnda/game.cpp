@@ -87,7 +87,7 @@ const char* game::getdate(char* result, const char* result_maximum, unsigned seg
 	return result;
 }
 
-void game::initialize(tile_s tile) {
+void game::initialize(short unsigned index, int level, tile_s tile) {
 	memset(mpobj, 0, sizeof(mpobj));
 	memset(mprnd, 0, sizeof(mprnd));
 	for(auto& e : mptil)
@@ -95,7 +95,9 @@ void game::initialize(tile_s tile) {
 	sites.clear();
 	grounditems.clear();
 	creature::initialize();
-	memset(&statistic, 0, sizeof(statistic));
+	statistic.clear();
+	statistic.index = index;
+	statistic.level = level;
 }
 
 int	game::getnight() {
@@ -580,7 +582,6 @@ archive::dataset creature_dataset();
 void creature_serialize(archive& e);
 
 bool game::serialize(bool writemode) {
-	return false;
 	char temp[260];
 	zcpy(temp, "maps/D");
 	sznum(zend(temp), statistic.level, 2, "XX");
@@ -589,19 +590,20 @@ bool game::serialize(bool writemode) {
 	io::file file(temp, writemode ? StreamWrite : StreamRead);
 	if(!file)
 		return false;
-	archive::dataset pointers[] = {creature_dataset()};
+	archive::dataset pointers[] = {creature_dataset(), sites};
 	archive a(file, writemode, pointers);
 	if(!a.signature("SAV"))
 		return false;
-	if(!a.version(0, 2))
+	if(!a.version(1, 0))
 		return false;
 	a.set(game::statistic);
 	a.setr(mpflg);
 	a.setr(mptil);
 	a.setr(mpobj);
 	a.setr(mprnd);
-	creature_serialize(a);
+	a.set(grounditems);
 	a.set(sites);
+	creature_serialize(a);
 	return true;
 }
 

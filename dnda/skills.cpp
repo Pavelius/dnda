@@ -89,8 +89,8 @@ static void gamble(effectparam& e) {
 
 static void failskill(effectparam& e) {
 	if(d100() < 40) {
-		e.player.hint("ѕопытка не удалась и теб€ охватила злость.");
-		e.player.set(Anger, Minute * xrand(2, 5));
+		e.player.hint("¬ы очень долго пытались выполнить все как надо, но в итоге попытка не удалась.");
+		e.player.wait(Minute * xrand(2, 5));
 	} else
 		e.player.hint("ѕопытка не удалась.");
 }
