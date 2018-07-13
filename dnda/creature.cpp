@@ -1754,6 +1754,24 @@ void creature::play() {
 	}
 }
 
+void creature::remove(adat<creature, 16>& source) const {
+	auto p = source.add();
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		if(e.enemy == this)
+			e.enemy = 0;
+		if(e.party == this)
+			e.party = 0;
+		if(e.horror == this)
+			e.horror = 0;
+		if(e.charmer == this)
+			e.charmer = 0;
+	}
+	*p = *this;
+	p->current_site = 0;
+}
+
 template<> void archive::set<creature>(creature& e) {
 	set(e.race);
 	set(e.type);

@@ -536,6 +536,7 @@ struct creature {
 	void				readbook(item& it);
 	void				release(unsigned exeperience_cost) const;
 	void				remove(state_s value);
+	void				remove(adat<creature, 16>& source) const;
 	bool				roll(skill_s skill, int bonus = 0);
 	void				say(const char* format, ...);
 	bool				sayv(const char* format, const char* param, creature* opponent);
@@ -563,20 +564,21 @@ struct creature {
 	bool				walkaround();
 private:
 	friend struct archive;
-	char			abilities[Charisma + 1];
-	short			abilities_raise[Charisma + 1];
-	short			hp, mhp, mp, mmp;
-	unsigned		restore_hits, restore_mana;
-	unsigned char	skills[LastResist + 1];
-	unsigned char	spells[LastSpell + 1];
-	unsigned		states[LastState + 1];
-	unsigned		recoil;
-	creature*		party;
-	encumbrance_s	encumbrance;
-	command			order;
+	char				abilities[Charisma + 1];
+	short				abilities_raise[Charisma + 1];
+	short				hp, mhp, mp, mmp;
+	unsigned			restore_hits, restore_mana;
+	unsigned char		skills[LastResist + 1];
+	unsigned char		spells[LastSpell + 1];
+	unsigned			states[LastState + 1];
+	unsigned			recoil;
+	creature*			party;
+	site*				current_site;
+	encumbrance_s		encumbrance;
+	command				order;
 	//
-	static bool		playturn();
-	void			updateweight();
+	static bool			playturn();
+	void				updateweight();
 };
 struct site : rect {
 	site_s		type;
