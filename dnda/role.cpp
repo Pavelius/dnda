@@ -10,7 +10,7 @@ static struct role_info {
 	adat<variant, 24> features;
 	adat<special_s, 4> special;
 } role_data[] = {{"Гоблин", Goblin, Male, Chaotic, Fighter, 0, {SwordShort}},
-{"Орк", Orc, Male, Chaotic, Fighter, 1, {SwordLong, LeatherArmour}},
+{"Орк", Orc, Male, Chaotic, Fighter, 1, {SwordLong, StuddedLeatherArmour}},
 {"Летучая мышь", Animal, Female, Chaotic, Fighter, 0, {Bite}},
 {"Крыса", Animal, Female, Chaotic, Fighter, 0, {Bite}},
 {"Крестьянин", Human, Male, Neutral, Commoner, 0},
@@ -22,7 +22,7 @@ static struct role_info {
 {"Бартендер", Dwarf, Male, Neutral, Commoner, 0, },
 {"Скелет", Human, Male, Chaotic, Fighter, 1, {Spear, Dexterity}},
 {"Зомби", Human, Male, Chaotic, Fighter, 2, {Dagger, Strenght}},
-{"Персонаж", Human, Male, Neutral, Fighter, 2},
+{"Персонаж", Human, Male, Neutral, Fighter},
 };
 assert_enum(role, Character);
 getstr_enum(role);

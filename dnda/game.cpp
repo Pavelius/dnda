@@ -87,19 +87,6 @@ const char* game::getdate(char* result, const char* result_maximum, unsigned seg
 	return result;
 }
 
-void game::initialize(short unsigned index, int level, tile_s tile) {
-	memset(mpobj, 0, sizeof(mpobj));
-	memset(mprnd, 0, sizeof(mprnd));
-	for(auto& e : mptil)
-		e = tile;
-	sites.clear();
-	grounditems.clear();
-	creature::initialize();
-	statistic.clear();
-	statistic.index = index;
-	statistic.level = level;
-}
-
 int	game::getnight() {
 	const unsigned dawn_hour = 5 * Hour;
 	const unsigned dusk_hour = 20 * Hour;
@@ -580,6 +567,20 @@ template<> void archive::set<site>(site& e) {
 
 archive::dataset creature_dataset();
 void creature_serialize(archive& e);
+
+void game::initialize(short unsigned index, int level, tile_s tile) {
+	memset(mpobj, 0, sizeof(mpobj));
+	memset(mprnd, 0, sizeof(mprnd));
+	memset(mpflg, 0, sizeof(mpflg));
+	for(auto& e : mptil)
+		e = tile;
+	sites.clear();
+	grounditems.clear();
+	creature::initialize();
+	statistic.clear();
+	statistic.index = index;
+	statistic.level = level;
+}
 
 bool game::serialize(bool writemode) {
 	char temp[260];
