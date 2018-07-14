@@ -7,23 +7,22 @@ static struct role_info {
 	alignment_s		alignment;
 	class_s			type;
 	char			level;
-	char			abilities[Charisma + 1];
 	adat<variant, 24> features;
 	adat<special_s, 4> special;
-} role_data[] = {{"Гоблин", Goblinoid, Male, Chaotic, Fighter, 0, {8, 12, 8, 8, 8, 8}, {SwordShort}},
-{"Орк", Goblinoid, Male, Chaotic, Fighter, 1, {13, 10, 10, 8, 8, 8}, {SwordLong}},
-{"Летучая мышь", Animal, Female, Chaotic, Fighter, 0, {8, 12, 4, 3, 3, 3}, {Bite}},
-{"Крыса", Animal, Female, Chaotic, Fighter, 0, {6, 10, 4, 3, 3, 3}, {Bite}},
-{"Крестьянин", Human, Male, Neutral, Commoner, 0, {10, 10, 10, 10, 10, 10}},
-{"Охранник", Human, Male, Neutral, Fighter, 1, {15, 10, 10, 10, 10, 10}, {Spear}},
-{"Ребенок", Human, Male, Neutral, Commoner, 0, {8, 8, 6, 6, 6, 10}},
-{"Крестьянка", Human, Male, Neutral, Commoner, 0, {10, 10, 10, 10, 10, 10}},
-{"Владелец магазина", Human, Male, Neutral, Commoner, 0, {10, 10, 10, 11, 10, 13}, {Bargaining}},
-{"Кузнец", Dwarf, Male, Neutral, Commoner, 0, {16, 10, 12, 10, 10, 10}, {HammerWar}},
-{"Бартендер", Dwarf, Male, Neutral, Commoner, 0, {10, 10, 12, 10, 12, 10}},
-{"Скелет", Human, Male, Chaotic, Fighter, 1, {10, 13, 10, 10, 10, 10}, {Spear}},
-{"Зомби", Human, Male, Chaotic, Fighter, 2, {15, 10, 16, 10, 10, 10}, {Dagger}},
-{"Персонаж", Human, Male, Neutral, Fighter, 2, {15, 10, 16, 10, 10, 10}},
+} role_data[] = {{"Гоблин", Goblin, Male, Chaotic, Fighter, 0, {SwordShort}},
+{"Орк", Orc, Male, Chaotic, Fighter, 1, {SwordLong, LeatherArmour}},
+{"Летучая мышь", Animal, Female, Chaotic, Fighter, 0, {Bite}},
+{"Крыса", Animal, Female, Chaotic, Fighter, 0, {Bite}},
+{"Крестьянин", Human, Male, Neutral, Commoner, 0},
+{"Охранник", Human, Male, Neutral, Fighter, 1, {Spear}},
+{"Ребенок", Human, Male, Neutral, Commoner},
+{"Крестьянка", Human, Male, Neutral, Commoner},
+{"Владелец магазина", Human, Male, Neutral, Commoner, 0, {Bargaining}},
+{"Кузнец", Dwarf, Male, Neutral, Commoner, 0, {HammerWar}},
+{"Бартендер", Dwarf, Male, Neutral, Commoner, 0, },
+{"Скелет", Human, Male, Chaotic, Fighter, 1, {Spear, Dexterity}},
+{"Зомби", Human, Male, Chaotic, Fighter, 2, {Dagger, Strenght}},
+{"Персонаж", Human, Male, Neutral, Fighter, 2},
 };
 assert_enum(role, Character);
 getstr_enum(role);
@@ -52,14 +51,13 @@ creature::creature(role_s role) {
 	this->type = Fighter;
 	this->level = e.level;
 	this->role = role;
-	for(int i = Strenght; i <= Charisma; i++)
-		abilities[i] = e.abilities[i];
+	applyability();
 	for(auto i : e.features) {
 		switch(i.type) {
-		case Item: equip(item(i.item, 0, 10, 10, 30)); break;
+		case Item: equip(item(i.item, 0, 15, 10, 35)); break;
 		case Skill: raise(i.skill); break;
-		default:
-			break;
+		case Ability: abilities[i.ability] += 2; break;
+		default: break;
 		}
 	}
 	// Восполним хиты

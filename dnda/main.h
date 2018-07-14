@@ -63,9 +63,9 @@ enum enchantment_s : unsigned char {
 	LastEnchantment = OfWaterproof,
 };
 enum race_s : unsigned char {
-	NoRace,
+	Animal,
 	Human, Dwarf, Elf, Halfling,
-	Animal, Goblinoid,
+	Goblin, Orc
 };
 enum class_s : unsigned char {
 	Commoner,

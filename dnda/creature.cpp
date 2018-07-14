@@ -33,12 +33,12 @@ static struct equipment_info {
 	class_s			type;
 	item_s			equipment[8];
 } equipment_data[] = {{Dwarf, Fighter, {AxeBattle, ScaleMail, Shield, BreadDwarven}},
-{NoRace, Cleric, {Mace}},
-{NoRace, Fighter, {SwordLong, LeatherArmour, Shield}},
-{NoRace, Paladin, {SwordLong, ScaleMail}},
-{NoRace, Ranger, {SwordLong, SwordShort, LeatherArmour}},
-{NoRace, Theif, {SwordShort, LeatherArmour}},
-{NoRace, Mage, {Staff, WandGreen, ScrollRed, ScrollGreen, PotionBlue}},
+{Animal, Cleric, {Mace}},
+{Animal, Fighter, {SwordLong, LeatherArmour, Shield}},
+{Animal, Paladin, {SwordLong, ScaleMail}},
+{Animal, Ranger, {SwordLong, SwordShort, LeatherArmour}},
+{Animal, Theif, {SwordShort, LeatherArmour}},
+{Animal, Mage, {Staff, WandGreen, ScrollRed, ScrollGreen, PotionBlue}},
 };
 
 static struct race_info {
@@ -47,13 +47,17 @@ static struct race_info {
 	char				ability_maximum[6];
 	adat<skill_s, 4>	skills;
 	skillvalue			skills_pregen[8];
-} race_data[] = {{"Человеко-образный", {6, 6, 6, 6, 6, 6}, {12, 12, 12, 12, 12, 12}},
+} race_data[] = {{"Зверь", {6, 6, 6, 2, 12, 2}, {10, 10, 10, 4, 15, 4}},
+//
 {"Человек", {9, 9, 9, 9, 9, 9}, {11, 11, 11, 11, 11, 11}, {Bargaining, Gambling, Swimming}},
 {"Гном", {11, 6, 13, 9, 9, 9}, {14, 9, 15, 11, 11, 11}, {Smithing, Mining, Athletics}, {{ResistPoison, 30}}},
 {"Эльф", {8, 12, 6, 11, 10, 11}, {10, 14, 8, 13, 12, 13}, {Survival, WeaponFocusBows, Swimming}},
 {"Полурослик", {6, 10, 10, 9, 10, 9}, {8, 13, 11, 11, 12, 11}, {HideInShadow, Acrobatics, Swimming}},
+//
+{"Гоблин", {5, 12, 8, 6, 9, 6}, {7, 14, 10, 8, 11, 8}, {HideInShadow, Acrobatics, Swimming}},
+{"Орк", {12, 9, 11, 6, 9, 6}, {15, 11, 13, 8, 11, 8}, {Athletics, Mining, Swimming}},
 };
-assert_enum(race, Halfling);
+assert_enum(race, Orc);
 getstr_enum(race);
 
 static struct class_info {
@@ -136,7 +140,7 @@ static int roll3d6() {
 
 static void start_equipment(creature& e) {
 	for(auto& ei : equipment_data) {
-		if((ei.race == e.race || ei.race == NoRace) && ei.type == e.type) {
+		if((!ei.race || ei.race == e.race) && ei.type == e.type) {
 			for(auto i : ei.equipment) {
 				if(!i)
 					break;
@@ -342,6 +346,10 @@ void creature::applyability() {
 		abilities[i] = xrand(race_data[race].ability_minimum[i], race_data[race].ability_maximum[i]);
 	for(auto i = Strenght; i <= Charisma; i = (ability_s)(i + 1))
 		abilities[i] += class_data[type].ability[i];
+	for(auto& a : abilities) {
+		if(a < 1)
+			a = 1;
+	}
 }
 
 void creature::raiseskills(int number) {
