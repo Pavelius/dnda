@@ -20,6 +20,12 @@ static bool enemy(const creature& player, const creature* opponent) {
 	return player.isenemy(opponent);
 }
 
+static bool potent_enemy(const creature& player, const creature* opponent) {
+	if(opponent->role == Shopkeeper || player.role == Shopkeeper)
+		return false;
+	return player.isagressive() != opponent->isagressive();
+}
+
 static bool edible(const creature& player, const item& it) {
 	return it.isedible();
 }
@@ -101,6 +107,7 @@ static struct target_info {
 {"Раненный союзник", wounded_friendly, false, true},
 {"Нейтрал", neutral},
 {"Враг", enemy},
+{"Потенциальный враг", potent_enemy, false, false},
 //
 {"Обычный предмет", mundane_item},
 {"Неопознанный предмет", undefined_item},

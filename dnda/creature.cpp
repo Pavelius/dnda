@@ -716,15 +716,37 @@ void creature::wait(int segments) {
 	recoil += segments;
 }
 
+creature* creature::getnearest(aref<creature*> source, targetdesc ti) const {
+	if(!source)
+		return 0;
+	creature* creature_result[260];
+	auto result = select(creature_result, source, ti.target, ti.range, position, this);
+	return game::getnearest(result, position);
+}
+
 bool creature::walkaround() {
 	if(d100() < 40) {
 		wait(xrand(1, Minute / 2));
 		return false;
 	}
+	// Get all creature nearby
+	creature* creature_data[256];
+	auto creatures = getcreatures(creature_data, position, getlos());
+	// Analize enemies
+	auto enemy = getnearest(creatures, {TargetPotentialHostile});
+	if(enemy) {
+		static const char* talk[] = {"Ну вот ты и попал%АСЬ!",
+			"Готовься умереть!",
+			"Ну вот мы и встретились.",
+			"Ну все, понеслось!",
+			"Стой и не двигайся, я сейчас подойду."
+		};
+		sayvs(*enemy, maprnd(talk));
+		this->enemy = enemy;
+		return false;
+	}
 	// When we try to stand and think
 	if(d100() < 40) {
-		creature* creature_data[256];
-		auto creatures = getcreatures(creature_data, position, getlos());
 		auto skill = aiskill(creatures);
 		auto spell = aispell(creatures);
 		if(skill && spell) {
@@ -928,12 +950,12 @@ bool creature::isfriend(const creature* value) const {
 bool creature::isenemy(const creature* target) const {
 	if(!target || target == this)
 		return false;
-	return getenemy() == target
-		|| target->getenemy() == this;
+	return getenemy() == target || target->getenemy() == this;
 }
 
 void creature::manipulate(short unsigned index) {
-	switch(getobject(index)) {
+	auto a = getobject(index);
+	switch(a) {
 	case Door:
 		if(!game::is(index, Opened)) {
 			if(game::is(index, Sealed))
@@ -946,7 +968,12 @@ void creature::manipulate(short unsigned index) {
 		break;
 	case StairsUp:
 	case StairsDown:
-		exit_index = position;
+		if(isplayer()) {
+			logs::add("Вы действительно хотите %1",
+				(a == StairsDown) ? "спуститься вниз" : "подняться наверх");
+			if(logs::chooseyn())
+				exit_index = position;
+		}
 		break;
 	}
 }
@@ -1116,18 +1143,18 @@ void creature::damage(int value, attack_s type, bool interactive) {
 		hp -= value;
 		if(value <= 0) {
 			if(interactive)
-				act("%герой выдержал%а удар");
+				actnc("%герой выдержал%а удар");
 		} else {
 			if(interactive)
-				act(a.damage, value);
+				actnc(a.damage, value);
 		}
 		if(hp <= 0) {
 			if(interactive)
-				act(a.killed);
+				actnc(a.killed);
 		} else {
 			if(is(Sleeped)) {
 				if(interactive)
-					act(" и проснул%ась");
+					actnc(" и проснул%ась");
 				remove(Sleeped);
 			}
 		}
@@ -1591,6 +1618,15 @@ void creature::actv(const char* format, const char* param) const {
 	driver.name = getname();
 	driver.gender = gender;
 	logs::addv(driver, format, param);
+}
+
+void creature::actvnc(const char* format, const char* param) const {
+	if(!getplayer()->canhear(position))
+		return;
+	logs::driver driver;
+	driver.name = getname();
+	driver.gender = gender;
+	logs::addvnc(driver, format, param);
 }
 
 void creature::consume(int value, bool interactive) {

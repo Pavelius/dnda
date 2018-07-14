@@ -156,7 +156,7 @@ enum img_s : unsigned char {
 };
 enum target_s : unsigned char {
 	NoTarget,
-	TargetSelf, TargetFriendly, TargetFriendlyWounded, TargetNeutral, TargetHostile,
+	TargetSelf, TargetFriendly, TargetFriendlyWounded, TargetNeutral, TargetHostile, TargetPotentialHostile,
 	TargetItemMundane, TargetItemUnidentified, TargetItemDamaged, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
 	TargetObject,
 	TargetDoor, TargetDoorSealed, TargetHiddenObject,
@@ -439,6 +439,8 @@ struct creature {
 	void				act(const char* format, ...) const { actv(format, xva_start(format)); }
 	void				actv(const char* format, const char* param) const;
 	void				actv(creature& opponent, const char* format, const char* param) const;
+	void				actnc(const char* format, ...) const { actvnc(format, xva_start(format)); }
+	void				actvnc(const char* format, const char* param) const;
 	void				actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
 	void				addexp(int count);
 	skill_s				aiskill();
@@ -497,6 +499,7 @@ struct creature {
 	static const char*	getname(tile_s id);
 	static const char*	getname(state_s id, bool cursed);
 	static const char*	getname(skill_s id);
+	creature*			getnearest(aref<creature*> source, targetdesc ti) const;
 	static creature*	getplayer();
 	short unsigned		getposition() const { return position; }
 	damageinfo			getraise(skill_s id) const;
@@ -651,6 +654,7 @@ int					getitems(item** result, unsigned maximum_count, short unsigned index);
 short unsigned		getmovement(short unsigned i);
 const char*			getnamepart(unsigned short value);
 creature*			getnearest(aref<creature*> source, short unsigned position);
+creature*			getnearest(aref<creature*> source, short unsigned position, targetdesc ti);
 int					getnight();
 int					getrand(short unsigned i);
 aref<site>			getsites();

@@ -23,8 +23,9 @@ static struct role_info {
 {"Бартендер", Dwarf, Male, Neutral, Commoner, 0, {10, 10, 12, 10, 12, 10}},
 {"Скелет", Human, Male, Chaotic, Fighter, 1, {10, 13, 10, 10, 10, 10}, {Spear}},
 {"Зомби", Human, Male, Chaotic, Fighter, 2, {15, 10, 16, 10, 10, 10}, {Dagger}},
+{"Персонаж", Human, Male, Neutral, Fighter, 2, {15, 10, 16, 10, 10, 10}},
 };
-assert_enum(role, Character-1);
+assert_enum(role, Character);
 getstr_enum(role);
 
 bool creature::is(special_s value) const {

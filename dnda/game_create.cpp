@@ -276,7 +276,7 @@ static void create_item(short unsigned index, item_s type, int level, bool forsa
 	auto chance_magic = imax(0, 5 + level);
 	auto it = item(type, chance_artifact, chance_magic, chance_curse, chance_quality);
 	it.set(identify);
-	if(it.gettype() == Coin) {
+	if(type == Coin) {
 		auto count = xrand(1, 5) * level;
 		if(count > 64)
 			count = 64;
@@ -421,7 +421,7 @@ static void create_trap(short unsigned index) {
 }
 
 static void create_treasure(short unsigned index) {
-	create_item(index, Coin, 1, false);
+	create_item(index, Coin, statistic.level, false);
 }
 
 static void create_corridor_content(short unsigned index) {
