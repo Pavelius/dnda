@@ -177,7 +177,7 @@ bool logs::choose(creature& e, spell_s& result) {
 	return logs::choose(e, result, {source, count});
 }
 
-spell_s creature::aispell(aref<creature*> creatures) {
+spell_s creature::aispell(aref<creature*> creatures, target_s target) {
 	adat<spell_s, LastSpell + 1> recomended;
 	auto mana = getmana();
 	for(auto i = (spell_s)1; i <= LastSpell; i = (spell_s)(i + 1)) {
@@ -186,6 +186,8 @@ spell_s creature::aispell(aref<creature*> creatures) {
 		if(spell_data[i].effect.type.iscreature())
 			continue;
 		if(getcost(i) > mana)
+			continue;
+		if(target && spell_data[i].effect.type.target != target)
 			continue;
 		if(!spell_data[i].effect.type.isallow(*this, creatures))
 			continue;

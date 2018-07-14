@@ -156,7 +156,7 @@ enum img_s : unsigned char {
 };
 enum target_s : unsigned char {
 	NoTarget,
-	TargetSelf, TargetFriendly, TargetFriendlyWounded, TargetNeutral, TargetHostile, TargetPotentialHostile,
+	TargetSelf, TargetFriendly, TargetFriendlyWounded, TargetNeutral, TargetHostile,
 	TargetItemMundane, TargetItemUnidentified, TargetItemDamaged, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
 	TargetObject,
 	TargetDoor, TargetDoorSealed, TargetHiddenObject,
@@ -445,7 +445,7 @@ struct creature {
 	void				addexp(int count);
 	skill_s				aiskill();
 	skill_s				aiskill(aref<creature*> creatures);
-	spell_s				aispell(aref<creature*> creatures);
+	spell_s				aispell(aref<creature*> creatures, target_s target = NoTarget);
 	bool				alertness();
 	void				apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
 	bool				apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value, void(*fail_proc)(effectparam& e) = 0);
@@ -484,7 +484,6 @@ struct creature {
 	int					getdefence() const;
 	int					getdiscount(creature* customer) const;
 	encumbrance_s		getencumbrance() const { return encumbrance; }
-	creature*			getenemy() const;
 	char*				getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
 	creature*			gethenchmen(int index) const;
 	int					gethits() const { return hp; }
@@ -525,6 +524,7 @@ struct creature {
 	bool				isleader() const { return party == this; }
 	bool				isparty(const creature* target) const;
 	bool				isplayer() const;
+	bool				isranged(bool interactive) const;
 	void				join(creature* party);
 	void				levelup();
 	void				lookfloor();
@@ -568,7 +568,6 @@ struct creature {
 	bool				use(short unsigned index);
 	bool				unequip(item& it);
 	void				wait(int segments = 0);
-	bool				walkaround();
 private:
 	friend struct archive;
 	char				abilities[Charisma + 1];
@@ -586,6 +585,7 @@ private:
 	//
 	static bool			playturn();
 	void				updateweight();
+	bool				walkaround(aref<creature*> creatures);
 };
 struct site : rect {
 	site_s		type;

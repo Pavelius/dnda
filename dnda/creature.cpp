@@ -497,15 +497,6 @@ int creature::getdefence() const {
 	return result;
 }
 
-creature* creature::getenemy() const {
-	if(enemy)
-		return enemy;
-	auto p = getleader();
-	if(p && p->enemy)
-		return p->enemy;
-	return 0;
-}
-
 bool creature::is(state_s value) const {
 	return segments <= states[value];
 }
@@ -732,25 +723,9 @@ creature* creature::getnearest(aref<creature*> source, targetdesc ti) const {
 	return game::getnearest(result, position);
 }
 
-bool creature::walkaround() {
+bool creature::walkaround(aref<creature*> creatures) {
 	if(d100() < 40) {
 		wait(xrand(1, Minute / 2));
-		return false;
-	}
-	// Get all creature nearby
-	creature* creature_data[256];
-	auto creatures = getcreatures(creature_data, position, getlos());
-	// Analize enemies
-	auto enemy = getnearest(creatures, {TargetPotentialHostile});
-	if(enemy) {
-		static const char* talk[] = {"Ну вот ты и попал%АСЬ!",
-			"Готовься умереть!",
-			"Ну вот мы и встретились.",
-			"Ну все, понеслось!",
-			"Стой и не двигайся, я сейчас подойду."
-		};
-		sayvs(*enemy, maprnd(talk));
-		this->enemy = enemy;
 		return false;
 	}
 	// When we try to stand and think
@@ -890,16 +865,38 @@ void creature::makemove() {
 		return;
 	}
 	// Make move depends on conditions
-	if(horror && distance(horror->position, position) <= (getlos() + 1))
+	if(horror && distance(horror->position, position) <= (getlos() + 1)) {
 		moveaway(horror->position);
-	else if(getenemy())
-		moveto(getenemy()->position);
+		return;
+	}
+	creature* creature_data[256];
+	auto creatures = getcreatures(creature_data, position, getlos());
+	// Test any enemy
+	if(!enemy) {
+		enemy = getnearest(creatures, {TargetHostile});
+		if(enemy && get(Intellegence)>=9 && d100()<40) {
+			static const char* talk[] = {"Ну вот ты и попал%АСЬ!",
+				"Готовься умереть!",
+				"Ну вот мы и встретились.",
+				"Ну все, понеслось!",
+				"Стой и не двигайся, я сейчас подойду."
+			};
+			sayvs(*enemy, maprnd(talk));
+		}
+	}
+	if(enemy) {
+		// TODO: spell attack
+		if(isranged(false))
+			rangeattack();
+		else
+			moveto(enemy->position);
+	}
 	else if(guard != Blocked)
 		moveto(guard);
 	else if(!isleader() && getleader()) {
 		auto target = getleader();
 		if(distance(target->position, position) <= 2)
-			walkaround();
+			walkaround(creatures);
 		else
 			moveto(target->position);
 	} else if(order.move != Blocked)
@@ -911,7 +908,7 @@ void creature::makemove() {
 		use(order.spell);
 		order.spell = NoSpell;
 	} else
-		walkaround();
+		walkaround(creatures);
 }
 
 void creature::setleader(const creature* party, creature* leader) {
@@ -958,7 +955,13 @@ bool creature::isfriend(const creature* value) const {
 bool creature::isenemy(const creature* target) const {
 	if(!target || target == this)
 		return false;
-	return getenemy() == target || target->getenemy() == this;
+	if(target->role == Shopkeeper || this->role == Shopkeeper)
+		return false;
+	if(this->enemy == target || target->enemy == this)
+		return true;
+	if(this->isagressive() != target->isagressive())
+		return true;
+	return false;
 }
 
 void creature::manipulate(short unsigned index) {
@@ -1246,22 +1249,30 @@ unsigned creature::getcostexp() const {
 	return maptbl(experience_cost, level);
 }
 
-void creature::rangeattack() {
+bool creature::isranged(bool interactive) const {
+	if(!enemy) {
+		if(interactive)
+			hint("Вокруг нет подходящей цели");
+		return false;
+	}
+	if(!wears[Ranged])
+		return false;
 	auto ammo = wears[Ranged].getammo();
 	if(ammo) {
 		if(wears[Amunitions].gettype() != ammo) {
-			if(isplayer()) {
-				logs::add("Для стрельбы необходимо %1", getstr(ammo));
-				return;
-			}
+			if(interactive)
+				hint("Для стрельбы необходимо %1", getstr(ammo));
+			return false;
 		}
 	}
-	if(!enemy) {
-		hint("Вокруг нет подходящей цели", getstr(ammo));
+	return true;
+}
+
+void creature::rangeattack() {
+	if(!isranged(true))
 		return;
-	}
-	if(wears[Ranged])
-		attack(enemy, Ranged);
+	auto ammo = wears[Ranged].getammo();
+	attack(enemy, Ranged);
 	wait(getattacktime(Ranged));
 	if(ammo)
 		wears[Amunitions].setcount(wears[Amunitions].getcount() - 1);
