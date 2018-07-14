@@ -428,8 +428,8 @@ static void create_corridor_content(short unsigned index) {
 	typedef void(*proc)(short unsigned index);
 	proc chances[] = {create_trap,
 		create_treasure, create_treasure,
-		create_door,
-		create_monster, create_monster, create_monster, create_monster,
+		//create_door,
+		create_monster, create_monster, create_monster,
 		create_dungeon_item, create_dungeon_item,
 	};
 	maprnd(chances)(index);
@@ -564,14 +564,6 @@ static bool isvalidcorridor(short unsigned index, direction_s dir) {
 	return true;
 }
 
-static bool isvalidroom(short unsigned index, direction_s dir) {
-	if(gettile(to(index, turn(dir, Left))) != NoTile)
-		return false;
-	if(gettile(to(index, turn(dir, Right))) != NoTile)
-		return false;
-	return true;
-}
-
 static void create_corridor(short unsigned index, direction_s dir) {
 	short unsigned start = Blocked;
 	auto iterations = xrand(3, 8);
@@ -613,49 +605,6 @@ static void create_corridor(short unsigned index, direction_s dir) {
 			}
 		}
 	}
-}
-
-static void place_tiles(short unsigned index, direction_s dir, tile_s value, int count, direction_s test_dir) {
-	while(count >= 0) {
-		index = to(index, dir);
-		if(!isvalidindex(index))
-			return;
-		if(gettile(index) != NoTile)
-			return;
-		auto i = to(index, dir);
-		if(gettile(i) != NoTile)
-			return;
-		//if(gettile(to(i, test_dir)) != NoTile)
-		//	return;
-		set(index, value);
-		count--;
-	}
-}
-
-static void create_room(short unsigned index, direction_s dir) {
-	auto w = xrand(1, 3);
-	auto h = xrand(3, 6);
-	auto h1 = h;
-	auto w1 = w;
-	auto start = Blocked;
-	while(h >= 0) {
-		index = to(index, dir);
-		if(!isvalidindex(index))
-			break;
-		if(gettile(index) != NoTile)
-			break;
-		if(gettile(to(index, dir)) != NoTile)
-			break;
-		set(index, Floor);
-		if(start == Blocked)
-			start = index;
-		place_tiles(index, turn(dir, Left), Floor, w, Right);
-		place_tiles(index, turn(dir, Right), Floor, w, Left);
-		h--;
-	}
-	statistic.rooms++;
-	if(start != Blocked)
-		put_block(index, dir);
 }
 
 static void create_corridor(int x, int y, int w, int h, direction_s dir) {
