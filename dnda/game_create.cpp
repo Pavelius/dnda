@@ -31,13 +31,6 @@ PotionRed, PotionGreen, PotionBlue,
 WandRed, WandGreen, WandBlue,
 RingRed, RingGreen, RingBlue};
 
-void areainfo::clear() {
-	memset(this, 0, sizeof(*this));
-	index = Blocked;
-	for(auto& e : positions)
-		e = Blocked;
-}
-
 static void show_minimap_step(short unsigned index, bool visualize) {
 	if(visualize)
 		logs::minimap(index);

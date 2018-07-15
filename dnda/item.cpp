@@ -142,7 +142,7 @@ static struct item_info {
 {"Дротик", 30, 1 * SP, Male, Wood, {3, {1, 3, Piercing}}, {5}, {}, {Ranged}},
 {"Пращя", 50, 1 * SP, Female, Leather, {2, {1, 4}}, {5}, {}, {Ranged}, NoSkill, pierce_effect, Rock},
 //
-{"Камень", 20, 0, Male, Stone, {}, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
+{"Камень", 20, 0, Male, Stone, {1, {1, 3}}, {}, {}, {Amunitions, Ranged}, NoSkill, {}, NoItem, 20},
 {"Стрела", 2, 2 * CP, Female, Wood, {}, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 {"Болт", 3, 1 * CP, Male, Iron, {}, {}, {}, {Amunitions}, NoSkill, {}, NoItem, 20},
 //
@@ -393,6 +393,10 @@ int item::getweight() const {
 
 bool item::is(slot_s value) const {
 	return item_data[type].slots.is(value);
+}
+
+bool item::isthrown() const {
+	return is(Ranged) && iscountable();
 }
 
 bool item::istwohanded() const {

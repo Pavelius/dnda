@@ -409,6 +409,7 @@
   </library>
   <library output="...\monsters" input="...\npc" count="32" ox="41" oy="-24">
     <files input="...\0.png"/>
+    <files input="...\4.png"/>
     <files input="...\1.png"/>
     <files input="...\2.png"/>
     <files input="...\3.png"/>

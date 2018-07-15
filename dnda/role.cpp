@@ -9,6 +9,7 @@ static struct role_info {
 	char				level;
 	adat<variant, 24>	features;
 } role_data[] = {{"Гоблин", Goblin, Male, Chaotic, Fighter, 0, {SwordShort}},
+{"Гоблин", Goblin, Male, Chaotic, Fighter, 0, {Rock}},
 {"Орк", Orc, Male, Chaotic, Fighter, 1, {SwordLong, StuddedLeatherArmour}},
 {"Летучая мышь", Animal, Female, Chaotic, Fighter, 0, {Bite, Dexterity}},
 {"Крыса", Animal, Female, Chaotic, Fighter, 0, {Bite, Dexterity}},

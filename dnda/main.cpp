@@ -64,8 +64,8 @@ int main(int argc, char* argv[]) {
 	auto p1 = add(start_index, new creature(Human, Female, Mage));
 	auto p2 = add(start_index, new creature(Dwarf, Male, Fighter));
 	auto p3 = add(start_index, new creature(Elf, Male, Theif));
-	for(int i = 0; i<6; i++)
-		add(get(14, 14), new creature(KobolWarrior));
+	for(int i = 0; i<3; i++)
+		add(get(14, 14), new creature(GoblinRockthrower));
 	p1->join(p1);
 	p2->join(p1);
 	p3->join(p1);

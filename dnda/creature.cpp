@@ -871,9 +871,9 @@ void creature::makemove() {
 		moveaway(horror->position);
 		return;
 	}
+	// Test any enemy
 	creature* creature_data[256];
 	auto creatures = getcreatures(creature_data, position, getlos());
-	// Test any enemy
 	if(!enemy) {
 		enemy = getnearest(creatures, {TargetHostile});
 		if(enemy && get(Intellegence) >= 9 && d100() < 40) {
@@ -887,8 +887,10 @@ void creature::makemove() {
 		}
 	}
 	if(enemy) {
-		// TODO: spell attack
-		if(isranged(false))
+		auto spell = aispell({&enemy, 1}, TargetHostile);
+		if(spell)
+			use(spell);
+		else if(isranged(false))
 			rangeattack();
 		else
 			moveto(enemy->position);
@@ -1053,6 +1055,7 @@ bool creature::interact(short unsigned index) {
 }
 
 void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier) {
+	char temp[260];
 	if(!(*defender))
 		return;
 	if(!enemy)
@@ -1074,14 +1077,21 @@ void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier
 		// RULE: missile deflection very effective on ranged attack
 		r -= defender->getbonus(OfMissileDeflection) * 10;
 	}
+	if(slot == Ranged) {
+		if(wears[slot].isthrown())
+			actnc("%герой кинул%а %1 и", getstr(wears[slot].gettype()));
+		else
+			actnc("%герой стрельнул%а из %1 и", getstr(wears[slot].gettype()));
+	} else
+		actnc("%герой");
 	if(s < 5 || (r < chance_to_hit)) {
-		act("%герой промазал%а.");
+		act("промазал%а.");
 		return;
 	}
 	auto damage = ai.damage;
 	// RULE: basic chance critical hit is 4% per point
 	bool critical_hit = s >= (95 - ai.critical * 4);
-	act(critical_hit ? "%герой критически попал%а." : "%герой попал%а.");
+	act(critical_hit ? "критически попал%а." : "попал%а.");
 	if(critical_hit)
 		multiplier += ai.multiplier;
 	// RULE: Each multiplier step add one maximum value (minimum 2 and maximum 10)
@@ -1287,8 +1297,12 @@ void creature::rangeattack() {
 	auto ammo = wears[Ranged].getammo();
 	attack(enemy, Ranged);
 	wait(getattacktime(Ranged));
+	// Ranged weapon usually use ammunition
 	if(ammo)
 		wears[Amunitions].setcount(wears[Amunitions].getcount() - 1);
+	// Throwing weapon remove self
+	if(wears[Ranged].iscountable())
+		wears[Ranged].setcount(wears[Ranged].getcount() - 1);
 }
 
 void creature::meleeattack(creature* enemy, int bonus, int multiplier) {

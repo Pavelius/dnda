@@ -77,7 +77,7 @@ enum gender_s : unsigned char {
 	NoGender, Male, Female, They,
 };
 enum role_s : unsigned char {
-	GoblinWarrior, OrcWarrior, LargeBat, GiantRat,
+	GoblinWarrior, GoblinRockthrower, OrcWarrior, LargeBat, GiantRat,
 	HumanMale, HumanGuard, HumanChild, HumanFemale,
 	Shopkeeper, DwarvenSmith, Bartender, Skeleton, Zombie,
 	KobolWarrior,
@@ -353,6 +353,7 @@ public:
 	bool				ismagical() const { return magic != Mundane; }
 	bool				isreadable() const;
 	bool				istome() const;
+	bool				isthrown() const;
 	bool				istwohanded() const;
 	bool				isversatile() const;
 	bool				isunbreakable() const;
@@ -623,8 +624,9 @@ struct areainfo {
 	short unsigned	positions[8]; // Several positions
 	unsigned char	level; // Уровень поздземелья
 	unsigned char	rooms; // Количество комнат
-	bool			isdungeon;
-	void			clear();
+	bool			isdungeon; // Underground dungeons has 'true'
+	constexpr areainfo() : index(Blocked), level(1), rooms(0), isdungeon(false),
+		positions{Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked} {}
 };
 struct manual {
 	typedef void(*proc)(stringbuffer& sc, manual& e);

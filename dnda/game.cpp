@@ -577,7 +577,7 @@ void game::initialize(short unsigned index, int level, tile_s tile) {
 	sites.clear();
 	grounditems.clear();
 	creature::initialize();
-	statistic.clear();
+	statistic = areainfo();
 	statistic.index = index;
 	statistic.level = level;
 }
