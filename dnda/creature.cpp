@@ -47,7 +47,7 @@ static struct race_info {
 	char				ability_maximum[6];
 	adat<skill_s, 4>	skills;
 	skillvalue			skills_pregen[8];
-} race_data[] = {{"Зверь", {6, 6, 6, 2, 12, 2}, {10, 10, 10, 4, 15, 4}},
+} race_data[] = {{"Зверь", {6, 6, 6, 2, 12, 2}, {8, 9, 9, 4, 15, 4}},
 //
 {"Человек", {9, 9, 9, 9, 9, 9}, {11, 11, 11, 11, 11, 11}, {Bargaining, Gambling, Swimming}},
 {"Гном", {11, 6, 13, 9, 9, 9}, {14, 9, 15, 11, 11, 11}, {Smithing, Mining, Athletics}, {{ResistPoison, 30}}},
@@ -55,9 +55,11 @@ static struct race_info {
 {"Полурослик", {6, 10, 10, 9, 10, 9}, {8, 13, 11, 11, 12, 11}, {HideInShadow, Acrobatics, Swimming}},
 //
 {"Гоблин", {5, 12, 8, 6, 9, 6}, {7, 14, 10, 8, 11, 8}, {HideInShadow, Acrobatics, Swimming}},
+{"Кобольд", {5, 13, 7, 6, 9, 6}, {7, 15, 9, 8, 11, 8}, {HideInShadow, Acrobatics, Swimming}},
 {"Орк", {12, 9, 11, 6, 9, 6}, {15, 11, 13, 8, 11, 8}, {Athletics, Mining, Swimming}},
+{"Мертвец", {10, 6, 10, 4, 1, 1}, {12, 8, 13, 5, 1, 1}, {Backstabbing}},
 };
-assert_enum(race, Orc);
+assert_enum(race, Undead);
 getstr_enum(race);
 
 static struct class_info {
@@ -350,6 +352,12 @@ void creature::applyability() {
 		if(a < 1)
 			a = 1;
 	}
+	for(auto e : race_data[race].skills_pregen)
+		skills[e.id] += e.value;
+	for(auto e : race_data[race].skills)
+		raise(e);
+	for(auto e : class_data[type].skills)
+		raise(e);
 }
 
 void creature::raiseskills(int number) {
@@ -397,12 +405,6 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 	this->type = type;
 	this->level = 1;
 	applyability();
-	for(auto e : race_data[race].skills_pregen)
-		skills[e.id] += e.value;
-	for(auto e : race_data[race].skills)
-		raise(e);
-	for(auto e : class_data[type].skills)
-		raise(e);
 	if(abilities[Intellegence] >= 9)
 		raise(Literacy);
 	for(auto e : class_data[type].spells)

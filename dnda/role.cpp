@@ -8,11 +8,10 @@ static struct role_info {
 	class_s			type;
 	char			level;
 	adat<variant, 24> features;
-	adat<special_s, 4> special;
 } role_data[] = {{"Гоблин", Goblin, Male, Chaotic, Fighter, 0, {SwordShort}},
 {"Орк", Orc, Male, Chaotic, Fighter, 1, {SwordLong, StuddedLeatherArmour}},
-{"Летучая мышь", Animal, Female, Chaotic, Fighter, 0, {Bite}},
-{"Крыса", Animal, Female, Chaotic, Fighter, 0, {Bite}},
+{"Летучая мышь", Animal, Female, Chaotic, Fighter, 0, {Bite, Dexterity}},
+{"Крыса", Animal, Female, Chaotic, Fighter, 0, {Bite, Dexterity}},
 {"Крестьянин", Human, Male, Neutral, Commoner, 0},
 {"Охранник", Human, Male, Neutral, Fighter, 1, {Spear}},
 {"Ребенок", Human, Male, Neutral, Commoner},
@@ -20,18 +19,13 @@ static struct role_info {
 {"Владелец магазина", Human, Male, Neutral, Commoner, 0, {Bargaining}},
 {"Кузнец", Dwarf, Male, Neutral, Commoner, 0, {HammerWar}},
 {"Бартендер", Dwarf, Male, Neutral, Commoner, 0, },
-{"Скелет", Human, Male, Chaotic, Fighter, 1, {Spear, Dexterity}},
-{"Зомби", Human, Male, Chaotic, Fighter, 2, {Dagger, Strenght}},
+{"Скелет", Undead, Male, Chaotic, Fighter, 1, {Spear, Dexterity}},
+{"Зомби", Undead, Male, Chaotic, Fighter, 2, {Dagger, Strenght}},
+{"Кобольд", Kobold, Male, Chaotic, Fighter, 0, {BowShort, Dagger}},
 {"Персонаж", Human, Male, Neutral, Fighter},
 };
 assert_enum(role, Character);
 getstr_enum(role);
-
-bool creature::is(special_s value) const {
-	if(role == Character)
-		return false;
-	return role_data[role].special.is(value);
-}
 
 bool creature::isagressive() const {
 	return role_data[role].alignment == Chaotic;
@@ -44,17 +38,23 @@ const char* creature::getmonstername() const {
 }
 
 creature::creature(role_s role) {
+	item it;
 	clear();
 	auto& e = role_data[role];
 	this->race = e.race;
 	this->gender = e.gender;
-	this->type = Fighter;
+	this->type = e.type;
 	this->level = e.level;
 	this->role = role;
 	applyability();
 	for(auto i : e.features) {
 		switch(i.type) {
-		case Item: equip(item(i.item, 0, 15, 10, 35)); break;
+		case Item:
+			it = item(i.item, 0, 15, 10, 35);
+			equip(it);
+			if(it.getammo())
+				equip(item(it.getammo(), 0, 15, 10, 35));
+			break;
 		case Skill: raise(i.skill); break;
 		case Ability: abilities[i.ability] += 2; break;
 		default: break;

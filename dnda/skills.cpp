@@ -31,7 +31,7 @@ static void removelock(effectparam& e) {
 }
 
 static bool isundead(effectparam& e) {
-	return e.cre->is(Undead);
+	return e.cre->race==Undead;
 }
 
 static bool test_dance(effectparam& e) {

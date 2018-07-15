@@ -59,10 +59,13 @@ int main(int argc, char* argv[]) {
 	//return 0;
 	logs::initialize();
 	create("city", get(10, 10), 0, false, false);
-	auto p1 = add(game::statistic.positions[0], new creature(Human, Female, Mage));
-	auto p2 = add(game::statistic.positions[0], new creature(Dwarf, Male, Fighter));
-	auto p3 = add(game::statistic.positions[0], new creature(Elf, Male, Theif));
-	//auto p4 = add(get(2, 2), new creature(Halfling, Male, Cleric));
+	//auto start_index = game::statistic.positions[0];
+	auto start_index = get(10, 10);
+	auto p1 = add(start_index, new creature(Human, Female, Mage));
+	auto p2 = add(start_index, new creature(Dwarf, Male, Fighter));
+	auto p3 = add(start_index, new creature(Elf, Male, Theif));
+	for(int i = 0; i<6; i++)
+		add(get(14, 14), new creature(KobolWarrior));
 	p1->join(p1);
 	p2->join(p1);
 	p3->join(p1);
@@ -85,9 +88,6 @@ int main(int argc, char* argv[]) {
 	p3->equip(item(SwordLong, Artifact, OfStrenght));
 	p3->equip(item(Dagger, Cursed, OfDexterity));
 	p3->equip(item(BracersLeather, Mundane, OfDefence));
-
-	//for(int i=0; i<6; i++)
-	//	add(get(14, 14), new creature(GoblinWarrior));
 
 	p1->play();
 }
