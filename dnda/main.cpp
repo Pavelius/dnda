@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
 	auto p3 = add(start_index, new creature(Elf, Male, Theif));
 
 	add(get(14, 14), new creature(Lynx));
-	add(get(14, 14), new creature(GreatDog));
+	add(get(14, 14), new creature(LargeDog));
 
 	p1->join(p1);
 	p2->join(p1);

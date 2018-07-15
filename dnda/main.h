@@ -73,6 +73,7 @@ enum race_s : unsigned char {
 enum class_s : unsigned char {
 	Commoner,
 	Cleric, Fighter, Mage, Paladin, Ranger, Theif,
+	Monster,
 };
 enum gender_s : unsigned char {
 	NoGender, Male, Female, They,
@@ -82,7 +83,7 @@ enum role_s : unsigned char {
 	HumanMale, HumanGuard, HumanChild, HumanFemale,
 	Shopkeeper, DwarvenSmith, Bartender, Skeleton, Zombie,
 	KobolWarrior,
-	GreatDog, Lynx,
+	LargeDog, Lynx, GiantFrog,
 	Character
 };
 enum alignment_s : unsigned char {

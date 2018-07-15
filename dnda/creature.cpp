@@ -57,7 +57,7 @@ static struct race_info {
 {"Гоблин", {5, 12, 8, 6, 9, 6}, {7, 14, 10, 8, 11, 8}, {HideInShadow, Acrobatics, Swimming}},
 {"Кобольд", {5, 13, 7, 6, 9, 6}, {7, 15, 9, 8, 11, 8}, {HideInShadow, Acrobatics, Swimming}},
 {"Орк", {12, 9, 11, 6, 9, 6}, {15, 11, 13, 8, 11, 8}, {Athletics, Mining, Swimming}},
-{"Мертвец", {10, 6, 10, 4, 1, 1}, {12, 8, 13, 5, 1, 1}, {Backstabbing}},
+{"Мертвец", {10, 6, 10, 4, 1, 1}, {12, 8, 13, 5, 1, 1}},
 };
 assert_enum(race, Undead);
 getstr_enum(race);
@@ -66,18 +66,20 @@ static struct class_info {
 	const char*			name;
 	unsigned char		hp;
 	unsigned char		attack;
+	unsigned char		experience_award;
 	char				ability[6];
 	adat<skill_s, 8>	skills;
 	adat<spell_s, 4>	spells;
-} class_data[] = {{"Крестьянин", 4, 1},
-{"Клерик", 8, 1, {0, 0, 0, 0, 2, 1}, {Diplomacy, History, Healing}, {Bless, HealingSpell}},
-{"Воин", 10, 2, {2, 0, 1, -2, 0, -1}, {Survival, WeaponFocusBlades, WeaponFocusAxes}},
-{"Маг", 4, 1, {-2, 0, 0, 2, 1, 2}, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
-{"Паладин", 10, 2, {2, 0, 1, 0, 1, 2}, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}},
-{"Следопыт", 10, 2, {0, 2, 1, 0, 1, -1}, {Survival, WeaponFocusBows}, {}},
-{"Вор", 6, 1, {0, 2, 0, 0, 0, 1}, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff, Backstabbing}},
+} class_data[] = {{"Крестьянин", 4, 1, 4},
+{"Клерик", 8, 2, 1, {0, 0, 0, 0, 2, 1}, {Diplomacy, History, Healing}, {Bless, HealingSpell}},
+{"Воин", 10, 3, 1, {2, 0, 1, -2, 0, -1}, {Survival, WeaponFocusBlades, WeaponFocusAxes}},
+{"Маг", 4, 1, 1, {-2, 0, 0, 2, 1, 2}, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
+{"Паладин", 10, 3, 1, {2, 0, 1, 0, 1, 2}, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}},
+{"Следопыт", 10, 2, 1, {0, 2, 1, 0, 1, -1}, {Survival, WeaponFocusBows}, {}},
+{"Вор", 6, 1, 1, {0, 2, 0, 0, 0, 1}, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff, Backstabbing}},
+{"Монстер", 8, 2, 2},
 };
-assert_enum(class, Theif);
+assert_enum(class, Monster);
 getstr_enum(class);
 
 static struct attack_info {
@@ -544,7 +546,7 @@ bool creature::askyn(creature* opponent, const char* format, ...) {
 int	creature::getmaxhits() const {
 	if(role == Character)
 		return mhp + get(Constitution);
-	return mhp + get(Constitution) / 5;
+	return mhp + get(Constitution) / 2;
 }
 
 int	creature::getmaxmana() const {
