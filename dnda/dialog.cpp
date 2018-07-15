@@ -38,16 +38,21 @@ const speech* dialog::say(const speech* pb, speech_s type) {
 	if(!result)
 		return 0;
 	if(type == Speech || type == Action) {
-		zshuffle(result.data, result.count);
-		if(type == Speech)
-			opponent->sayvs(*player, result.data[0]->text);
-		else
-			opponent->actvs(*player, result.data[0]->text);
+		auto p = result.data[rand()%result.count];
+		if(p->text) {
+			if(type == Speech)
+				opponent->sayvs(*player, p->text);
+			else
+				opponent->actvs(*player, p->text);
+			logs::add("\n");
+		}
+		return p;
 	} else {
-		for(auto p : result)
-			logs::add(p - pb, p->text);
+		for(auto p : result) {
+			if(p->text)
+				logs::add(p - pb, p->text);
+		}
 	}
-	logs::add("\n");
 	return pb;
 }
 

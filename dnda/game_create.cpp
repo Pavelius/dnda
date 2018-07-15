@@ -103,7 +103,7 @@ static short unsigned center(int x, int y, int w, int h) {
 	return get(x + w / 2, y + (h / 2));
 }
 
-static short unsigned center(const rect& rc) {
+short unsigned center(const rect& rc) {
 	return get(rc.x1 + rc.width() / 2, rc.y1 + rc.height() / 2);
 }
 
