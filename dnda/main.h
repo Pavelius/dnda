@@ -82,6 +82,7 @@ enum role_s : unsigned char {
 	HumanMale, HumanGuard, HumanChild, HumanFemale,
 	Shopkeeper, DwarvenSmith, Bartender, Skeleton, Zombie,
 	KobolWarrior,
+	GreatDog, Lynx,
 	Character
 };
 enum alignment_s : unsigned char {
@@ -203,7 +204,8 @@ enum variant_s : unsigned char {
 	Text
 };
 enum speech_s : unsigned char {
-	Answer, Speech,
+	NoTalking,
+	Answer, Action, Speech,
 };
 enum manual_s : unsigned char {
 	Element, Header
@@ -598,12 +600,14 @@ struct site : rect {
 };
 struct speech {
 	speech_s		type;
-	bool(*proc)(dialog& e, const speech& a, bool run);
+	bool(*test)(const creature& player, const dialog& e);
 	const char*		text;
 	speech*			success;
 	speech*			fail;
+	bool			stop_analize;
 	skillvalue		skill;
-	explicit operator bool() const { return text != 0; }
+	void(*proc)(dialog& e, const speech& sp);
+	explicit operator bool() const { return type != NoTalking; }
 };
 struct dialog {
 	creature*		player;
@@ -612,7 +616,8 @@ struct dialog {
 	constexpr dialog(creature* player, creature* opponent) : player(player), opponent(opponent), result(0) {}
 	void			start(const speech* p);
 private:
-	aref<const speech*>	select(aref<const speech*> source, const speech* p, speech_s type);
+	void			apply(const speech& e);
+	aref<const speech*>	select(aref<const speech*> source, const speech* p, speech_s type) const;
 	const speech*	say(const speech* pb, speech_s type);
 	const speech*	phase(const speech* p);
 };

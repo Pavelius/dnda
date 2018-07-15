@@ -23,6 +23,8 @@ static struct role_info {
 {"Скелет", Undead, Male, Chaotic, Fighter, 1, {Spear, Dexterity}},
 {"Зомби", Undead, Male, Chaotic, Fighter, 2, {Dagger, Strenght}},
 {"Кобольд", Kobold, Male, Chaotic, Fighter, 0, {BowShort, Dagger}},
+{"Собака", Animal, Female, Neutral, Fighter, 2, {Bite, Dexterity}},
+{"Рысь", Animal, Female, Neutral, Fighter, 4, {Bite, Dexterity, Strenght, Constitution}},
 {"Персонаж", Human, Male, Neutral, Fighter},
 };
 assert_enum(role, Character);

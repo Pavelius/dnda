@@ -201,6 +201,9 @@
     <ClCompile Include="site.cpp">
       <Filter>logic</Filter>
     </ClCompile>
+    <ClCompile Include="chating.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="collections">

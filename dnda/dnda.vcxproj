@@ -143,6 +143,7 @@
     <ClCompile Include="ability.cpp" />
     <ClCompile Include="archive.cpp" />
     <ClCompile Include="books.cpp" />
+    <ClCompile Include="chating.cpp" />
     <ClCompile Include="damageinfo.cpp" />
     <ClCompile Include="bitops.cpp" />
     <ClCompile Include="collection.cpp" />
