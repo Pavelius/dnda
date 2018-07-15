@@ -65,8 +65,8 @@ creature::creature(role_s role) {
 	}
 	// Восполним хиты
 	mhp = 0;
-	if(level) {
-		for(int i = 0; i < level; i++)
+	if(e.level) {
+		for(int i = 0; i < e.level; i++)
 			levelup();
 	} else
 		mhp = 1 + (rand() % 4);

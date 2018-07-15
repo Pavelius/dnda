@@ -7,12 +7,12 @@ void setstate(effectparam& e) {
 	if(e.state.type == Scared) {
 		if(!e.cre->saving(e.interactive, ResistCharm, 0)) {
 			e.cre->set(e.state.type, duration);
-			e.cre->horror = &e.player;
+			e.cre->sethorror(&e.player);
 		}
 	} else if(e.state.type == Charmed) {
 		if(!e.cre->saving(e.interactive, ResistCharm, 0)) {
 			e.cre->set(e.state.type, duration);
-			e.cre->charmer = &e.player;
+			e.cre->setcharmer(&e.player);
 		}
 	}
 	else

@@ -1502,8 +1502,8 @@ void logs::minimap(short unsigned position) {
 
 static void character_chat(creature& e) {
 	creature* creature_data[256];
-	auto source = e.getcreatures(creature_data, e.position, 1);
-	source = e.select(creature_data, source, TargetFriendly, 0, e.position, &e);
+	auto creatures = e.getcreatures(creature_data, e.position, 1);
+	auto source = e.select(creature_data, creatures, TargetFriendly, 1, e.position, &e);
 	auto opponent = e.choose(source, true);
 	if(opponent)
 		e.chat(opponent);
@@ -1615,7 +1615,13 @@ static void ui_show_hide_panel(creature& e) {
 }
 
 static void character_ranged_attack(creature& e) {
-	e.rangeattack();
+	creature* creature_data[256];
+	auto creatures = e.getcreatures(creature_data, e.position, e.getlos());
+	auto enemy = e.getenemy(creatures);
+	if(!enemy)
+		e.hint("Вокруг нет подходящей цели");
+	else
+		e.rangeattack(enemy);
 }
 
 static void character_use(creature& e, targetdesc ti, const char* title) {

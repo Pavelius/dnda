@@ -430,11 +430,6 @@ void creature::release(unsigned exeperience_cost) const {
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;
-		if(e.enemy == this) {
-			// RULE: when killed get experience to creature, who want enemy this player
-			e.addexp(exeperience_cost);
-			e.enemy = 0;
-		}
 		if(e.horror == this)
 			e.horror = 0;
 		if(e.charmer == this)
@@ -858,12 +853,17 @@ bool creature::moveaway(short unsigned index) {
 	return true;
 }
 
+creature* creature::getenemy(aref<creature*> source) const {
+	return getnearest(source, {TargetHostile});
+}
+
 void creature::makemove() {
 	if(order.move == position)
 		order.move = Blocked;
 	// RULE: sleeped creature don't move
 	if(is(Sleeped))
 		return;
+	// Player turn
 	if(getplayer() == this) {
 		logs::turn(*this);
 		return;
@@ -876,24 +876,13 @@ void creature::makemove() {
 	// Test any enemy
 	creature* creature_data[256];
 	auto creatures = getcreatures(creature_data, position, getlos());
-	if(!enemy) {
-		enemy = getnearest(creatures, {TargetHostile});
-		if(enemy && get(Intellegence) >= 9 && d100() < 40) {
-			static const char* talk[] = {"Ну вот ты и попал%АСЬ!",
-				"Готовься умереть!",
-				"Ну вот мы и встретились.",
-				"Ну все, понеслось!",
-				"Стой и не двигайся, я сейчас подойду."
-			};
-			sayvs(*enemy, maprnd(talk));
-		}
-	}
+	auto enemy = getenemy(creatures);
 	if(enemy) {
 		auto spell = aispell({&enemy, 1}, TargetHostile);
 		if(spell)
 			use(spell);
 		else if(isranged(false))
-			rangeattack();
+			rangeattack(enemy);
 		else
 			moveto(enemy->position);
 	} else if(guard != Blocked)
@@ -962,8 +951,6 @@ bool creature::isenemy(const creature* target) const {
 		return false;
 	if(target->role == Shopkeeper || this->role == Shopkeeper)
 		return false;
-	if(this->enemy == target || target->enemy == this)
-		return true;
 	if(this->isagressive() != target->isagressive())
 		return true;
 	return false;
@@ -1059,10 +1046,6 @@ bool creature::interact(short unsigned index) {
 void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier) {
 	if(!(*defender))
 		return;
-	if(!enemy)
-		enemy = defender;
-	if(!defender->enemy)
-		defender->enemy = this;
 	auto ai = getattackinfo(slot);
 	switch(ai.effect) {
 	case OfHoliness:
@@ -1282,11 +1265,6 @@ unsigned creature::getcostexp() const {
 }
 
 bool creature::isranged(bool interactive) const {
-	if(!enemy) {
-		if(interactive)
-			hint("Вокруг нет подходящей цели");
-		return false;
-	}
 	if(!wears[Ranged])
 		return false;
 	auto ammo = wears[Ranged].getammo();
@@ -1300,7 +1278,7 @@ bool creature::isranged(bool interactive) const {
 	return true;
 }
 
-void creature::rangeattack() {
+void creature::rangeattack(creature* enemy) {
 	if(!isranged(true))
 		return;
 	auto ammo = wears[Ranged].getammo();
@@ -1577,14 +1555,14 @@ void creature::set(spell_s value, int level) {
 
 void creature::update() {
 	// Remove any links if target is invalid
-	if(horror && (!is(Scared) || !(*horror)))
+	if(horror && (!is(Scared) || !(*horror))) {
+		remove(Scared);
 		horror = 0;
+	}
 	if(charmer && (!is(Charmed) || !(*charmer))) {
 		remove(Charmed);
 		charmer = 0;
 	}
-	if(enemy && !(*enemy))
-		enemy = 0;
 	// RULE: Poison affect creature every short time interval.
 	if((segments % poison_update) == 0) {
 		static struct poison_info {
@@ -1878,8 +1856,6 @@ void creature::remove(adat<creature, 16>& source) const {
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;
-		if(e.enemy == this)
-			e.enemy = 0;
 		if(e.party == this)
 			e.party = 0;
 		if(e.horror == this)
@@ -1905,7 +1881,6 @@ template<> void archive::set<creature>(creature& e) {
 	set(e.guard);
 	set(e.wears);
 	set(e.charmer);
-	set(e.enemy);
 	set(e.horror);
 	set(e.abilities);
 	set(e.abilities_raise);

@@ -427,9 +427,6 @@ struct creature {
 	unsigned char		level;
 	int					experience;
 	unsigned			money;
-	creature*			charmer;
-	creature*			enemy;
-	creature*			horror;
 	unsigned short		position, guard;
 	item				wears[LastBackpack + 1];
 	//
@@ -486,10 +483,12 @@ struct creature {
 	static aref<creature*> getcreatures(aref<creature*> result, short unsigned start, int range);
 	int					getdefence() const;
 	int					getdiscount(creature* customer) const;
+	creature*			getenemy(aref<creature*> source) const;
 	encumbrance_s		getencumbrance() const { return encumbrance; }
 	char*				getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
 	creature*			gethenchmen(int index) const;
 	int					gethits() const { return hp; }
+	creature*			gethorror() const { return horror; }
 	creature*			getleader() const;
 	int					getlos() const;
 	int					getmana() const { return mp; }
@@ -505,7 +504,6 @@ struct creature {
 	static creature*	getplayer();
 	short unsigned		getposition() const { return position; }
 	damageinfo			getraise(skill_s id) const;
-	int					getreaction(creature* opponent) const;
 	site*				getsite() const { return current_site; }
 	int					getweight() const;
 	int					getweight(encumbrance_s id) const;
@@ -540,7 +538,7 @@ struct creature {
 	void				pickup(item& value, bool interactive = true);
 	void				raise(skill_s value);
 	void				raiseskills(int number);
-	void				rangeattack();
+	void				rangeattack(creature* enemy);
 	void				readbook(item& it);
 	void				release(unsigned exeperience_cost) const;
 	void				remove(state_s value);
@@ -556,7 +554,9 @@ struct creature {
 	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start, bool los = true) const;
 	void				set(state_s value, unsigned segments, bool after_recoil = false, bool can_save = false);
 	void				set(spell_s value, int level);
+	void				setcharmer(creature* value) { charmer = value; }
 	static void			setblocks(short unsigned* movements, short unsigned value);
+	void				sethorror(creature* value) { horror = value; }
 	void				setplayer();
 	static void			setleader(const creature* party, creature* leader);
 	void				setlos();
@@ -581,6 +581,8 @@ private:
 	unsigned			states[LastState + 1];
 	unsigned			recoil;
 	creature*			party;
+	creature*			charmer;
+	creature*			horror;
 	site*				current_site;
 	encumbrance_s		encumbrance;
 	command				order;
