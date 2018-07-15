@@ -55,6 +55,7 @@ enum enchantment_s : unsigned char {
 	OfFire,
 	OfIntellegence,
 	OfMana, OfMissileDeflection,
+	OfOrcSlying,
 	OfPoison, OfPrecision,
 	OfRegeneration,
 	OfSickness, OfSharping, OfSmashing, OfSpeed, OfStrenght, OfSustenance,

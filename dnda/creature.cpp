@@ -1055,7 +1055,6 @@ bool creature::interact(short unsigned index) {
 }
 
 void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier) {
-	char temp[260];
 	if(!(*defender))
 		return;
 	if(!enemy)
@@ -1067,7 +1066,15 @@ void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier
 	case OfHoliness:
 		if(defender->race == Undead) {
 			ai.bonus += ai.quality;
-			multiplier++;
+			if(ai.quality>0)
+				multiplier++;
+		}
+		break;
+	case OfOrcSlying:
+		if(defender->race == Orc || defender->race == Goblin) {
+			ai.bonus += ai.quality;
+			if(ai.quality>0)
+				multiplier++;
 		}
 		break;
 	}
