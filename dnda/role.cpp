@@ -1,13 +1,13 @@
 #include "main.h"
 
 static struct role_info {
-	const char*		name;
-	race_s			race;
-	gender_s		gender;
-	alignment_s		alignment;
-	class_s			type;
-	char			level;
-	adat<variant, 24> features;
+	const char*			name;
+	race_s				race;
+	gender_s			gender;
+	alignment_s			alignment;
+	class_s				type;
+	char				level;
+	adat<variant, 24>	features;
 } role_data[] = {{"Гоблин", Goblin, Male, Chaotic, Fighter, 0, {SwordShort}},
 {"Орк", Orc, Male, Chaotic, Fighter, 1, {SwordLong, StuddedLeatherArmour}},
 {"Летучая мышь", Animal, Female, Chaotic, Fighter, 0, {Bite, Dexterity}},
@@ -64,7 +64,7 @@ creature::creature(role_s role) {
 	mhp = 0;
 	if(level) {
 		for(int i = 0; i < level; i++)
-			mhp += 1 + (rand() % 6);
+			levelup();
 	} else
 		mhp = 1 + (rand() % 4);
 	hp = getmaxhits();

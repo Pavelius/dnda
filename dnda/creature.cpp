@@ -547,7 +547,7 @@ bool creature::askyn(creature* opponent, const char* format, ...) {
 int	creature::getmaxhits() const {
 	if(role == Character)
 		return mhp + get(Constitution);
-	return mhp;
+	return mhp + get(Constitution) / 5;
 }
 
 int	creature::getmaxmana() const {
@@ -876,7 +876,7 @@ void creature::makemove() {
 	// Test any enemy
 	if(!enemy) {
 		enemy = getnearest(creatures, {TargetHostile});
-		if(enemy && get(Intellegence)>=9 && d100()<40) {
+		if(enemy && get(Intellegence) >= 9 && d100() < 40) {
 			static const char* talk[] = {"Ну вот ты и попал%АСЬ!",
 				"Готовься умереть!",
 				"Ну вот мы и встретились.",
@@ -892,8 +892,7 @@ void creature::makemove() {
 			rangeattack();
 		else
 			moveto(enemy->position);
-	}
-	else if(guard != Blocked)
+	} else if(guard != Blocked)
 		moveto(guard);
 	else if(!isleader() && getleader()) {
 		auto target = getleader();
@@ -1061,13 +1060,25 @@ void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier
 	if(!defender->enemy)
 		defender->enemy = this;
 	auto ai = getattackinfo(slot);
-	auto s = d100();
+	switch(ai.effect) {
+	case OfHoliness:
+		if(defender->race == Undead) {
+			ai.bonus += ai.quality;
+			multiplier++;
+		}
+		break;
+	}
+	auto s = rand() % 100;
 	auto r = s + ai.bonus + bonus - defender->getdefence();
-	auto damage = ai.damage;
-	if(s == 1 || (r < chance_to_hit)) {
+	if(slot == Ranged) {
+		// RULE: missile deflection very effective on ranged attack
+		r -= defender->getbonus(OfMissileDeflection) * 10;
+	}
+	if(s < 5 || (r < chance_to_hit)) {
 		act("%герой промазал%а.");
 		return;
 	}
+	auto damage = ai.damage;
 	// RULE: basic chance critical hit is 4% per point
 	bool critical_hit = s >= (95 - ai.critical * 4);
 	act(critical_hit ? "%герой критически попал%а." : "%герой попал%а.");
@@ -1505,7 +1516,7 @@ void creature::athletics(bool interactive) {
 void creature::levelup() {
 	bool interactive = isplayer();
 	if(interactive) {
-		logs::add("%1 теперь %2 уровня %3i.", getname(), getstr(type), level + 1);
+		logs::add("%1 теперь %2 уровня [%3i].", getname(), getstr(type), level + 1);
 		logs::next();
 	}
 	athletics(interactive);

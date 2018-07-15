@@ -39,9 +39,11 @@ static struct enchantment_info {
 {"constitution", "телосложения", "болезненности", 5},
 {"defence", "защиты", "притягивания ударов", 7},
 {"dexterity", "ловкости", "неуклюжести", 6},
+{"holiness", "святости", "скверны", 8},
 {"fire", "огня", "огня", 6},
 {"intellegene", "интеллекта", "глупости", 6},
 {"mana", "маны", "проклятия маны", 9},
+{"arrow deflection", "отражения стрел", "притяжения стрел", 6},
 {"poison", "отравления", "отравления", 6},
 {"precision", "точности", "косоглазия", 7},
 {"regeneration", "регенерации", "увядания", 10},
@@ -76,9 +78,10 @@ static enchantment_s axe_effect[] = {OfCold, OfFire, OfStrenght, OfSharping, OfS
 static enchantment_s bludgeon_effect[] = {OfConstitution, OfFire, OfSmashing, OfStrenght};
 static enchantment_s pierce_effect[] = {OfDefence, OfDexterity, OfPoison, OfPrecision, OfSickness, OfSpeed, OfWeakness};
 static enchantment_s armor_effect[] = {OfDefence, OfArmor, OfCharisma, OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
+static enchantment_s shield_effect[] = {OfDefence, OfArmor, OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof, OfMissileDeflection, OfMissileDeflection};
 static enchantment_s helm_effect[] = {OfIntellegence, OfWisdow, OfCharisma};
-static enchantment_s bracers_effect[] = {OfDefence, OfArmor, OfStrenght, OfDexterity};
-static enchantment_s cloack_effect[] = {OfDefence, OfArmor, OfIntellegence, OfFireResistance, OfColdResistance};
+static enchantment_s bracers_effect[] = {OfDefence, OfArmor, OfStrenght, OfDexterity, OfMissileDeflection};
+static enchantment_s cloack_effect[] = {OfDefence, OfArmor, OfIntellegence, OfFireResistance, OfColdResistance, OfMissileDeflection};
 static enchantment_s ring_effect[] = {OfStrenght, OfDexterity, OfConstitution, OfIntellegence, OfWisdow, OfCharisma,
 OfPrecision, OfDefence, OfArmor, OfRegeneration, OfMana,
 OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
@@ -150,7 +153,7 @@ static struct item_info {
 {"Бахрец", 3000, 200 * GP, Male, Iron, {0, {}, 0, {30, 2}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
 {"Латы", 3500, 800 * GP, Female, Iron, {0, {}, 0, {40, 3}, 5}, {}, {}, {Torso}, NoSkill, armor_effect},
 //
-{"Щит", 1500, 20 * GP, Male, Iron, {0, {}, {}, {12}, 5}, {}, {}, {OffHand}, NoSkill, armor_effect},
+{"Щит", 1500, 20 * GP, Male, Iron, {0, {}, {}, {12}, 5}, {}, {}, {OffHand}, NoSkill, shield_effect},
 {"Шлем", 300, 5 * GP, Male, Iron, {0, {}, {}, {3}, 2}, {}, {}, {Head}, NoSkill, helm_effect},
 {"Наручи", 200, 3 * GP, They, Leather, {0, {}, {}, {3}, 2}, {}, {}, {Elbows}, NoSkill, bracers_effect},
 {"Наручи", 400, 8 * GP, They, Iron, {0, {}, {}, {5, 1}, 2}, {}, {}, {Elbows}, NoSkill, bracers_effect},
