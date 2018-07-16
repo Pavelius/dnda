@@ -1762,6 +1762,13 @@ static void character_minimap(creature& e) {
 	logs::minimap(e.position);
 }
 
+static void character_debug(creature& e) {
+	creature* creature_data[256];
+	auto creatures = e.getcreatures(creature_data, e.position, e.getlos());
+	auto opponent = e.choose(creatures, true);
+	opponent->setplayer();
+}
+
 static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {KeyHome, "Двигаться вверх и влево"},
 {KeyEnd, "Двигаться вниз и влево"},
@@ -1781,8 +1788,6 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {Alpha + 'Q', "Атака дистанционным оружием", character_ranged_attack},
 {Alpha + 'U', "Использовать ближайший объект", character_use},
 {Alpha + 'S', "Использовать заклинание", character_spell},
-{Ctrl + Alpha + 'T', "Показать время", character_time},
-{Ctrl + Alpha + 'W', "Опробовать оружие", testweapon},
 {KeyEscape, "Помощь", character_help},
 {F1, "Выбрать 1-го игрока", character_setplayer1},
 {F2, "Выбрать 2-го игрока", character_setplayer2},
@@ -1791,11 +1796,16 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {KeySpace, "Подождать 10 минут", character_passturn},
 {Alpha + 'G', "Спрятать/Показать информацию", ui_show_hide_panel},
 {Alpha + 'Z', "Использовать палочку", character_wand},
-{Ctrl + Alpha + 'D', "Выпить что-то", character_drink},
 {Alpha + 'E', "Съесть что-то", character_eat},
+{Ctrl + Alpha + 'T', "Показать время", character_time},
+{Ctrl + Alpha + 'W', "Опробовать оружие", testweapon},
+{Ctrl + Alpha + 'D', "Выпить что-то", character_drink},
 {Ctrl + Alpha + 'R', "Прочитать что-то", character_read},
 {Ctrl + Alpha + 'M', "Открыть мануал", character_manual},
-{Ctrl + Alpha + 'L', "Просмотр сообщений", character_logs}
+{Ctrl + Alpha + 'L', "Просмотр сообщений", character_logs},
+#ifdef _DEBUG
+{Ctrl + Alpha + 'X', "Вселиться (отладка)", character_debug},
+#endif
 };
 
 void logs::worldedit() {
@@ -1922,11 +1932,11 @@ void logs::initialize() {
 
 static void character_help(creature& e) {
 	const int width = 700;
-	const int height = 360;
+	const int height = 460;
 	const int dy = 20;
 	while(true) {
 		int x = (draw::getwidth() - width) / 2;
-		int y = (draw::getheight() - height) / 2;
+		int y = padding * 3;
 		point camera = getcamera(game::getx(e.position), game::gety(e.position));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, "Горячие клавиши");

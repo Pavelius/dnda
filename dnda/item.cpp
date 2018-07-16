@@ -213,9 +213,9 @@ static struct item_info {
 {"Ключ", 10, 0, Male, Iron},
 {"Монета", 1, 1 * CP, Female, Iron, {}, {}, {}, {}, NoSkill, {}, NoItem, 50},
 //
-{"Когти", 0, 0, NoGender, Organic, {4, {1, 3, Slashing}}, {}, {Natural}},
-{"Удар", 0, 0, Male, Organic, {0, {2, 7}}, {}, {Natural}},
-{"Укус", 0, 0, Male, Organic, {2, {2, 5, Piercing}}, {}, {Natural}},
+{"Когти", 0, 0, They, Organic, {4, {1, 3, Slashing}}, {}, {Natural}, {Melee}},
+{"Удар", 0, 0, Male, Organic, {0, {2, 7}}, {}, {Natural}, {Melee}},
+{"Укус", 0, 0, Male, Organic, {2, {2, 5, Piercing}}, {}, {Natural}, {Melee}},
 };
 assert_enum(item, Bite);
 getstr_enum(item);

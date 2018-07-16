@@ -6,8 +6,8 @@ static bool lowint(const creature& player, const dialog& e) {
 	return player.get(Intellegence) <= 7;
 }
 
-static bool isanimal(const creature& player, const dialog& e) {
-	return player.race == Animal;
+static bool noint(const creature& player, const dialog& e) {
+	return player.get(Intellegence) <= 2;
 }
 
 static bool isguard(const creature& player, const dialog& e) {
@@ -78,9 +78,9 @@ static void knownbuilding(dialog& e, const speech& sp) {
 //{Answer, 0, "Возможно нам стоит обсудить переспективы дальнейшего сотрудничества?", 0, 0, false, {Diplomacy, 20}},
 //{Answer, 0, "Пока ничего не надо."},
 //{}};
-static speech party_member[] = {{Action, isanimal, "%герой дружественно рычить."},
-{Action, isanimal, "%герой мурлыкая трется об ладонь."},
-{Action, isanimal, "%герой с интересом смотрит на тебя.", 0, 0, true},
+static speech party_member[] = {{Action, noint, "%герой дружественно рычить."},
+{Action, noint, "%герой мурлыкая трется об ладонь."},
+{Action, noint, "%герой с интересом смотрит на тебя.", 0, 0, true},
 {Speech, lowint, "Чего твоя хететь?"},
 {Speech, lowint, "Угу?", 0, 0, true},
 {Speech, 0, "Какие планы?"},
@@ -90,8 +90,8 @@ static speech party_member[] = {{Action, isanimal, "%герой дружественно рычить."
 {Answer, isnoguard, "Охраняй это место.", 0, 0, false, {}, setguard},
 {Answer, 0, "Ничего особенного. Продолжаем движение."},
 {}};
-static speech smalltalk[] = {{Action, isanimal, "%герой раздраженно рычит."},
-{Action, isanimal, "%герой недоуменно смотрит на %ГЕРОЙ.", 0, 0, true},
+static speech smalltalk[] = {{Action, noint, "%герой раздраженно рычит."},
+{Action, noint, "%герой недоуменно смотрит на %ГЕРОЙ.", 0, 0, true},
 {Speech, lowint, "Чего твоя хотеть?"},
 {Speech, lowint, "Твоя тут нравиться?"},
 {Speech, lowint, "Моя устал%а сегодня."},

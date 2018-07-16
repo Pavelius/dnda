@@ -51,7 +51,6 @@ creature::creature(role_s role) {
 	this->race = e.race;
 	this->gender = e.gender;
 	this->type = e.type;
-	this->level = e.level;
 	this->role = role;
 	applyability();
 	for(auto i : e.features) {
