@@ -56,7 +56,7 @@ static void test_overland() {
 
 int main(int argc, char* argv[]) {
 	//test_overland();
-	//return 0;
+	return 0;
 	logs::initialize();
 	create("city", get(10, 10), 0, false, false);
 	//auto start_index = game::statistic.positions[0];

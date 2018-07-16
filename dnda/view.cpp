@@ -743,7 +743,7 @@ static void view_board(point camera, bool show_fow = true, fxeffect* effects = 0
 				auto pc = units[i1];
 				if(pc) {
 					unsigned flags;
-					switch(pc->direction) {
+					switch(pc->getdirection()) {
 					case Left:
 					case LeftUp:
 					case LeftDown:
@@ -758,11 +758,11 @@ static void view_board(point camera, bool show_fow = true, fxeffect* effects = 0
 					if(pc->is(Hiding))
 						alpha = 0x80;
 					if(pc->ischaracter()) {
-						view_avatar(x, y, pc->type, pc->race, pc->gender,
+						view_avatar(x, y, pc->getclass(), pc->getrace(), pc->getgender(),
 							pc->wears[Torso], pc->wears[Melee], pc->wears[OffHand],
 							pc->wears[Ranged], pc->wears[TorsoBack], flags, alpha);
 					} else
-						draw::image(x, y, gres(ResMonsters), pc->role, flags, alpha);
+						draw::image(x, y, gres(ResMonsters), pc->getrole(), flags, alpha);
 				}
 			}
 			// Прозрачные стены
@@ -860,7 +860,7 @@ static void view_info(const creature& e) {
 	draw::fore = colors::white;
 	view_dialog({x, y, x + width, y + height});
 	draw::textf(x, y, width, e.getfullname(temp, zendof(temp), true, true));
-	auto loc = game::getlocation(e.position);
+	auto loc = e.getsite();
 	if(loc) {
 		auto p = loc->getname(temp);
 		draw::text(x + width - draw::textw(p), y, p);
@@ -888,9 +888,9 @@ static void view_info(const creature& e) {
 	y += field(x, y, 40, "Мана", e.getmana(), e.getmaxmana());
 	x += dx + 40 + 20 - tw;
 	y = y1;
-	y += field(x, y, 52, "Опыт", e.experience);
+	y += field(x, y, 52, "Опыт", e.getexperience());
 	//y += field(x, y, 52, "Время", getstrfdat(temp, segments));
-	y += field(x, y, 52, "Деньги", e.money);
+	y += field(x, y, 52, "Деньги", e.getmoney());
 	x += dx + 58;
 	x = x1;
 	y = y1 + draw::texth() * 2;
@@ -1052,7 +1052,7 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 	while(true) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
-		point camera = getcamera(game::getx(e.position), game::gety(e.position));
+		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, title);
 		for(unsigned i = 0; i < count; i++) {
@@ -1079,7 +1079,7 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 static void character_pickup(creature& e) {
 	char temp[260]; szprints(temp, zendof(temp), "Поднять предметы");
 	item* source[48];
-	auto index = e.position;
+	auto index = e.getposition();
 	auto p = source;
 	for(auto& s : grounditems) {
 		if(s.index != index)
@@ -1143,7 +1143,7 @@ static void character_invertory(creature& e) {
 	while(true) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
-		point camera = getcamera(game::getx(e.position), game::gety(e.position));
+		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, "Экипировка");
 		item* source[sizeof(e.wears) / sizeof(e.wears[0]) + 2];
@@ -1281,7 +1281,7 @@ void logs::raise(creature& e, int left) {
 	while(true) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
-		point camera = getcamera(game::getx(e.position), game::gety(e.position));
+		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, szprints(temp, zendof(temp), "Повышение навыков (осталось %1i)", left));
 		auto index = 0;
@@ -1324,7 +1324,7 @@ bool logs::choose(creature& e, skill_s& result, aref<skill_s> source, bool can_e
 	while(true) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
-		point camera = getcamera(game::getx(e.position), game::gety(e.position));
+		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, "Навыки");
 		auto index = 0;
@@ -1373,7 +1373,7 @@ bool logs::choose(creature& e, spell_s& result, aref<spell_s> source) {
 	while(true) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
-		point camera = getcamera(game::getx(e.position), game::gety(e.position));
+		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, "Заклинания");
 		auto x1 = x + 32;
@@ -1453,7 +1453,7 @@ static void dungeon_lookaround(creature& e) {
 	fxeffect ef[2];
 	ef[0].res = gres(ResUI);
 	ef[0].frame = 1;
-	short unsigned current_index = e.position;
+	short unsigned current_index = e.getposition();
 	while(true) {
 		clear_state();
 		game::lookhere(current_index);
@@ -1502,8 +1502,8 @@ void logs::minimap(short unsigned position) {
 
 static void character_chat(creature& e) {
 	creature* creature_data[256];
-	auto creatures = e.getcreatures(creature_data, e.position, 1);
-	auto source = e.select(creature_data, creatures, TargetFriendly, 1, e.position, &e);
+	auto creatures = e.getcreatures(creature_data, e.getposition(), 1);
+	auto source = e.select(creature_data, creatures, TargetFriendly, 1, e.getposition(), &e);
 	auto opponent = e.choose(source, true);
 	if(opponent)
 		e.chat(opponent);
@@ -1511,7 +1511,7 @@ static void character_chat(creature& e) {
 
 static void character_use(creature& e) {
 	short unsigned source_data[3 * 3 + 1];
-	auto source = e.select(source_data, TargetObject, 1, e.position);
+	auto source = e.select(source_data, TargetObject, 1, e.getposition());
 	if(!source) {
 		logs::add("Вокруг вас нету ничего, что можно было бы использовать.");
 		return;
@@ -1554,7 +1554,7 @@ void logs::next() {
 		return;
 	szprints(zend(state_message), zendof(state_message), "[...Пробел]");
 	while(true) {
-		point camera = getcamera(game::getx(p->position), game::gety(p->position));
+		point camera = getcamera(game::getx(p->getposition()), game::gety(p->getposition()));
 		view_zone(p, camera);
 		auto id = draw::input();
 		switch(id) {
@@ -1571,7 +1571,7 @@ bool logs::chooseyn() {
 		return true;
 	add("([+Y/N])?");
 	while(true) {
-		point camera = getcamera(game::getx(p->position), game::gety(p->position));
+		point camera = getcamera(game::getx(p->getposition()), game::gety(p->getposition()));
 		view_zone(p, camera);
 		auto id = draw::input();
 		switch(id) {
@@ -1590,7 +1590,7 @@ int logs::input() {
 	if(!p)
 		return 0;
 	while(true) {
-		point camera = getcamera(game::getx(p->position), game::gety(p->position));
+		point camera = getcamera(game::getx(p->getposition()), game::gety(p->getposition()));
 		view_zone(p, camera);
 		auto id = draw::input();
 		if(id >= Alpha + '1' && id <= (Alpha + '9')) {
@@ -1616,7 +1616,7 @@ static void ui_show_hide_panel(creature& e) {
 
 static void character_ranged_attack(creature& e) {
 	creature* creature_data[256];
-	auto creatures = e.getcreatures(creature_data, e.position, e.getlos());
+	auto creatures = e.getcreatures(creature_data, e.getposition(), e.getlos());
 	auto enemy = e.getenemy(creatures);
 	if(!enemy)
 		e.hint("Вокруг нет подходящей цели");
@@ -1665,7 +1665,7 @@ static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 	const int height = 464;
 	const int dy = 20;
 	const int padding = 4;
-	auto index = e.position;
+	auto index = e.getposition();
 	unsigned current_index;
 	adat<manual*, 64> source;
 	while(true) {
@@ -1742,7 +1742,7 @@ static void character_logs(creature& e) {
 		auto x = (draw::getwidth() - width) / 2;
 		auto y = padding * 3;
 		auto y0 = y;
-		point camera = getcamera(game::getx(e.position), game::gety(e.position));
+		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, "Сообщения");
 		for(unsigned i = index; i < messages.count && y < y0 + height; i++)
@@ -1760,12 +1760,12 @@ static void character_logs(creature& e) {
 }
 
 static void character_minimap(creature& e) {
-	logs::minimap(e.position);
+	logs::minimap(e.getposition());
 }
 
 static void character_debug(creature& e) {
 	creature* creature_data[256];
-	auto creatures = e.getcreatures(creature_data, e.position, e.getlos());
+	auto creatures = e.getcreatures(creature_data, e.getposition(), e.getlos());
 	auto opponent = e.choose(creatures, true);
 	opponent->setplayer();
 }
@@ -1947,7 +1947,7 @@ static void character_help(creature& e) {
 	while(true) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = padding * 3;
-		point camera = getcamera(game::getx(e.position), game::gety(e.position));
+		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, "Горячие клавиши");
 		auto w = width / 2;
@@ -1980,7 +1980,7 @@ static hotkey* gethotkey(int id) {
 
 void logs::turn(creature& e) {
 	while(true) {
-		point camera = getcamera(game::getx(e.position), game::gety(e.position));
+		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
 		view_zone(&e, camera);
 		auto phk = gethotkey(draw::input());
 		if(!phk)
@@ -1990,7 +1990,7 @@ void logs::turn(creature& e) {
 		// Выполним команды, связанные с движением героя
 		auto direction = getdirection(phk->key);
 		if(direction != Center) {
-			if(!e.move(game::to(e.position, direction))) {
+			if(!e.move(game::to(e.getposition(), direction))) {
 				logs::add("Вы не можете пройти сюда.");
 				continue;
 			}

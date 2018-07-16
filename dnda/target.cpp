@@ -159,7 +159,7 @@ bool targetdesc::isallow(const creature& player, aref<creature*> creatures) cons
 		if(e.self_only)
 			return true;
 		creature* source[1];
-		if(player.select(source, creatures, target, range, player.position, e.include_self ? 0 : &player))
+		if(player.select(source, creatures, target, range, player.getposition(), e.include_self ? 0 : &player))
 			return true;
 	} else if(e.proc.itm) {
 		item* source[1];
@@ -167,7 +167,7 @@ bool targetdesc::isallow(const creature& player, aref<creature*> creatures) cons
 			return true;
 	} else if(e.proc.ind) {
 		short unsigned source[1];
-		if(player.select(source, target, range, player.position))
+		if(player.select(source, target, range, player.getposition()))
 			return true;
 	}
 	return false;
@@ -325,7 +325,7 @@ bool effectparam::applyfull() {
 			cre->actvs(player, text);
 		else if(itm) {
 			auto p = creature::getplayer();
-			if(p && p->canhear(player.position))
+			if(p && p->canhear(player.getposition()))
 				itm->act(text);
 		} else
 			player.act(text);
@@ -352,7 +352,7 @@ int effectparam::apply(const char* format, const char* format_param) {
 		}
 		creature* source_data[256];
 		auto source = player.select(source_data, creatures,
-			type.target, type.range, player.position,
+			type.target, type.range, player.getposition(),
 			ti.include_self ? 0 : &player);
 		if(ti.target_all_match) {
 			for(auto p : source) {
@@ -385,7 +385,7 @@ int effectparam::apply(const char* format, const char* format_param) {
 		}
 	} else if(ti.proc.ind) {
 		short unsigned source_data[256];
-		auto source = player.select(source_data, type.target, type.range, player.position);
+		auto source = player.select(source_data, type.target, type.range, player.getposition());
 		if(ti.target_all_match) {
 			for(auto p : source) {
 				if(!ti.proc.ind(player, p))

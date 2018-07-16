@@ -31,7 +31,7 @@ static void removelock(effectparam& e) {
 }
 
 static bool isundead(effectparam& e) {
-	return e.cre->race==Undead;
+	return e.cre->getrace()==Undead;
 }
 
 static bool test_dance(effectparam& e) {
@@ -50,13 +50,21 @@ static bool test_pickpockets(effectparam& e) {
 }
 
 static void pickpockets(effectparam& e) {
-	auto count = (unsigned)xrand(3, 18);
-	if(count > e.cre->money)
-		count = e.cre->money;
-	e.cre->money -= count;
-	e.player.money += count;
+	auto count = xrand(3, 18);
+	if(count > e.cre->getmoney())
+		count = e.cre->getmoney();
+	e.cre->setmoney(e.cre->getmoney() - count);
+	e.player.setmoney(e.player.getmoney() + count);
 	if(e.player.isplayer())
 		e.player.act("%герой украл%а [%1i] монет.", count);
+}
+
+static bool inbuilding(effectparam& e) {
+	if(!e.player.getsite()) {
+		e.player.hint("Этот навык можно применять только в здании.");
+		return false;
+	}
+	return true;
 }
 
 static void dance(effectparam& e) {}
@@ -67,13 +75,15 @@ static void literacy(effectparam& e) {
 }
 
 static bool test_gamble(effectparam& e) {
+	if(!inbuilding(e))
+		return false;
 	e.param = 20 * (1 + e.player.get(Gambling) / 20);
-	if((int)e.player.money < e.param) {
+	if(e.player.getmoney() < e.param) {
 		e.player.hint("У тебя нет достаточного количества денег.");
 		return false;
 	}
 	e.player.say("Давай сыграем в %1?", maprnd(talk_games));
-	if((int)e.cre->money < e.param) {
+	if(e.cre->getmoney() < e.param) {
 		e.cre->say("Нет. Я на мели. В другой раз.");
 		return false;
 	}
@@ -82,8 +92,8 @@ static bool test_gamble(effectparam& e) {
 }
 
 static void gamble(effectparam& e) {
-	e.player.money += e.param;
-	e.cre->money -= e.param;
+	e.player.setmoney(e.player.getmoney() + e.param);
+	e.cre->setmoney(e.cre->getmoney() - e.param);
 	e.cre->act("%герой проиграл%а [%1i] монет.", e.param);
 }
 
@@ -96,8 +106,8 @@ static void failskill(effectparam& e) {
 }
 
 static void failgamble(effectparam& e) {
-	e.player.money -= e.param;
-	e.cre->money += e.param;
+	e.player.setmoney(e.player.getmoney() - e.param);
+	e.cre->setmoney(e.cre->getmoney() + e.param);
 	e.player.act("%герой проиграл%а [%1i] монет.", e.param);
 }
 

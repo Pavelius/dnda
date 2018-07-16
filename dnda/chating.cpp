@@ -11,19 +11,19 @@ bool noint(const creature& player, const dialog& e) {
 }
 
 static bool isguard(const creature& player, const dialog& e) {
-	return player.guard != Blocked;
+	return player.getguard() != Blocked;
 }
 
 static bool isnoguard(const creature& player, const dialog& e) {
-	return player.guard == Blocked;
+	return player.getguard() == Blocked;
 }
 
 static void setguard(dialog& e, const speech& sp) {
-	e.opponent->guard = e.opponent->position;
+	e.opponent->setguard(e.opponent->getposition());
 }
 
 static void remguard(dialog& e, const speech& sp) {
-	e.opponent->guard = Blocked;
+	e.opponent->setguard(Blocked);
 }
 
 static site* get_non_explored_location() {

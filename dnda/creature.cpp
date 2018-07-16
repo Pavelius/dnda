@@ -146,7 +146,7 @@ static int roll3d6() {
 
 static void start_equipment(creature& e) {
 	for(auto& ei : equipment_data) {
-		if((!ei.race || ei.race == e.race) && ei.type == e.type) {
+		if((!ei.race || ei.race == e.getrace()) && ei.type == e.getclass()) {
 			for(auto i : ei.equipment) {
 				if(!i)
 					break;
@@ -156,7 +156,7 @@ static void start_equipment(creature& e) {
 		}
 	}
 	e.equip(Ration);
-	e.money += xrand(3, 18)*GP;
+	e.setmoney(e.getmoney() + xrand(3, 18)*GP);
 }
 
 static bool linelossv(int x0, int y0, int x1, int y1) {
@@ -451,7 +451,6 @@ void creature::clear() {
 	memset(this, 0, sizeof(creature));
 	position = Blocked;
 	guard = Blocked;
-	order.move = Blocked;
 	role = Character;
 }
 
@@ -778,7 +777,7 @@ bool creature::move(short unsigned i) {
 	if(i == Blocked)
 		return false;
 	if(is(Drunken)) {
-		auto n = getdirection({(short)getx(position), (short)gety(position)}, {(short)getx(i), (short)gety(i)});
+		auto n = game::getdirection({(short)getx(position), (short)gety(position)}, {(short)getx(i), (short)gety(i)});
 		if(d100() < 45) {
 			n = turn(n, (d100() < 50) ? LeftUp : RightUp);
 			i = to(position, n);
@@ -794,7 +793,7 @@ bool creature::move(short unsigned i) {
 		}
 	}
 	if(position != Blocked) {
-		auto n = getdirection({(short)getx(position), (short)gety(position)}, {(short)getx(i), (short)gety(i)});
+		auto n = game::getdirection({(short)getx(position), (short)gety(position)}, {(short)getx(i), (short)gety(i)});
 		switch(n) {
 		case Left:
 		case LeftUp:
@@ -959,8 +958,6 @@ bool creature::isenemy(const creature* target) const {
 		return false;
 	auto& e1 = getai();
 	auto& e2 = target->getai();
-	if(e1.isagressive() != e1.isagressive())
-		return true;
 	return false;
 }
 
@@ -1994,7 +1991,7 @@ bool game::serializep(short unsigned index, bool writemode) {
 			p->join(party_reference[0]);
 		party_reference[0]->setplayer();
 		for(auto p : party_reference)
-			p->position = getfree(index);
+			p->setposition(getfree(index));
 	}
 	return true;
 }

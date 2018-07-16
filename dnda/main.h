@@ -424,16 +424,6 @@ struct command {
 	constexpr command() : move(Blocked), skill(NoSkill), spell(NoSpell) {}
 };
 struct creature {
-	race_s				race;
-	class_s				type;
-	gender_s			gender;
-	role_s				role;
-	direction_s			direction;
-	unsigned short		name;
-	unsigned char		level;
-	int					experience;
-	unsigned			money;
-	unsigned short		position, guard;
 	item				wears[LastBackpack + 1];
 	//
 	creature() = default;
@@ -485,15 +475,20 @@ struct creature {
 	int					getbasic(ability_s value) const;
 	int					getbasic(skill_s value) const;
 	int					getbonus(enchantment_s value) const;
+	class_s				getclass() const { return type; }
 	int					getcost(spell_s value) const;
 	unsigned			getcostexp() const;
 	static creature*	getcreature(short unsigned index);
 	static aref<creature*> getcreatures(aref<creature*> result, short unsigned start, int range);
 	int					getdefence() const;
 	int					getdiscount(creature* customer) const;
+	direction_s			getdirection() const { return direction; }
 	creature*			getenemy(aref<creature*> source) const;
 	encumbrance_s		getencumbrance() const { return encumbrance; }
+	int					getexperience() const { return experience; }
 	char*				getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
+	gender_s			getgender() const { return gender; }
+	short unsigned		getguard() const { return guard; }
 	creature*			gethenchmen(int index) const;
 	int					gethits() const { return hp; }
 	creature*			gethorror() const { return horror; }
@@ -502,6 +497,7 @@ struct creature {
 	int					getmana() const { return mp; }
 	int					getmaxhits() const;
 	int					getmaxmana() const;
+	int					getmoney() const { return money; }
 	const char*			getmonstername() const;
 	int					getmoverecoil() const;
 	const char*			getname() const; // Name used predefined names array
@@ -511,7 +507,9 @@ struct creature {
 	creature*			getnearest(aref<creature*> source, targetdesc ti) const;
 	static creature*	getplayer();
 	short unsigned		getposition() const { return position; }
+	race_s				getrace() const { return race; }
 	damageinfo			getraise(skill_s id) const;
+	role_s				getrole() const { return role; }
 	site*				getsite() const { return current_site; }
 	int					getweight() const;
 	int					getweight(encumbrance_s id) const;
@@ -564,10 +562,13 @@ struct creature {
 	void				set(spell_s value, int level);
 	void				setcharmer(creature* value) { charmer = value; }
 	static void			setblocks(short unsigned* movements, short unsigned value);
+	void				setguard(short unsigned value) { guard = value; }
 	void				sethorror(creature* value) { horror = value; }
 	void				setplayer();
+	void				setposition(short unsigned value) { position = value; }
 	static void			setleader(const creature* party, creature* leader);
 	void				setlos();
+	void				setmoney(int value) { money = value; }
 	void				trapeffect();
 	static void			turnbegin();
 	void				update();
@@ -594,6 +595,16 @@ private:
 	site*				current_site;
 	encumbrance_s		encumbrance;
 	command				order;
+	gender_s			gender;
+	race_s				race;
+	class_s				type;
+	role_s				role;
+	unsigned short		name;
+	unsigned char		level;
+	unsigned short		position, guard;
+	direction_s			direction;
+	int					experience;
+	unsigned			money;
 	//
 	static bool			playturn();
 	void				updateweight();

@@ -526,8 +526,8 @@ static short unsigned compare_index;
 int compare_creature_by_distance(const void* p1, const void* p2) {
 	creature* e1 = *((creature**)p1);
 	creature* e2 = *((creature**)p2);
-	auto d1 = game::distance(compare_index, e1->position);
-	auto d2 = game::distance(compare_index, e2->position);
+	auto d1 = game::distance(compare_index, e1->getposition());
+	auto d2 = game::distance(compare_index, e2->getposition());
 	return d1 - d2;
 }
 

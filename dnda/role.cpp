@@ -25,11 +25,11 @@ static struct role_info {
 {"Зомби", Undead, Male, Chaotic, Monster, 2, {Dagger, Strenght}},
 {"Кобольд", Kobold, Male, Chaotic, Monster, 0, {BowShort, Dagger}},
 {"Собака", Animal, Female, Neutral, Monster, 2, {Bite, Dexterity}},
-{"Рысь", Animal, Female, Neutral, Monster, 4, {Bite, Fur, Dexterity, Strenght, Constitution}},
+{"Рысь", Animal, Female, Chaotic, Monster, 4, {Bite, Fur, Dexterity, Strenght, Constitution}},
 {"Лягушка", Animal, Female, Neutral, Monster, 1, {Bite, Dexterity}},
-{"Муравей", Insect, Male, Neutral, Monster, 0, {Bite, Hitin}},
-{"Муравей-воин", Insect, Male, Neutral, Monster, 1, {item(Bite, OfPoison), Hitin, Strenght}},
-{"Матка муравьев", Insect, Female, Neutral, Monster, 5, {item(Bite, OfPoison).setquality(2).set(BlessedItem), Hitin, Strenght, Strenght, Constitution}},
+{"Муравей", Insect, Male, Chaotic, Monster, 0, {Bite, Hitin}},
+{"Муравей-воин", Insect, Male, Chaotic, Monster, 1, {item(Bite, OfPoison), Hitin, Strenght}},
+{"Матка муравьев", Insect, Female, Chaotic, Monster, 5, {item(Bite, OfPoison).setquality(2).set(BlessedItem), Hitin, Strenght, Strenght, Constitution}},
 {"Персонаж", Human, Male, Neutral, Commoner},
 };
 assert_enum(role, Character);
@@ -57,15 +57,15 @@ creature::creature(role_s role) {
 	for(auto i : e.features) {
 		switch(i.type) {
 		case Item:
-			it = item(i.itemtype, 0, 15, 10, 35).set(KnowEffect);
+		case ItemObject:
+			if(i.type == Item)
+				it = item(i.itemtype, 0, 15, 10, 35);
+			else
+				it = i.itemobject;
+			it.set(KnowEffect);
 			equip(it);
 			if(it.getammo())
 				equip(item(it.getammo(), 0, 15, 10, 35).set(KnowEffect));
-			break;
-		case ItemObject:
-			equip(i.itemobject.set(KnowEffect));
-			if(i.itemobject.getammo())
-				equip(item(i.itemobject.getammo(), 0, 15, 10, 35).set(KnowEffect));
 			break;
 		case Skill:
 			raise(i.skill);
