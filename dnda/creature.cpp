@@ -957,7 +957,9 @@ bool creature::isenemy(const creature* target) const {
 		return false;
 	if(target->role == Shopkeeper || this->role == Shopkeeper)
 		return false;
-	if(this->isagressive() != target->isagressive())
+	auto& e1 = getai();
+	auto& e2 = target->getai();
+	if(e1.isagressive() != e1.isagressive())
 		return true;
 	return false;
 }
@@ -1326,6 +1328,13 @@ creature* creature::getleader() const {
 	if(charmer)
 		return charmer;
 	return party;
+}
+
+const creature& creature::getai() const {
+	auto p = getleader();
+	if(p)
+		return *p;
+	return *this;
 }
 
 void creature::setlos() {

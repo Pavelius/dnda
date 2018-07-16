@@ -217,8 +217,10 @@ static struct item_info {
 {"Когти", 0, 0, They, Organic, {4, {1, 3, Slashing}}, {}, {Natural}, {Melee}, NoSkill, bite_effect},
 {"Удар", 0, 0, Male, Organic, {0, {2, 7}}, {}, {Natural}, {Melee}, NoSkill, bite_effect},
 {"Укус", 0, 0, Male, Organic, {2, {2, 5, Piercing}}, {}, {Natural}, {Melee}, NoSkill, bite_effect},
+{"Хитин", 0, 0, Male, Organic, {0, {}, 0, {20}, 4}, {}, {Natural}, {Torso}, NoSkill, armor_effect},
+{"Мех", 0, 0, Male, Organic, {0, {}, 0, {12}, 4}, {}, {Natural}, {Torso}, NoSkill, armor_effect},
 };
-assert_enum(item, Bite);
+assert_enum(item, ManyItems-1);
 getstr_enum(item);
 
 item::item(item_s type, int chance_artifact, int chance_magic, int chance_cursed, int chance_quality = 30) :
@@ -244,21 +246,23 @@ item::item(item_s type, int chance_artifact, int chance_magic, int chance_cursed
 	else
 		quality = 0;
 	// Several effect types
-	switch(item_data[type].magic.type) {
-	case effectlist::Echantments:
-		if(d100() < chance_magic)
-			effect = item_data[type].magic.effects.data[rand() % item_data[type].magic.effects.count];
-		break;
-	case effectlist::Spells:
-		if((is(Melee) && (d100() < chance_magic)) || !is(Melee))
-			effect = (enchantment_s)item_data[type].magic.spells.data[rand() % item_data[type].magic.spells.count];
-		break;
-	case effectlist::States:
-		effect = (enchantment_s)item_data[type].magic.states.data[rand() % item_data[type].magic.states.count];
-		break;
-	case effectlist::Skills:
-		effect = (enchantment_s)item_data[type].magic.skills.data[rand() % item_data[type].magic.skills.count];
-		break;
+	if(!isnatural()) {
+		switch(item_data[type].magic.type) {
+		case effectlist::Echantments:
+			if(d100() < chance_magic)
+				effect = item_data[type].magic.effects.data[rand() % item_data[type].magic.effects.count];
+			break;
+		case effectlist::Spells:
+			if((is(Melee) && (d100() < chance_magic)) || !is(Melee))
+				effect = (enchantment_s)item_data[type].magic.spells.data[rand() % item_data[type].magic.spells.count];
+			break;
+		case effectlist::States:
+			effect = (enchantment_s)item_data[type].magic.states.data[rand() % item_data[type].magic.states.count];
+			break;
+		case effectlist::Skills:
+			effect = (enchantment_s)item_data[type].magic.skills.data[rand() % item_data[type].magic.skills.count];
+			break;
+		}
 	}
 	// Set maximum item count in set
 	if(iscountable())

@@ -7,7 +7,8 @@ static struct role_info {
 	alignment_s			alignment;
 	class_s				type;
 	char				level;
-	adat<variant, 24>	features;
+	adat<variant, 16>	features;
+	role_s				minions[4];
 } role_data[] = {{"Гоблин", Goblin, Male, Chaotic, Monster, 0, {SwordShort}},
 {"Гоблин", Goblin, Male, Chaotic, Monster, 0, {Rock}},
 {"Орк", Orc, Male, Chaotic, Monster, 1, {SwordLong, StuddedLeatherArmour}},
@@ -24,11 +25,11 @@ static struct role_info {
 {"Зомби", Undead, Male, Chaotic, Monster, 2, {Dagger, Strenght}},
 {"Кобольд", Kobold, Male, Chaotic, Monster, 0, {BowShort, Dagger}},
 {"Собака", Animal, Female, Neutral, Monster, 2, {Bite, Dexterity}},
-{"Рысь", Animal, Female, Neutral, Monster, 4, {Bite, Dexterity, Strenght, Constitution}},
+{"Рысь", Animal, Female, Neutral, Monster, 4, {Bite, Fur, Dexterity, Strenght, Constitution}},
 {"Лягушка", Animal, Female, Neutral, Monster, 1, {Bite, Dexterity}},
-{"Муравей", Insect, Male, Neutral, Monster, 0, {Bite}},
-{"Муравей-воин", Insect, Male, Neutral, Monster, 1, {item(Bite, OfPoison), Strenght}},
-{"Матка муравьев", Insect, Female, Neutral, Monster, 5, {item(Bite, OfPoison).setquality(2).set(Blessed), Strenght, Strenght, Constitution}},
+{"Муравей", Insect, Male, Neutral, Monster, 0, {Bite, Hitin}},
+{"Муравей-воин", Insect, Male, Neutral, Monster, 1, {item(Bite, OfPoison), Hitin, Strenght}},
+{"Матка муравьев", Insect, Female, Neutral, Monster, 5, {item(Bite, OfPoison).setquality(2).set(BlessedItem), Hitin, Strenght, Strenght, Constitution}},
 {"Персонаж", Human, Male, Neutral, Commoner},
 };
 assert_enum(role, Character);

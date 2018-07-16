@@ -35,7 +35,7 @@ enum item_s : unsigned char {
 	RingRed, RingBlue, RingGreen,
 	Amulet1, Amulet2, Amulet3, Amulet4, Amulet5,
 	DoorKey, Coin,
-	Claws, Slam, Bite,
+	Claws, Slam, Bite, Hitin, Fur,
 	ManyItems
 };
 enum diety_s : unsigned char {
@@ -476,6 +476,7 @@ struct creature {
 	int					get(ability_s value) const;
 	int					get(spell_s value) const;
 	int					get(skill_s value) const;
+	const creature&		getai() const;
 	int					getarmor() const;
 	attackinfo			getattackinfo(slot_s slot) const;
 	int					getattacktime(slot_s slot) const;
