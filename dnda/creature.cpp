@@ -862,8 +862,8 @@ creature* creature::getenemy(aref<creature*> source) const {
 void creature::makemove() {
 	if(order.move == position)
 		order.move = Blocked;
-	// RULE: sleeped creature don't move
-	if(is(Sleeped))
+	// RULE: sleeped or paralized creature don't move
+	if(is(Sleeped) || is(Paralized))
 		return;
 	// Player turn
 	if(getplayer() == this) {
@@ -1053,14 +1053,14 @@ void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier
 	case OfHoliness:
 		if(defender->race == Undead) {
 			ai.bonus += ai.quality;
-			if(ai.quality>0)
+			if(ai.quality > 0)
 				multiplier++;
 		}
 		break;
 	case OfOrcSlying:
 		if(defender->race == Orc || defender->race == Goblin) {
 			ai.bonus += ai.quality;
-			if(ai.quality>0)
+			if(ai.quality > 0)
 				multiplier++;
 		}
 		break;
@@ -1140,6 +1140,11 @@ void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier
 			if(!defender->roll(ResistPoison, 10 - value))
 				defender->set(maptbl(quality_state, ai.quality), Minute*poison_update * 5);
 		}
+		break;
+	case OfParalize:
+		// RULE: chance be paralized depends on quality
+		if(!defender->roll(ResistParalize, 8 - ai.quality * 4))
+			defender->set(Paralized, Minute, true);
 		break;
 	case OfWeakness:
 		if(ai.quality < 0) {
@@ -1360,6 +1365,8 @@ int creature::get(ability_s value) const {
 			result -= 3;
 		if(is(PoisonedWeak))
 			result--;
+		if(is(Paralized))
+			result /= 2;
 		break;
 	}
 	if(result < 0)
@@ -1462,7 +1469,7 @@ void creature::remove(state_s value) {
 		states[value] = segments;
 }
 
-void creature::set(state_s value, unsigned segments_count, bool after_recoil, bool can_save) {
+void creature::set(state_s value, unsigned segments_count, bool after_recoil) {
 	switch(value) {
 	case RestoreHits:
 		heal(xrand(10, 20), false);
@@ -1482,11 +1489,8 @@ void creature::set(state_s value, unsigned segments_count, bool after_recoil, bo
 	default:
 		if(value <= LastState) {
 			unsigned stop = ((after_recoil && recoil) ? recoil : segments) + segments_count;
-			if(states[value] < stop) {
-				if(can_save) {
-				}
+			if(states[value] < stop)
 				states[value] = stop;
-			}
 		}
 		break;
 	}

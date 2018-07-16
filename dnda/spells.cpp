@@ -14,8 +14,10 @@ void setstate(effectparam& e) {
 			e.cre->set(e.state.type, duration);
 			e.cre->setcharmer(&e.player);
 		}
-	}
-	else
+	} else if(e.state.type == Paralized) {
+		if(!e.cre->saving(e.interactive, ResistParalize, 0))
+			e.cre->set(e.state.type, duration);
+	} else
 		e.cre->set(e.state.type, duration);
 }
 

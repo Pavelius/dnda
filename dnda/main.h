@@ -56,12 +56,13 @@ enum enchantment_s : unsigned char {
 	OfIntellegence,
 	OfMana, OfMissileDeflection,
 	OfOrcSlying,
-	OfPoison, OfPrecision,
+	OfParalize, OfPoison, OfPrecision,
 	OfRegeneration,
 	OfSickness, OfSharping, OfSmashing, OfSpeed, OfStrenght, OfSustenance,
 	OfVampirism, OfWeakness, OfWisdow,
 	// Resistances
-	OfAcidResistance, OfCharmResistance, OfColdResistance, OfFireResistance, OfElectricityResistance, OfPoisonResistance, OfWaterproof,
+	OfAcidResistance, OfCharmResistance, OfColdResistance, OfFireResistance, OfParalizeResistance,
+	OfElectricityResistance, OfPoisonResistance, OfWaterproof,
 	LastEnchantment = OfWaterproof,
 };
 enum race_s : unsigned char {
@@ -99,13 +100,13 @@ enum skill_s : unsigned char {
 	Alchemy, Dancing, Engineering, Gambling, History, Healing, Literacy, Mining, Smithing, Survival, Swimming,
 	WeaponFocusBows, WeaponFocusBlades, WeaponFocusAxes, TwoWeaponFighting,
 	LastSkill = TwoWeaponFighting,
-	ResistAcid, ResistCharm, ResistCold, ResistElectricity, ResistFire, ResistPoison, ResistWater,
+	ResistAcid, ResistCharm, ResistCold, ResistElectricity, ResistFire, ResistParalize, ResistPoison, ResistWater,
 	LastResist = ResistWater,
 };
 enum state_s : unsigned char {
 	NoState,
 	Anger, Armored, Blessed, Charmed, Drunken, Hiding, Goodwill,
-	Lighted, PoisonedWeak, Poisoned, PoisonedStrong,
+	Lighted, Paralized, PoisonedWeak, Poisoned, PoisonedStrong,
 	Shielded, Sick, Scared, Sleeped, Weaken,
 	// Ability boost effect
 	Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic,
@@ -286,8 +287,7 @@ struct effectparam : effectinfo {
 		effectinfo(effect_param), player(player), interactive(interactive),
 		cre(0), itm(0), pos(Blocked),
 		param(0), level(1), creatures(p_creatures),
-		skill_roll(0), skill_value(0), skill_bonus(0) {
-	}
+		skill_roll(0), skill_value(0), skill_bonus(0) {}
 	int					apply(const char* format, const char* format_param);
 	bool				applyfull();
 };
@@ -553,7 +553,7 @@ struct creature {
 	aref<item*>			select(aref<item*> result, target_s target) const;
 	aref<creature*>		select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const;
 	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start, bool los = true) const;
-	void				set(state_s value, unsigned segments, bool after_recoil = false, bool can_save = false);
+	void				set(state_s value, unsigned segments, bool after_recoil = false);
 	void				set(spell_s value, int level);
 	void				setcharmer(creature* value) { charmer = value; }
 	static void			setblocks(short unsigned* movements, short unsigned value);

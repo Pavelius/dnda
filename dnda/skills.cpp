@@ -154,6 +154,7 @@ static struct skill_info {
 {"Сопротивление холоду", "холода", {Constitution, Strenght}, {}, OfColdResistance, true},
 {"Сопротивление электричеству", "молнии", {Dexterity, Dexterity}, {}, OfElectricityResistance, true},
 {"Сопротивление огню", "огня", {Constitution, Dexterity}, {}, OfFireResistance, true},
+{"Сопротивление параличу", "параличу", {Constitution, Dexterity}, {}, OfFireResistance, true},
 {"Сопротивление яду", "яда", {Constitution, Constitution}, {}, OfPoisonResistance},
 {"Дыхание водой", "воды", {Strenght, Constitution}, {}, OfWaterproof, true},
 };
