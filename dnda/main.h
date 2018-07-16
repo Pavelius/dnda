@@ -69,7 +69,7 @@ enum race_s : unsigned char {
 	Animal,
 	Human, Dwarf, Elf, Halfling,
 	Goblin, Kobold, Orc,
-	Undead
+	Insect, Undead
 };
 enum class_s : unsigned char {
 	Commoner,
@@ -85,6 +85,7 @@ enum role_s : unsigned char {
 	Shopkeeper, DwarvenSmith, Bartender, Skeleton, Zombie,
 	KobolWarrior,
 	LargeDog, Lynx, GiantFrog,
+	AntWorker, AntWarrior, AntQueen,
 	Character
 };
 enum alignment_s : unsigned char {

@@ -67,6 +67,10 @@ int main(int argc, char* argv[]) {
 
 	add(get(14, 14), new creature(Lynx));
 	add(get(14, 14), new creature(LargeDog));
+	add(get(14, 14), new creature(AntWorker));
+	add(get(14, 14), new creature(AntWorker));
+	add(get(14, 14), new creature(AntWarrior));
+	add(get(14, 14), new creature(AntQueen));
 
 	p1->join(p1);
 	p2->join(p1);

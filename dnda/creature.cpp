@@ -57,6 +57,8 @@ static struct race_info {
 {"Гоблин", {5, 12, 8, 6, 9, 6}, {7, 14, 10, 8, 11, 8}, {HideInShadow, Acrobatics, Swimming}},
 {"Кобольд", {5, 13, 7, 6, 9, 6}, {7, 15, 9, 8, 11, 8}, {HideInShadow, Acrobatics, Swimming}},
 {"Орк", {12, 9, 11, 6, 9, 6}, {15, 11, 13, 8, 11, 8}, {Athletics, Mining, Swimming}},
+//
+{"Насекомое", {4, 5, 4, 1, 1, 1}, {6, 9, 6, 1, 1, 1}},
 {"Мертвец", {10, 6, 10, 4, 1, 1}, {12, 8, 13, 5, 1, 1}},
 };
 assert_enum(race, Undead);
