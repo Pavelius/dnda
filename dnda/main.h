@@ -324,6 +324,7 @@ public:
 	int					getcount() const;
 	int					getdefence() const;
 	enchantment_s		geteffect() const;
+	char				getenchantcost() const;
 	skill_s				getfocus() const;
 	const foodinfo&		getfood() const;
 	identify_s			getidentify() const { return identify; }
@@ -448,6 +449,7 @@ struct creature {
 	void				actvnc(const char* format, const char* param) const;
 	void				actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
 	void				addexp(int count);
+	static void			addexp(int value, short unsigned position, int range, const creature* exclude, const creature* enemies);
 	skill_s				aiskill();
 	skill_s				aiskill(aref<creature*> creatures);
 	spell_s				aispell(aref<creature*> creatures, target_s target = NoTarget);
@@ -546,7 +548,7 @@ struct creature {
 	void				raiseskills(int number);
 	void				rangeattack(creature* enemy);
 	void				readbook(item& it);
-	void				release(unsigned exeperience_cost) const;
+	void				release() const;
 	void				remove(state_s value);
 	void				remove(adat<creature, 16>& source) const;
 	bool				roll(skill_s skill, int bonus = 0);

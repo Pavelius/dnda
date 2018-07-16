@@ -7,17 +7,11 @@
     <ClInclude Include="collection.h">
       <Filter>collections</Filter>
     </ClInclude>
-    <ClInclude Include="crt.h">
-      <Filter>runtime</Filter>
-    </ClInclude>
     <ClInclude Include="draw.h">
       <Filter>ui</Filter>
     </ClInclude>
     <ClInclude Include="win.h">
       <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="color.h">
-      <Filter>support</Filter>
     </ClInclude>
     <ClInclude Include="point.h">
       <Filter>support</Filter>
@@ -28,9 +22,6 @@
     <ClInclude Include="grammar.h">
       <Filter>string</Filter>
     </ClInclude>
-    <ClInclude Include="command.h">
-      <Filter>support</Filter>
-    </ClInclude>
     <ClInclude Include="main.h">
       <Filter>logic</Filter>
     </ClInclude>
@@ -40,14 +31,20 @@
     <ClInclude Include="stringcreator.h">
       <Filter>string</Filter>
     </ClInclude>
-    <ClInclude Include="resources.h">
-      <Filter>ui</Filter>
-    </ClInclude>
-    <ClInclude Include="io.h">
-      <Filter>runtime</Filter>
-    </ClInclude>
     <ClInclude Include="initializer_list.h">
       <Filter>logic</Filter>
+    </ClInclude>
+    <ClInclude Include="crt.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="io.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="color.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="resources.h">
+      <Filter>support</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -56,12 +53,6 @@
     </ClCompile>
     <ClCompile Include="collection.cpp">
       <Filter>collections</Filter>
-    </ClCompile>
-    <ClCompile Include="crt.cpp">
-      <Filter>runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="crt_parse.cpp">
-      <Filter>runtime</Filter>
     </ClCompile>
     <ClCompile Include="draw.cpp">
       <Filter>ui</Filter>
@@ -78,17 +69,11 @@
     <ClCompile Include="win_io_file.cpp">
       <Filter>platform</Filter>
     </ClCompile>
-    <ClCompile Include="color.cpp">
-      <Filter>support</Filter>
-    </ClCompile>
     <ClCompile Include="point.cpp">
       <Filter>support</Filter>
     </ClCompile>
     <ClCompile Include="grammar.cpp">
       <Filter>string</Filter>
-    </ClCompile>
-    <ClCompile Include="command.cpp">
-      <Filter>support</Filter>
     </ClCompile>
     <ClCompile Include="creature.cpp">
       <Filter>logic</Filter>
@@ -125,12 +110,6 @@
     </ClCompile>
     <ClCompile Include="stringcreator.cpp">
       <Filter>string</Filter>
-    </ClCompile>
-    <ClCompile Include="resources.cpp">
-      <Filter>ui</Filter>
-    </ClCompile>
-    <ClCompile Include="io.cpp">
-      <Filter>runtime</Filter>
     </ClCompile>
     <ClCompile Include="logs_driver.cpp">
       <Filter>string</Filter>
@@ -183,13 +162,25 @@
     <ClCompile Include="draw_textf.cpp">
       <Filter>ui</Filter>
     </ClCompile>
+    <ClCompile Include="crt.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="crt_parse.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="io.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="color.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="resources.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="collections">
       <UniqueIdentifier>{0ae17223-e0f3-4466-9fa5-668926d7ef1a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="runtime">
-      <UniqueIdentifier>{aa6dbc57-f11d-47f3-ba5d-dcd912a36c09}</UniqueIdentifier>
     </Filter>
     <Filter Include="ui">
       <UniqueIdentifier>{85a70fd6-8c85-4b04-a48e-98fbc414fb67}</UniqueIdentifier>

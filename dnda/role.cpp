@@ -14,7 +14,7 @@ static struct role_info {
 {"Орк", Orc, Male, Chaotic, Monster, 1, {SwordLong, StuddedLeatherArmour}},
 {"Летучая мышь", Animal, Female, Chaotic, Monster, 0, {Bite, Dexterity}},
 {"Крыса", Animal, Female, Chaotic, Monster, 0, {Bite, Dexterity}},
-{"Крестьянин", Human, Male, Neutral, Commoner, 0},
+{"Крестьянин", Human, Male, Neutral, Commoner, 1},
 {"Охранник", Human, Male, Neutral, Fighter, 1, {Spear}},
 {"Ребенок", Human, Male, Neutral, Commoner},
 {"Крестьянка", Human, Male, Neutral, Commoner, 1},
@@ -77,14 +77,8 @@ creature::creature(role_s role) {
 		}
 	}
 	// Восполним хиты
-	mhp = 0;
-	if(e.level) {
-		for(int i = 0; i < e.level; i++)
-			levelup();
-	} else
-		mhp = 1 + (rand() % 4);
+	for(int i = 0; i < e.level; i++)
+		levelup();
 	hp = getmaxhits();
-	// Энергия
-	mmp = 0;
 	mp = getmaxmana();
 }

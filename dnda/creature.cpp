@@ -430,7 +430,7 @@ void creature::join(creature* value) {
 	party = value;
 }
 
-void creature::release(unsigned exeperience_cost) const {
+void creature::release() const {
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;
@@ -1201,6 +1201,7 @@ void creature::damage(int value, attack_s type, bool interactive) {
 			act(".");
 		damagewears(value, type);
 		if(hp <= 0) {
+			addexp(getcostexp(), position, 8, this, this);
 			const int chance_loot = 40;
 			for(auto& e : wears) {
 				if(!e)
@@ -1214,7 +1215,7 @@ void creature::damage(int value, attack_s type, bool interactive) {
 					drop(position, e);
 				}
 			}
-			release(getcostexp());
+			release();
 			clear();
 		}
 	} else {
@@ -1274,7 +1275,31 @@ void creature::damagewears(int value, attack_s type) {
 }
 
 unsigned creature::getcostexp() const {
-	return maptbl(experience_cost, level);
+	auto result = maptbl(experience_cost, level);
+	for(auto slot = Head; slot <= Ranged; slot = (slot_s)(slot + 1)) {
+		if(!wears[slot].isnatural())
+			continue;
+		result += wears[slot].getenchantcost() * 10 + wears[slot].getquality() * 5;
+	}
+	return result;
+}
+
+void creature::addexp(int value, short unsigned position, int range, const creature* exclude, const creature* enemies) {
+	auto x0 = getx(position);
+	auto y0 = gety(position);
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		if(&e == exclude)
+			continue;
+		if(enemies && e.isenemy(enemies))
+			continue;
+		if(distance(e.position, position) < range)
+			continue;
+		if(!linelos(x0, y0, getx(e.position), gety(e.position)))
+			continue;
+		e.addexp(value);
+	}
 }
 
 bool creature::isranged(bool interactive) const {

@@ -121,7 +121,6 @@
     <ClInclude Include="archive.h" />
     <ClInclude Include="collection.h" />
     <ClInclude Include="color.h" />
-    <ClInclude Include="command.h" />
     <ClInclude Include="crt.h" />
     <ClInclude Include="draw.h" />
     <ClInclude Include="grammar.h" />
@@ -143,7 +142,6 @@
     <ClCompile Include="damageinfo.cpp" />
     <ClCompile Include="collection.cpp" />
     <ClCompile Include="color.cpp" />
-    <ClCompile Include="command.cpp" />
     <ClCompile Include="creature.cpp" />
     <ClCompile Include="dialog.cpp" />
     <ClCompile Include="crt.cpp" />
