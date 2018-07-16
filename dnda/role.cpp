@@ -53,6 +53,8 @@ creature::creature(role_s role) {
 	this->gender = e.gender;
 	this->type = e.type;
 	this->role = role;
+	if(isagressive())
+		reaction = Hostile;
 	applyability();
 	for(auto i : e.features) {
 		switch(i.type) {

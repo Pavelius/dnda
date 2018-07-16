@@ -534,9 +534,16 @@ int compare_creature_by_distance(const void* p1, const void* p2) {
 creature* game::getnearest(aref<creature*> source, short unsigned position) {
 	if(!source)
 		return 0;
-	compare_index = position;
-	qsort(source.data, source.count, sizeof(source.data[0]), compare_creature_by_distance);
-	return source[0];
+	creature* result = 0;
+	auto result_distance = max_map_x * 2;
+	for(auto p : source) {
+		auto d = distance(p->getposition(), position);
+		if(d < result_distance) {
+			result = p;
+			result_distance = d;
+		}
+	}
+	return result;
 }
 
 site* game::getlocation(short unsigned i) {

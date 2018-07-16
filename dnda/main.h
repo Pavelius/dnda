@@ -213,6 +213,9 @@ enum speech_s : unsigned char {
 enum manual_s : unsigned char {
 	Element, Header
 };
+enum reaction_s : unsigned char {
+	Friendly, Indifferent, Hostile
+};
 struct attackinfo;
 struct creature;
 struct dialog;
@@ -417,12 +420,6 @@ struct attackinfo {
 	enchantment_s		effect;
 	char				quality;
 };
-struct command {
-	unsigned short		move;
-	skill_s				skill;
-	spell_s				spell;
-	constexpr command() : move(Blocked), skill(NoSkill), spell(NoSpell) {}
-};
 struct creature {
 	item				wears[LastBackpack + 1];
 	//
@@ -560,6 +557,7 @@ struct creature {
 	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start, bool los = true) const;
 	void				set(state_s value, unsigned segments, bool after_recoil = false);
 	void				set(spell_s value, int level);
+	void				set(reaction_s value) { reaction = value; }
 	void				setcharmer(creature* value) { charmer = value; }
 	static void			setblocks(short unsigned* movements, short unsigned value);
 	void				setguard(short unsigned value) { guard = value; }
@@ -571,13 +569,13 @@ struct creature {
 	void				setmoney(int value) { money = value; }
 	void				trapeffect();
 	static void			turnbegin();
+	bool				unequip(item& it);
 	void				update();
 	void				use(skill_s value);
 	bool				use(spell_s value);
 	bool				use(spell_s value, int level, const char* format, ...);
 	void				use(item& it);
 	bool				use(short unsigned index);
-	bool				unequip(item& it);
 	void				wait(int segments = 0);
 private:
 	friend struct archive;
@@ -594,7 +592,6 @@ private:
 	creature*			horror;
 	site*				current_site;
 	encumbrance_s		encumbrance;
-	command				order;
 	gender_s			gender;
 	race_s				race;
 	class_s				type;
@@ -605,13 +602,14 @@ private:
 	direction_s			direction;
 	int					experience;
 	unsigned			money;
+	reaction_s			reaction;
 	//
 	static bool			playturn();
 	void				updateweight();
 	bool				walkaround(aref<creature*> creatures);
 };
 struct site : rect {
-	site_s		type;
+	site_s			type;
 	diety_s			diety;
 	unsigned char	name[2];
 	creature*		owner;

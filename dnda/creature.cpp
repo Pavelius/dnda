@@ -863,8 +863,6 @@ creature* creature::getenemy(aref<creature*> source) const {
 }
 
 void creature::makemove() {
-	if(order.move == position)
-		order.move = Blocked;
 	// RULE: sleeped or paralized creature don't move
 	if(is(Sleeped) || is(Paralized))
 		return;
@@ -898,14 +896,6 @@ void creature::makemove() {
 			walkaround(creatures);
 		else
 			moveto(target->position);
-	} else if(order.move != Blocked)
-		moveto(order.move);
-	else if(order.skill) {
-		use(order.skill);
-		order.skill = NoSkill;
-	} else if(order.spell) {
-		use(order.spell);
-		order.spell = NoSpell;
 	} else
 		walkaround(creatures);
 }
@@ -956,9 +946,9 @@ bool creature::isenemy(const creature* target) const {
 		return false;
 	if(target->role == Shopkeeper || this->role == Shopkeeper)
 		return false;
-	auto& e1 = getai();
-	auto& e2 = target->getai();
-	return false;
+	if(getleader() == target->getleader())
+		return false;
+	return isagressive() != target->isagressive();
 }
 
 void creature::manipulate(short unsigned index) {
@@ -1289,9 +1279,9 @@ void creature::addexp(int value, short unsigned position, int range, const creat
 			continue;
 		if(&e == exclude)
 			continue;
-		if(enemies && e.isenemy(enemies))
+		if(enemies && !e.isenemy(enemies))
 			continue;
-		if(distance(e.position, position) < range)
+		if(distance(e.position, position) > range)
 			continue;
 		if(!linelos(x0, y0, getx(e.position), gety(e.position)))
 			continue;
@@ -1944,7 +1934,6 @@ template<> void archive::set<creature>(creature& e) {
 	set(e.party);
 	set(e.current_site);
 	set(e.encumbrance);
-	set(e.order);
 }
 
 archive::dataset creature_dataset() {
