@@ -364,13 +364,14 @@ public:
 	bool				isunbreakable() const;
 	void				loot();
 	void				repair(int level);
-	void				setcharges(int count);
-	void				setcount(int count);
 	item&				set(identify_s value);
 	item&				set(item_type_s value) { magic = value; return *this; }
 	item&				set(enchantment_s value) { effect = value; return *this; }
+	item&				setcharges(int count);
+	item&				setcount(int count);
 	item&				setforsale() { forsale = 1; return *this; }
-	void				setsold() { forsale = 0; }
+	item&				setsold() { forsale = 0;  return *this; }
+	item&				setquality(unsigned char value) { quality = value; return *this; }
 };
 struct variant {
 	variant_s			type;

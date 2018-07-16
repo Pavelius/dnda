@@ -26,9 +26,9 @@ static struct role_info {
 {"Собака", Animal, Female, Neutral, Monster, 2, {Bite, Dexterity}},
 {"Рысь", Animal, Female, Neutral, Monster, 4, {Bite, Dexterity, Strenght, Constitution}},
 {"Лягушка", Animal, Female, Neutral, Monster, 1, {Bite, Dexterity}},
-{"Муравей", Insect, Male, Neutral, Monster, 0, {item(Bite, OfPoison)}},
+{"Муравей", Insect, Male, Neutral, Monster, 0, {Bite}},
 {"Муравей-воин", Insect, Male, Neutral, Monster, 1, {item(Bite, OfPoison), Strenght}},
-{"Матка муравьев", Insect, Female, Neutral, Monster, 5, {item(Bite, OfPoison), Strenght, Strenght, Constitution}},
+{"Матка муравьев", Insect, Female, Neutral, Monster, 5, {item(Bite, OfPoison).setquality(2).set(Blessed), Strenght, Strenght, Constitution}},
 {"Персонаж", Human, Male, Neutral, Commoner},
 };
 assert_enum(role, Character);

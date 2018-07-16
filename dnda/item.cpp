@@ -370,11 +370,12 @@ int item::getcount() const {
 	return 1;
 }
 
-void item::setcount(int value) {
+item& item::setcount(int value) {
 	if(!value)
 		clear();
 	else if(iscountable())
 		count = value - 1;
+	return *this;
 }
 
 bool item::ischargeable() const {
@@ -387,9 +388,10 @@ int item::getcharges() const {
 	return 0;
 }
 
-void item::setcharges(int value) {
+item& item::setcharges(int value) {
 	if(ischargeable())
 		count = value;
+	return *this;
 }
 
 int item::getweight() const {
