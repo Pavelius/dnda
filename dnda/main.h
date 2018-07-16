@@ -203,7 +203,7 @@ enum encumbrance_s : unsigned char {
 };
 enum variant_s : unsigned char {
 	NoVariant,
-	Ability, Item, Skill, State, Enchantment,
+	Ability, Item, Skill, State, Enchantment, ItemObject,
 	Text
 };
 enum speech_s : unsigned char {
@@ -308,7 +308,7 @@ public:
 	constexpr item() : type(NoItem), effect(NoEffect), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
 	constexpr item(spell_s spell) : type(ScrollRed), effect((enchantment_s)spell), count(0), magic(), quality(0), identify(KnowEffect), forsale(0), damaged(0) {}
 	constexpr item(item_s type) : type(type), effect(NoEffect), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
-	constexpr item(item_s type, item_type_s magic, enchantment_s effect) : type(type), effect(effect), count(0), magic(magic), quality(0), identify(KnowEffect), forsale(0), damaged(0) {}
+	constexpr item(item_s type, enchantment_s effect) : type(type), effect(effect), count(0), magic(Mundane), quality(0), identify(KnowEffect), forsale(0), damaged(0) {}
 	item(item_s type, int chance_artifact, int chance_magic, int chance_cursed, int chance_quality);
 	operator bool() const { return type != NoItem; }
 	void				act(const char* format, ...) const;
@@ -366,10 +366,10 @@ public:
 	void				repair(int level);
 	void				setcharges(int count);
 	void				setcount(int count);
-	void				set(identify_s value);
-	void				set(item_type_s value) { magic = value; }
-	void				set(enchantment_s value) { effect = value; }
-	void				setforsale() { forsale = 1; }
+	item&				set(identify_s value);
+	item&				set(item_type_s value) { magic = value; return *this; }
+	item&				set(enchantment_s value) { effect = value; return *this; }
+	item&				setforsale() { forsale = 1; return *this; }
 	void				setsold() { forsale = 0; }
 };
 struct variant {
@@ -379,7 +379,8 @@ struct variant {
 		enchantment_s	enchantment;
 		skill_s			skill;
 		state_s			state;
-		item_s			item;
+		item_s			itemtype;
+		item			itemobject;
 		const char*		text;
 	};
 	constexpr variant() : type(NoVariant), skill(NoSkill) {}
@@ -387,7 +388,8 @@ struct variant {
 	constexpr variant(state_s v) : type(State), state(v) {}
 	constexpr variant(enchantment_s v) : type(Enchantment), enchantment(v) {}
 	constexpr variant(ability_s v) : type(Ability), ability(v) {}
-	constexpr variant(item_s v) : type(Item), item(v) {}
+	constexpr variant(item_s v) : type(Item), itemtype(v) {}
+	constexpr variant(item v) : type(ItemObject), itemobject(v) {}
 	constexpr variant(const char* v) : type(Text), text(v) {}
 	explicit operator bool() const { return type != NoVariant; }
 	const char*			getname() const;

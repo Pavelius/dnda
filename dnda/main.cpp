@@ -80,20 +80,20 @@ int main(int argc, char* argv[]) {
 
 	p1->equip(item(Book1, 4, 20, 20, 40));
 	p1->equip(Repair);
-	p1->equip(item(PotionRed, Mundane, (enchantment_s)Experience));
+	p1->equip(item(PotionRed, (enchantment_s)Experience));
 	p1->equip(DetectMagic);
 	p1->equip(DoorKey);
 	p1->equip(Apple);
 	p1->equip(item(Cloack1, 4, 30, 20, 50));
 
 	p2->equip(Cloack5);
-	p2->equip(item(PotionRed, Mundane, (enchantment_s)Drunken));
+	p2->equip(item(PotionRed, (enchantment_s)Drunken));
 
 	p3->equip(BowLong);
 	p3->equip(Arrow);
-	p3->equip(item(SwordLong, Artifact, OfStrenght));
-	p3->equip(item(Dagger, Cursed, OfDexterity));
-	p3->equip(item(BracersLeather, Mundane, OfDefence));
+	p3->equip(item(SwordLong, OfStrenght).set(Artifact));
+	p3->equip(item(Dagger, OfDexterity).set(Cursed));
+	p3->equip(item(BracersLeather, OfDefence));
 
 	p1->play();
 }

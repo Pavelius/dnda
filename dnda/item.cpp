@@ -76,6 +76,7 @@ static const char* item_adv[][4] = {{"", "", "", ""},
 {"благословенное", "благословенный", "благословенная", "благословенные"},
 {"реликт", "реликт", "реликт", "реликт"},
 };
+static enchantment_s bite_effect[] = {OfPoison, OfWeakness};
 static enchantment_s swords_effect[] = {OfCold, OfDefence, OfDexterity, OfFire, OfSpeed, OfPrecision, OfSharping, OfVampirism, OfWeakness};
 static enchantment_s axe_effect[] = {OfCold, OfFire, OfStrenght, OfSharping, OfSmashing};
 static enchantment_s bludgeon_effect[] = {OfConstitution, OfFire, OfSmashing, OfStrenght};
@@ -213,9 +214,9 @@ static struct item_info {
 {"Ключ", 10, 0, Male, Iron},
 {"Монета", 1, 1 * CP, Female, Iron, {}, {}, {}, {}, NoSkill, {}, NoItem, 50},
 //
-{"Когти", 0, 0, They, Organic, {4, {1, 3, Slashing}}, {}, {Natural}, {Melee}},
-{"Удар", 0, 0, Male, Organic, {0, {2, 7}}, {}, {Natural}, {Melee}},
-{"Укус", 0, 0, Male, Organic, {2, {2, 5, Piercing}}, {}, {Natural}, {Melee}},
+{"Когти", 0, 0, They, Organic, {4, {1, 3, Slashing}}, {}, {Natural}, {Melee}, NoSkill, bite_effect},
+{"Удар", 0, 0, Male, Organic, {0, {2, 7}}, {}, {Natural}, {Melee}, NoSkill, bite_effect},
+{"Укус", 0, 0, Male, Organic, {2, {2, 5, Piercing}}, {}, {Natural}, {Melee}, NoSkill, bite_effect},
 };
 assert_enum(item, Bite);
 getstr_enum(item);
@@ -271,9 +272,10 @@ void item::clear() {
 	*((int*)this) = 0;
 }
 
-void item::set(identify_s level) {
+item& item::set(identify_s level) {
 	if(identify < level)
 		identify = level;
+	return *this;
 }
 
 void item::loot() {

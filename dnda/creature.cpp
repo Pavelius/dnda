@@ -1800,6 +1800,15 @@ bool creature::unequip(item& it) {
 		say(maprnd(text));
 		it.set(KnowEffect);
 		return false;
+	} else if(it.isnatural()) {
+		static const char* text[] = {
+			"Это часть меня!",
+			"Как я это сниму? Отрежу?",
+			"Ты в своем уме?",
+			"Это приросло ко мне намертво.",
+		};
+		say(maprnd(text));
+		return false;
 	}
 	pickup(it, false);
 	return true;
