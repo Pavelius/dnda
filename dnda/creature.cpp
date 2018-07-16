@@ -519,6 +519,8 @@ void creature::sayvs(creature& opponent, const char* format, ...) {
 bool creature::sayv(const char* format, const char* param, creature* opponent) {
 	if(!format)
 		return false;
+	if(get(Intellegence) < 6)
+		return false;
 	if(!getplayer()->canhear(position))
 		return false;
 	logs::driver driver;

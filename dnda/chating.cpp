@@ -2,11 +2,11 @@
 
 short unsigned center(const rect& rc);
 
-static bool lowint(const creature& player, const dialog& e) {
+bool lowint(const creature& player, const dialog& e) {
 	return player.get(Intellegence) <= 7;
 }
 
-static bool noint(const creature& player, const dialog& e) {
+bool noint(const creature& player, const dialog& e) {
 	return player.get(Intellegence) <= 2;
 }
 

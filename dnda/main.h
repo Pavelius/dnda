@@ -627,6 +627,8 @@ private:
 	const speech*	say(const speech* pb, speech_s type);
 	const speech*	phase(const speech* p);
 };
+bool				lowint(const creature& player, const dialog& e);
+bool				noint(const creature& player, const dialog& e);
 struct groundinfo {
 	item			object;
 	short unsigned	index;
