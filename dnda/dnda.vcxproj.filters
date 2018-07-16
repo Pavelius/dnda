@@ -13,19 +13,10 @@
     <ClInclude Include="draw.h">
       <Filter>ui</Filter>
     </ClInclude>
-    <ClInclude Include="bitops.h">
-      <Filter>ui</Filter>
-    </ClInclude>
-    <ClInclude Include="initializer_list.h">
-      <Filter>collections</Filter>
-    </ClInclude>
     <ClInclude Include="win.h">
       <Filter>platform</Filter>
     </ClInclude>
     <ClInclude Include="color.h">
-      <Filter>support</Filter>
-    </ClInclude>
-    <ClInclude Include="pma.h">
       <Filter>support</Filter>
     </ClInclude>
     <ClInclude Include="point.h">
@@ -43,9 +34,6 @@
     <ClInclude Include="main.h">
       <Filter>logic</Filter>
     </ClInclude>
-    <ClInclude Include="sprite.h">
-      <Filter>ui</Filter>
-    </ClInclude>
     <ClInclude Include="stringid.h">
       <Filter>string</Filter>
     </ClInclude>
@@ -58,8 +46,8 @@
     <ClInclude Include="io.h">
       <Filter>runtime</Filter>
     </ClInclude>
-    <ClInclude Include="surface.h">
-      <Filter>ui</Filter>
+    <ClInclude Include="initializer_list.h">
+      <Filter>logic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -84,9 +72,6 @@
     <ClCompile Include="draw_text.cpp">
       <Filter>ui</Filter>
     </ClCompile>
-    <ClCompile Include="bitops.cpp">
-      <Filter>ui</Filter>
-    </ClCompile>
     <ClCompile Include="win_draw.cpp">
       <Filter>platform</Filter>
     </ClCompile>
@@ -94,9 +79,6 @@
       <Filter>platform</Filter>
     </ClCompile>
     <ClCompile Include="color.cpp">
-      <Filter>support</Filter>
-    </ClCompile>
-    <ClCompile Include="pma.cpp">
       <Filter>support</Filter>
     </ClCompile>
     <ClCompile Include="point.cpp">
@@ -138,9 +120,6 @@
     <ClCompile Include="spells.cpp">
       <Filter>logic</Filter>
     </ClCompile>
-    <ClCompile Include="sprite.cpp">
-      <Filter>ui</Filter>
-    </ClCompile>
     <ClCompile Include="sprite_resources.cpp">
       <Filter>ui</Filter>
     </ClCompile>
@@ -155,9 +134,6 @@
     </ClCompile>
     <ClCompile Include="logs_driver.cpp">
       <Filter>string</Filter>
-    </ClCompile>
-    <ClCompile Include="surface.cpp">
-      <Filter>ui</Filter>
     </ClCompile>
     <ClCompile Include="view.cpp">
       <Filter>ui</Filter>
@@ -203,6 +179,9 @@
     </ClCompile>
     <ClCompile Include="chating.cpp">
       <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="draw_textf.cpp">
+      <Filter>ui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

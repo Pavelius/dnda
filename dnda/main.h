@@ -204,7 +204,7 @@ enum encumbrance_s : unsigned char {
 enum variant_s : unsigned char {
 	NoVariant,
 	Ability, Item, Skill, State, Enchantment, ItemObject,
-	Text
+	String
 };
 enum speech_s : unsigned char {
 	NoTalking,
@@ -391,7 +391,7 @@ struct variant {
 	constexpr variant(ability_s v) : type(Ability), ability(v) {}
 	constexpr variant(item_s v) : type(Item), itemtype(v) {}
 	constexpr variant(item v) : type(ItemObject), itemobject(v) {}
-	constexpr variant(const char* v) : type(Text), text(v) {}
+	constexpr variant(const char* v) : type(String), text(v) {}
 	explicit operator bool() const { return type != NoVariant; }
 	const char*			getname() const;
 };

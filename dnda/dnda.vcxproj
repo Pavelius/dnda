@@ -119,7 +119,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="archive.h" />
-    <ClInclude Include="bitops.h" />
     <ClInclude Include="collection.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="command.h" />
@@ -129,14 +128,11 @@
     <ClInclude Include="initializer_list.h" />
     <ClInclude Include="io.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="pma.h" />
     <ClInclude Include="point.h" />
     <ClInclude Include="rect.h" />
     <ClInclude Include="resources.h" />
-    <ClInclude Include="sprite.h" />
     <ClInclude Include="stringcreator.h" />
     <ClInclude Include="stringid.h" />
-    <ClInclude Include="surface.h" />
     <ClInclude Include="win.h" />
   </ItemGroup>
   <ItemGroup>
@@ -145,7 +141,6 @@
     <ClCompile Include="books.cpp" />
     <ClCompile Include="chating.cpp" />
     <ClCompile Include="damageinfo.cpp" />
-    <ClCompile Include="bitops.cpp" />
     <ClCompile Include="collection.cpp" />
     <ClCompile Include="color.cpp" />
     <ClCompile Include="command.cpp" />
@@ -156,6 +151,7 @@
     <ClCompile Include="draw.cpp" />
     <ClCompile Include="draw_input.cpp" />
     <ClCompile Include="draw_text.cpp" />
+    <ClCompile Include="draw_textf.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="game_create.cpp" />
     <ClCompile Include="grammar.cpp" />
@@ -167,18 +163,15 @@
     <ClCompile Include="manual.cpp" />
     <ClCompile Include="map_object.cpp" />
     <ClCompile Include="names.cpp" />
-    <ClCompile Include="pma.cpp" />
     <ClCompile Include="point.cpp" />
     <ClCompile Include="resources.cpp" />
     <ClCompile Include="role.cpp" />
     <ClCompile Include="skills.cpp" />
     <ClCompile Include="slot.cpp" />
     <ClCompile Include="spells.cpp" />
-    <ClCompile Include="sprite.cpp" />
     <ClCompile Include="sprite_resources.cpp" />
     <ClCompile Include="state.cpp" />
     <ClCompile Include="stringcreator.cpp" />
-    <ClCompile Include="surface.cpp" />
     <ClCompile Include="szdup.cpp" />
     <ClCompile Include="target.cpp" />
     <ClCompile Include="tile.cpp" />

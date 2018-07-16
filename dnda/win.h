@@ -801,28 +801,24 @@ struct IMAGE_TLS_DIRECTORY {
 	unsigned	SizeOfZeroFill;
 	unsigned	Characteristics;
 };
-struct FIXED
-{
+struct FIXED {
 	WORD	fract;
 	short	value;
 };
-struct MAT2
-{
+struct MAT2 {
 	FIXED eM11;
 	FIXED eM12;
 	FIXED eM21;
 	FIXED eM22;
 };
-struct GLYPHMETRICS
-{
+struct GLYPHMETRICS {
 	UINT gmBlackBoxX;
 	UINT gmBlackBoxY;
 	POINT gmptGlyphOrigin;
 	short gmCellIncX;
 	short gmCellIncY;
 };
-struct TEXTMETRICA
-{
+struct TEXTMETRICA {
 	LONG tmHeight;
 	LONG tmAscent;
 	LONG tmDescent;
@@ -877,9 +873,10 @@ DLL void WINAPI				ExitProcess(unsigned uExitCode);
 DLL int WINAPI				FindClose(void* hFindFile);
 DLL void* WINAPI			FindFirstFileA(const char* lpFileName, WIN32_FIND_DATA* lpFindFileData);
 DLL int WINAPI				FindNextFileA(void* hFindFile, WIN32_FIND_DATA* lpFindFileData);
-DLL unsigned WINAPI			FlsAlloc(void (_stdcall *lpCallback)(void* pfd));
+DLL unsigned WINAPI			FlsAlloc(void(_stdcall *lpCallback)(void* pfd));
 DLL int WINAPI				FlsFree(unsigned dwFlsIndex);
 DLL void* WINAPI			FlsGetValue(unsigned dwFlsIndex);
+DLL int WINAPI				FtpGetFileA(void* hConnect, const char* lpszRemoteFile, const char* lpszNewFile, int fFailIfExists, unsigned dwFlagsAndAttributes, unsigned dwFlags, unsigned* dwContext);
 DLL int WINAPI				FlsSetValue(unsigned dwFlsIndex, void* lpFlsData);
 DLL int WINAPI				FtpCreateDirectoryA(void* hConnect, const char* lpszDirectory);
 DLL int WINAPI				FtpGetCurrentDirectoryA(void* hConnect, const char* lpszCurrentDirectory, unsigned* lpdwCurrentDirectory);

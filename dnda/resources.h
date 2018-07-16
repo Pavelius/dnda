@@ -1,7 +1,6 @@
-#include "sprite.h"
-
 #pragma once
 
+struct sprite;
 namespace res {
 struct element {
 	const char*		name;

@@ -1664,6 +1664,7 @@ static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 	const int width = 520;
 	const int height = 464;
 	const int dy = 20;
+	const int padding = 4;
 	auto index = e.position;
 	unsigned current_index;
 	adat<manual*, 64> source;
@@ -1674,7 +1675,7 @@ static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 		view_zone(&e, camera);
 		y += view_dialog({x, y, x + width, y + height}, element.value.getname());
 		if(element.text)
-			y += draw::textf(x, y, width, element.text) + metrics::padding;
+			y += draw::textf(x, y, width, element.text) + padding;
 		if(element.child) {
 			for(auto p = element.child; *p; p++) {
 				if(p->type != Element)
@@ -1682,14 +1683,14 @@ static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 				sc.clear();
 				sc.add("[%1]: ", p->value.getname());
 				sc.add(p->text);
-				y += draw::textf(x, y, width, sc.result) + metrics::padding;
+				y += draw::textf(x, y, width, sc.result) + padding;
 			}
 		}
 		for(auto& proc : element.procs) {
 			sc.clear();
 			proc(sc, element);
 			if(sc)
-				y += draw::textf(x, y, width, sc.result) + metrics::padding;
+				y += draw::textf(x, y, width, sc.result) + padding;
 		}
 		current_index = 0;
 		source.clear();
@@ -1912,22 +1913,31 @@ int compare_hotkey(const void* p1, const void* p2) {
 	return strcmp(e1->command, e2->command);
 }
 
-void set_dark_theme();
-
 void logs::initialize() {
-	viewport.x = 800;
-	viewport.y = 600;
+	viewport.x = 800; viewport.y = 600;
 	qsort(hotkeys, sizeof(hotkeys) / sizeof(hotkeys[0]), sizeof(hotkeys[0]), compare_hotkey);
 	metrics::font = (sprite*)loadb("art/font.pma");
 	metrics::h1 = (sprite*)loadb("art/h1.pma");
 	metrics::h2 = (sprite*)loadb("art/h2.pma");
 	metrics::h3 = (sprite*)loadb("art/h3.pma");
-	static draw::window main_window(-1, -1, viewport.x, viewport.y, WFMinmax | WFResize, 32);
-	set_dark_theme();
-	//colors::text = colors::white;
-	//colors::special = colors::yellow;
+	draw::create(-1, -1, viewport.x, viewport.y, WFMinmax | WFResize, 32);
+	colors::active = color::create(172, 128, 0);
+	colors::border = color::create(32, 32, 32);
+	colors::button = color::create(0, 122, 204);
+	colors::form = color::create(48, 48, 48);
+	colors::window = color::create(30, 30, 30);
+	colors::text = color::create(255, 255, 255);
+	colors::edit = color::create(38, 79, 120);
+	colors::h1 = colors::text.mix(colors::edit, 64);
+	colors::h2 = colors::text.mix(colors::edit, 96);
+	colors::h3 = colors::text.mix(colors::edit, 128);
+	colors::special = color::create(255, 244, 32);
+	//colors::border = colors::window.mix(colors::text, 128);
+	colors::tips::text = color::create(255, 255, 255);
+	colors::tips::back = color::create(100, 100, 120);
+	colors::tabs::back = color::create(255, 204, 0);
+	colors::tabs::text = colors::black;
 	draw::fore = colors::text;
-	draw::sysmouse(false);
 }
 
 static void character_help(creature& e) {
@@ -1996,13 +2006,9 @@ void logs::turn(creature& e) {
 	}
 }
 
-void draw::window::closing(void) {}
-
-void draw::window::opening(void) {}
-
-void draw::window::resizing(const rect& rc) {
-	if(draw::canvas) {
-		draw::canvas->resize(rc.x2, rc.y2, draw::canvas->bpp, true);
-		draw::clipping.set(0, 0, rc.x2, rc.y2);
-	}
-}
+//void draw::window::resizing(const rect& rc) {
+//	if(draw::canvas) {
+//		draw::canvas->resize(rc.x2, rc.y2, draw::canvas->bpp, true);
+//		draw::clipping.set(0, 0, rc.x2, rc.y2);
+//	}
+//}

@@ -1,69 +1,68 @@
-#include "bitops.h"
 #include "color.h"
-#include "command.h"
 #include "crt.h"
 #include "draw.h"
-#include "stringid.h"
+
+#ifndef __GNUC__
+#pragma optimize("t", on)
+#endif
 
 // Default theme colors
-color					colors::active;
-color					colors::button;
-color					colors::form;
-color					colors::window;
-color					colors::text;
-color					colors::border;
-color					colors::edit;
-color					colors::h1;
-color					colors::h2;
-color					colors::h3;
-color					colors::special;
-color					colors::tips::text;
-color					colors::tips::back;
-color					colors::tabs::text;
-color					colors::tabs::back;
-// Drag elements
-const char*				draw::drag::id;
-int						draw::drag::part;
-int						draw::drag::value;
-point					draw::drag::mouse;
+color colors::active;
+color colors::button;
+color colors::form;
+color colors::window;
+color colors::text;
+color colors::border;
+color colors::edit;
+color colors::h1;
+color colors::h2;
+color colors::h3;
+color colors::special;
+color colors::tips::text;
+color colors::tips::back;
+color colors::tabs::text;
+color colors::tabs::back;
 // Color context and font context
-color					draw::fore;
-const sprite*			draw::font;
-float					draw::linw = 1.0;
-static unsigned char	forc;
-bool					draw::mouseinput = true;
-color*					draw::palt;
-rect					draw::clipping;
-rect					draw::lastarea;
-char					draw::link[2048];
+color				draw::fore;
+color				draw::fore_stroke;
+const sprite*		draw::font;
+float				draw::linw = 1.0;
+bool				draw::mouseinput = true;
+color*				draw::palt;
+rect				draw::clipping;
+char				draw::link[4096];
 // Hot keys and menus
-int						hot::animate; // Каждый такт таймера это значение увеличивается на единицу.
-cursors					hot::cursor; // Текущая форма курсора
-int						hot::key; // Событие, которое происходит в данный момент
-point					hot::mouse; // current mouse coordinates
-bool					hot::pressed; // flag if any of mouse keys is pressed
-int						hot::param;
-rect					hot::element;
-bool					sys_optimize_mouse_move = true;
-rect					sys_static_area;
+int					hot::animate; // Каждый такт таймера это значение увеличивается на единицу.
+cursors				hot::cursor; // Текущая форма курсора
+int					hot::key; // Событие, которое происходит в данный момент
+point				hot::mouse; // current mouse coordinates
+bool				hot::pressed; // flag if any of mouse keys is pressed
+int					hot::param; // Event numeric parameter (optional)
+rect				hot::element; // Event rectange (optional)
+rect				hot::hilite; // Event rectange (optional)
+bool				sys_optimize_mouse_move = true;
+rect				sys_static_area;
 // Locale draw variables
-draw::surface*			draw::canvas;
-static bool				line_antialiasing = true;
+static draw::surface current_surface;
+draw::renderplugin*	draw::renderplugin::first;
+draw::surface*		draw::canvas = &current_surface;
+static bool			line_antialiasing = true;
+static bool			break_modal;
+static int			break_result;
+// Drag
+static int			drag_id;
+static drag_part_s	drag_part;
+point				draw::drag::mouse;
+int					draw::drag::value;
 // Metrics
-rect					metrics::edit = {4, 4, -4, -4};
-sprite*					metrics::font = (sprite*)loadb("font.pma");
-sprite*					metrics::h1 = (sprite*)loadb("h1.pma");
-sprite*					metrics::h2 = (sprite*)loadb("h2.pma");
-sprite*					metrics::h3 = (sprite*)loadb("h3.pma");
-sprite*					metrics::icons = (sprite*)loadb("icons.pma");
-int						metrics::h3s = 2;
-int						metrics::padding = 4;
-int						metrics::scroll = 16;
-bool					metrics::show::left;
-bool					metrics::show::right;
-bool					metrics::show::bottom;
-bool					metrics::show::statusbar;
-stringid*				textf_icons_id;
+rect				metrics::edit = {4, 4, -4, -4};
+sprite*				metrics::font = (sprite*)loadb("art/fonts/font.pma");
+sprite*				metrics::h1 = (sprite*)loadb("art/fonts/h1.pma");
+sprite*				metrics::h2 = (sprite*)loadb("art/fonts/h2.pma");
+sprite*				metrics::h3 = (sprite*)loadb("art/fonts/h3.pma");
+int					metrics::scroll = 16;
+
+extern "C" void* realloc(void* ptr, unsigned size);
 
 float sqrt(const float x) {
 	const float xhalf = 0.5f*x;
@@ -100,7 +99,7 @@ int distance(point p1, point p2) {
 	return isqrt(dx*dx + dy * dy);
 }
 
-static inline void correct(int& x1, int& y1, int& x2, int& y2) {
+static void correct(int& x1, int& y1, int& x2, int& y2) {
 	if(x1 > x2)
 		iswap(x1, x2);
 	if(y1 > y2)
@@ -126,40 +125,6 @@ static bool correct(int& x1, int& y1, int& x2, int& y2, const rect& clip, bool i
 		if(y2 >= clip.y2)
 			y2 = clip.y2 - 1;
 	}
-	return true;
-}
-
-static const char* glink(char* temp, const char** source) {
-	temp[0] = 0;
-	const char* p = *source;
-	if(*p != '(')
-		return 0;
-	p++;
-	if(*p == '\"') {
-		p = psstr(p + 1, temp, *p);
-	} else {
-		char* s = temp;
-		while(*p && *p != ')')
-			*s++ = *p++;
-		*s++ = 0;
-	}
-	if(*p == ')')
-		p++;
-	*source = p;
-	return temp;
-}
-
-static const char* word(const char* text) {
-	while(((unsigned char)*text) > 0x20 && *text != '*' && *text != '[' && *text != ']')
-		text++;
-	return text;
-}
-
-static bool match(const char** string, const char* name) {
-	int n = zlen(name);
-	if(memcmp(*string, name, n) != 0)
-		return false;
-	(*string) += n;
 	return true;
 }
 
@@ -196,7 +161,6 @@ char* key2str(char* result, int key) {
 	case F11: zcat(result, "F11"); break;
 	case F12: zcat(result, "F12"); break;
 	case KeySpace: zcat(result, "Space"); break;
-	case KeyEscape: zcat(result, "ESC"); break;
 	default:
 		zcat(result, char(szupper(key - Alpha)));
 		break;
@@ -204,36 +168,688 @@ char* key2str(char* result, int key) {
 	return result;
 }
 
-void set_dark_theme() {
-	colors::active = color::create(172, 128, 0);
-	colors::border = color::create(32, 32, 32);
-	colors::button = color::create(0, 122, 204);
-	colors::form = color::create(48, 48, 48);
-	colors::window = color::create(30, 30, 30);
-	colors::text = color::create(255, 255, 255);
-	colors::edit = color::create(38, 79, 120);
-	colors::h1 = colors::text.mix(colors::edit, 64);
-	colors::h2 = colors::text.mix(colors::edit, 96);
-	colors::h3 = colors::text.mix(colors::edit, 128);
-	colors::special = color::create(255, 244, 32);
-	//colors::border = colors::window.mix(colors::text, 128);
-	colors::tips::text = color::create(255, 255, 255);
-	colors::tips::back = color::create(100, 100, 120);
-	colors::tabs::back = color::create(255, 204, 0);
-	colors::tabs::text = colors::black;
+static void set32(unsigned char* d, int d_scan, int width, int height, color c1) {
+	while(height-- > 0) {
+		color* d1 = (color*)d;
+		color* d2 = d1 + width;
+		while(d1 < d2)
+			*d1++ = c1;
+		d += d_scan;
+	}
 }
 
-void draw::drag::begin(const char* id, int part) {
-	drag::id = id;
-	drag::part = part;
+static void set32(unsigned char* d, int d_scan, int width, int height, color c1, unsigned char alpha) {
+	if(alpha == 0)
+		return;
+	else if(alpha >= 255) {
+		set32(d, d_scan, width, height, c1);
+		return;
+	}
+	while(height-- > 0) {
+		color* d1 = (color*)d;
+		color* d2 = d1 + width;
+		if(alpha == 128) {
+			while(d1 < d2) {
+				d1->r = (d1->r + c1.r) >> 1;
+				d1->g = (d1->g + c1.g) >> 1;
+				d1->b = (d1->b + c1.b) >> 1;
+				d1++;
+			}
+		} else {
+			while(d1 < d2) {
+				d1->r = (d1->r*(255 - alpha) + c1.r*alpha) >> 8;
+				d1->g = (d1->g*(255 - alpha) + c1.g*alpha) >> 8;
+				d1->b = (d1->b*(255 - alpha) + c1.b*alpha) >> 8;
+				d1++;
+			}
+		}
+		d += d_scan;
+	}
+}
+
+static void raw832(unsigned char* d, int d_scan, unsigned char* s, int s_scan, int width, int height, const color* pallette) {
+	const int cbd = 4;
+	while(height-- > 0) {
+		unsigned char* p1 = d;
+		unsigned char* sb = s;
+		unsigned char* se = s + width;
+		while(sb < se) {
+			*((color*)p1) = pallette[*sb++];
+			p1 += cbd;
+		}
+		s += s_scan;
+		d += d_scan;
+	}
+}
+
+static void raw832m(unsigned char* d, int d_scan, unsigned char* s, int s_scan, int width, int height, const color* pallette) {
+	const int cbd = 4;
+	while(height-- > 0) {
+		unsigned char* p1 = d;
+		unsigned char* sb = s;
+		unsigned char* se = s + width;
+		while(sb < se) {
+			*((color*)p1) = pallette[*sb++];
+			p1 -= cbd;
+		}
+		s += s_scan;
+		d += d_scan;
+	}
+}
+
+static void raw32(unsigned char* d, int d_scan, unsigned char* s, int s_scan, int width, int height) {
+	const int cbs = 3;
+	const int cbd = 4;
+	if(width <= 0)
+		return;
+	while(height-- > 0) {
+		register unsigned char* sb = s;
+		register unsigned char* se = s + width * cbs;
+		register unsigned char* p1 = d;
+		while(sb < se) {
+			p1[0] = sb[0];
+			p1[1] = sb[1];
+			p1[2] = sb[2];
+			sb += cbs;
+			p1 += cbd;
+		}
+		s += s_scan;
+		d += d_scan;
+	}
+}
+
+static void raw32m(unsigned char* d, int d_scan, unsigned char* s, int s_scan, int width, int height) {
+	const int cbs = 3;
+	const int cbd = 4;
+	if(width <= 0)
+		return;
+	while(height-- > 0) {
+		register unsigned char* sb = s;
+		register unsigned char* se = s + width * cbs;
+		register unsigned char* p1 = d;
+		while(sb < se) {
+			p1[0] = sb[0];
+			p1[1] = sb[1];
+			p1[2] = sb[2];
+			sb += cbs;
+			p1 -= cbd;
+		}
+		s += s_scan;
+		d += d_scan;
+	}
+}
+
+// (00) end of line
+// (01 - 7F) draw count of pixels
+// (80, XX, AA) draw count of XX bytes of alpha AA pixels
+// (81 - 9F, AA) draw count of (B-0xC0) bytes of alpha AA pixels
+// (A0, XX) skip count of XX pixels
+// A1 - FF skip count of (b-0xB0) pixels
+// each pixel has b,g,r value
+static void rle32(unsigned char* p1, int d1, unsigned char* s, int h, const unsigned char* s1, const unsigned char* s2, unsigned char alpha) {
+	const int cbs = 3;
+	const int cbd = 32 / 8;
+	unsigned char* d = p1;
+	if(!alpha)
+		return;
+	while(true) {
+		unsigned char c = *s++;
+		if(c == 0) {
+			p1 += d1;
+			s1 += d1;
+			s2 += d1;
+			d = p1;
+			if(--h == 0)
+				break;
+		} else if(c <= 0x9F) {
+			unsigned char ap, cb;
+			// count
+			if(c <= 0x7F) {
+				cb = c;
+				ap = 0xFF;
+			} else if(c == 0x80) {
+				cb = *s++;
+				ap = *s++;
+			} else {
+				cb = c - 0x80;
+				ap = *s++;
+			}
+			// clip left invisible part
+			if(d + cb * cbd <= s1 || d > s2) {
+				d += cb * cbd;
+				s += cb * cbs;
+				continue;
+			} else if(d < s1) {
+				unsigned char sk = (s1 - d) / cbd;
+				d += sk * cbd;
+				s += sk * cbs;
+				cb -= sk;
+			}
+			// visible part
+			if(ap == 0xFF && alpha == 0xFF) {
+				do {
+					if(d >= s2)
+						break;
+					d[0] = s[0];
+					d[1] = s[1];
+					d[2] = s[2];
+					s += cbs;
+					d += cbd;
+				} while(--cb);
+			} else {
+				ap = (ap*alpha) / 256;
+				do {
+					if(d >= s2)
+						break;
+					d[0] = (((int)d[0] * (255 - ap)) + ((s[0])*(ap))) >> 8;
+					d[1] = (((int)d[1] * (255 - ap)) + ((s[1])*(ap))) >> 8;
+					d[2] = (((int)d[2] * (255 - ap)) + ((s[2])*(ap))) >> 8;
+					s += cbs;
+					d += cbd;
+				} while(--cb);
+			}
+			// right clip part
+			if(cb) {
+				s += cb * cbs;
+				d += cb * cbd;
+			}
+		} else {
+			if(c == 0xA0)
+				d += (*s++)*cbd;
+			else
+				d += (c - 0xA0)*cbd;
+		}
+	}
+}
+
+static void rle32m(unsigned char* p1, int d1, unsigned char* s, int h, const unsigned char* s1, const unsigned char* s2, unsigned char alpha) {
+	const int cbs = 3;
+	const int cbd = 32 / 8;
+	unsigned char* d = p1;
+	if(!alpha)
+		return;
+	while(true) {
+		unsigned char c = *s++;
+		if(c == 0) {
+			p1 += d1;
+			s1 += d1;
+			s2 += d1;
+			d = p1;
+			if(--h == 0)
+				break;
+		} else if(c <= 0x9F) {
+			unsigned char ap, cb;
+			// count
+			if(c <= 0x7F) {
+				cb = c;
+				ap = 0xFF;
+			} else if(c == 0x80) {
+				cb = *s++;
+				ap = *s++;
+			} else {
+				cb = c - 0x80;
+				ap = *s++;
+			}
+			// clip left invisible part
+			if(d - (cb*cbd) >= s2 || d < s1) {
+				s += cb * cbs;
+				d -= cb * cbd;
+				continue;
+			} else if(d >= s2) {
+				unsigned char sk = 1 + (d - s2) / cbd;
+				d -= sk * cbd;
+				s += sk * cbs;
+				cb -= sk;
+				if(!cb)
+					continue;
+			}
+			// visible part
+			if(ap == 0xFF && alpha == 0xFF) {
+				// no alpha or modification
+				do {
+					if(d < s1)
+						break;
+					d[0] = s[0];
+					d[1] = s[1];
+					d[2] = s[2];
+					s += cbs;
+					d -= cbd;
+				} while(--cb);
+			} else {
+				// alpha channel
+				ap = (ap*alpha) / 256;
+				do {
+					if(d < s1)
+						break;
+					d[0] = (((int)d[0] * (255 - ap)) + ((s[0])*(ap))) >> 8;
+					d[1] = (((int)d[1] * (255 - ap)) + ((s[1])*(ap))) >> 8;
+					d[2] = (((int)d[2] * (255 - ap)) + ((s[2])*(ap))) >> 8;
+					d -= cbd;
+					s += cbs;
+				} while(--cb);
+			}
+			// right clip part
+			if(cb) {
+				d -= cb * cbd;
+				s += cb * cbs;
+			}
+		} else {
+			if(c == 0xA0)
+				d -= (*s++)*cbd;
+			else
+				d -= (c - 0xA0)*cbd;
+		}
+	}
+}
+
+static void rle832(unsigned char* p1, int d1, unsigned char* s, int h, const unsigned char* s1, const unsigned char* s2, unsigned char alpha, const color* pallette) {
+	const int cbs = 3;
+	const int cbd = 32 / 8;
+	unsigned char* d = p1;
+	if(!alpha)
+		return;
+	while(true) {
+		unsigned char c = *s++;
+		if(c == 0) {
+			p1 += d1;
+			s1 += d1;
+			s2 += d1;
+			if(--h == 0)
+				break;
+			d = p1;
+		} else if(c <= 0x9F) {
+			unsigned char ap = alpha, cb;
+			bool need_correct_s = false;
+			// count
+			if(c <= 0x7F) {
+				need_correct_s = true;
+				cb = c;
+			} else if(c == 0x80) {
+				cb = *s++;
+				ap >>= 1;
+			} else {
+				cb = c - 0x80;
+				ap >>= 1;
+			}
+			// clip left invisible part
+			if(d + cb * cbd <= s1 || d > s2) {
+				d += cb * cbd;
+				if(need_correct_s)
+					s += cb;
+				continue;
+			} else if(d < s1) {
+				unsigned char sk = (s1 - d) / cbd;
+				d += sk * cbd;
+				if(need_correct_s)
+					s += sk;
+				cb -= sk;
+			}
+			// visible part
+			if(ap == alpha) {
+				if(ap == 0xFF) {
+					do {
+						if(d >= s2)
+							break;
+						*((color*)d) = pallette[*s++];
+						d += cbd;
+					} while(--cb);
+				} else {
+					do {
+						if(d >= s2)
+							break;
+						unsigned char* s1 = (unsigned char*)&pallette[*s++];
+						d[0] = (((int)d[0] * (255 - ap)) + ((s1[0])*(ap))) >> 8;
+						d[1] = (((int)d[1] * (255 - ap)) + ((s1[1])*(ap))) >> 8;
+						d[2] = (((int)d[2] * (255 - ap)) + ((s1[2])*(ap))) >> 8;
+						d += cbd;
+					} while(--cb);
+				}
+			} else if(ap == 0x7F) {
+				do {
+					if(d >= s2)
+						break;
+					d[0] >>= 1;
+					d[1] >>= 1;
+					d[2] >>= 1;
+					d += cbd;
+				} while(--cb);
+			} else {
+				ap = 255 - ap;
+				do {
+					if(d >= s2)
+						break;
+					d[0] = (((int)d[0] * ap)) >> 8;
+					d[1] = (((int)d[1] * ap)) >> 8;
+					d[2] = (((int)d[2] * ap)) >> 8;
+					d += cbd;
+				} while(--cb);
+			}
+			// right clip part
+			if(cb) {
+				if(need_correct_s)
+					s += cb;
+				d += cb * cbd;
+			}
+		} else {
+			if(c == 0xA0)
+				d += (*s++)*cbd;
+			else
+				d += (c - 0xA0)*cbd;
+		}
+	}
+}
+
+static void rle832m(unsigned char* p1, int d1, unsigned char* s, int h, const unsigned char* s1, const unsigned char* s2, unsigned char alpha, const color* pallette) {
+	const int cbs = 3;
+	const int cbd = 32 / 8;
+	unsigned char* d = p1;
+	if(!alpha)
+		return;
+	while(true) {
+		unsigned char c = *s++;
+		if(c == 0) {
+			p1 += d1;
+			s1 += d1;
+			s2 += d1;
+			d = p1;
+			if(--h == 0)
+				break;
+		} else if(c <= 0x9F) {
+			unsigned char ap = alpha, cb;
+			bool need_correct_s = false;
+			// count
+			if(c <= 0x7F) {
+				need_correct_s = true;
+				cb = c;
+			} else if(c == 0x80) {
+				cb = *s++;
+				ap >>= 1;
+			} else {
+				cb = c - 0x80;
+				ap >>= 1;
+			}
+			// clip left invisible part
+			if(d - (cb*cbd) >= s2 || d < s1) {
+				d -= cb * cbd;
+				if(need_correct_s)
+					s += cb;
+				continue;
+			} else if(d >= s2) {
+				unsigned char sk = (d - s2) / cbd;
+				d -= sk * cbd;
+				if(need_correct_s)
+					s += sk;
+				cb -= sk;
+			}
+			// visible part
+			if(ap == alpha) {
+				if(ap == 0xFF) {
+					do {
+						if(d < s1)
+							break;
+						*((color*)d) = pallette[*s++];
+						d -= cbd;
+					} while(--cb);
+				} else {
+					do {
+						if(d < s1)
+							break;
+						unsigned char* s1 = (unsigned char*)&pallette[*s++];
+						d[0] = (((int)d[0] * (255 - ap)) + ((s1[0])*(ap))) >> 8;
+						d[1] = (((int)d[1] * (255 - ap)) + ((s1[1])*(ap))) >> 8;
+						d[2] = (((int)d[2] * (255 - ap)) + ((s1[2])*(ap))) >> 8;
+						d -= cbd;
+					} while(--cb);
+				}
+			} else if(ap == 0x7F) {
+				do {
+					if(d < s1)
+						break;
+					d[0] >>= 1;
+					d[1] >>= 1;
+					d[2] >>= 1;
+					d -= cbd;
+				} while(--cb);
+			} else {
+				ap = 255 - ap;
+				do {
+					if(d < s1)
+						break;
+					d[0] = (((int)d[0] * ap)) >> 8;
+					d[1] = (((int)d[1] * ap)) >> 8;
+					d[2] = (((int)d[2] * ap)) >> 8;
+					d -= cbd;
+				} while(--cb);
+			}
+			// right clip part
+			if(cb) {
+				if(need_correct_s)
+					s += cb;
+				d -= cb * cbd;
+			}
+		} else {
+			if(c == 0xA0)
+				d -= (*s++)*cbd;
+			else
+				d -= (c - 0xA0)*cbd;
+		}
+	}
+}
+
+static void alc32(unsigned char* d, int d_scan, const unsigned char* s, int height, const unsigned char* clip_x1, const unsigned char* clip_x2, color c1, bool italic) {
+	const int cbs = 3;
+	const int cbd = 4;
+	unsigned char* p = d;
+	while(true) {
+		unsigned char c = *s++;
+		if(c == 0) {
+			d += d_scan;
+			clip_x1 += d_scan;
+			clip_x2 += d_scan;
+			if(italic && (height & 1) != 0)
+				d -= cbd;
+			p = d;
+			if(--height == 0)
+				break;
+		} else if(c <= 0x7F) {
+			// clip left invisible part
+			if(p + (c*cbd) <= clip_x1 || p > clip_x2) {
+				p += c * cbd;
+				s += c * cbs;
+				continue;
+			} else if(p < clip_x1) {
+				unsigned char sk = (clip_x1 - p) / cbd;
+				p += sk * cbd;
+				s += sk * cbs;
+				c -= sk;
+			}
+			// visible part
+			do {
+				if(p >= clip_x2)
+					break;
+				p[0] = ((p[0] * (255 - s[0])) + (c1.b*(s[0]))) >> 8;
+				p[1] = ((p[1] * (255 - s[1])) + (c1.g*(s[1]))) >> 8;
+				p[2] = ((p[2] * (255 - s[2])) + (c1.r*(s[2]))) >> 8;
+				p += cbd;
+				s += cbs;
+			} while(--c);
+			// right clip part
+			if(c) {
+				p += c * cbd;
+				s += c * cbs;
+			}
+		} else {
+			if(c == 0x80)
+				p += (*s++)*cbd;
+			else
+				p += (c - 0x80)*cbd;
+		}
+	}
+}
+
+static void scale_line_32(unsigned char* dst, unsigned char* src, int sw, int tw) {
+	const int cbd = 4;
+	int NumPixels = tw;
+	int IntPart = (sw / tw)*cbd;
+	int FractPart = sw % tw;
+	int E = 0;
+	while(NumPixels-- > 0) {
+		*((unsigned*)dst) = *((unsigned*)src);
+		dst += cbd;
+		src += IntPart;
+		E += FractPart;
+		if(E >= tw) {
+			E -= tw;
+			src += cbd;
+		}
+	}
+}
+
+static void scale32(
+	unsigned char* d, int d_scan, int d_width, int d_height,
+	unsigned char* s, int s_scan, int s_width, int s_height) {
+	if(!d_width || !d_height || !s_width || !s_height)
+		return;
+	const int cbd = 4;
+	int NumPixels = d_height;
+	int IntPart = (s_height / d_height) * s_scan;
+	int FractPart = s_height % d_height;
+	int E = 0;
+	unsigned char* PrevSource = 0;
+	while(NumPixels-- > 0) {
+		if(s == PrevSource)
+			memcpy(d, d - d_scan, d_width*cbd);
+		else {
+			scale_line_32(d, s, s_width, d_width);
+			PrevSource = s;
+		}
+		d += d_scan;
+		s += IntPart;
+		E += FractPart;
+		if(E >= d_height) {
+			E -= d_height;
+			s += s_scan;
+		}
+	}
+}
+
+static void scale_line_8(unsigned char* dst, unsigned char* src, int sw, int tw) {
+	const int cbd = 1;
+	int NumPixels = tw;
+	int IntPart = (sw / tw)*cbd;
+	int FractPart = sw % tw;
+	int E = 0;
+	while(NumPixels-- > 0) {
+		*((unsigned char*)dst) = *((unsigned char*)src);
+		dst += cbd;
+		src += IntPart;
+		E += FractPart;
+		if(E >= tw) {
+			E -= tw;
+			src += cbd;
+		}
+	}
+}
+
+static void scale8(
+	unsigned char* d, int d_scan, int d_width, int d_height,
+	unsigned char* s, int s_width, int s_height, int s_scan) {
+	const int cbd = 1;
+	int NumPixels = d_height;
+	int IntPart = (s_height / d_height) * s_scan;
+	int FractPart = s_height % d_height;
+	int E = 0;
+	unsigned char* PrevSource = 0;
+	while(NumPixels-- > 0) {
+		if(s == PrevSource)
+			memcpy(d, d - d_scan, d_width*cbd);
+		else {
+			scale_line_32(d, s, s_width, d_width);
+			PrevSource = s;
+		}
+		d += d_scan;
+		s += IntPart;
+		E += FractPart;
+		if(E >= d_height) {
+			E -= d_height;
+			s += s_scan;
+		}
+	}
+}
+
+static void cpy(unsigned char* d, int d_scan, unsigned char* s, int s_scan, int width, int height, int bytes_per_pixel) {
+	if(height <= 0 || width <= 0)
+		return;
+	int width_bytes = width * bytes_per_pixel;
+	do {
+		memcpy(d, s, width_bytes);
+		s += s_scan;
+		d += d_scan;
+	} while(--height);
+}
+
+static void cpy32t(unsigned char* d, int d_scan, unsigned char* s, int s_scan, int width, int height) {
+	if(height <= 0 || width <= 0)
+		return;
+	do {
+		color* d2 = (color*)d;
+		color* sb = (color*)s;
+		color* se = sb + width;
+		while(sb < se) {
+			if(!sb->a) {
+				d2++;
+				sb++;
+			} else if(sb->a == 0xFF)
+				*d2++ = *sb++;
+			else {
+				auto ap = sb->a;
+				d2->r = (((int)d2->r * (255 - ap)) + ((sb->r)*(ap))) >> 8;
+				d2->g = (((int)d2->g * (255 - ap)) + ((sb->g)*(ap))) >> 8;
+				d2->b = (((int)d2->b * (255 - ap)) + ((sb->b)*(ap))) >> 8;
+				d2++; sb++;
+			}
+		}
+		s += s_scan;
+		d += d_scan;
+	} while(--height);
+}
+
+draw::state::state() :
+	fore(draw::fore),
+	fore_stroke(draw::fore_stroke),
+	font(draw::font),
+	linw(draw::linw),
+	canvas(draw::canvas),
+	clip(clipping) {
+}
+
+draw::state::~state() {
+	draw::font = this->font;
+	draw::fore = this->fore;
+	draw::fore_stroke = this->fore_stroke;
+	draw::linw = this->linw;
+	draw::clipping = this->clip;
+	draw::canvas = this->canvas;
+}
+
+rect draw::getarea() {
+	return sys_static_area;
+}
+
+void draw::drag::begin(int id, drag_part_s part) {
+	drag_id = id;
+	drag_part = part;
 	drag::mouse = hot::mouse;
 }
 
-bool draw::drag::active(const char* id, int part) {
-	if(drag::id == id && drag::part == part) {
+bool draw::drag::active() {
+	return drag_id != 0;
+}
+
+bool draw::drag::active(int id, drag_part_s part) {
+	if(drag_id == id && drag_part == part) {
 		if(!hot::pressed || hot::key == KeyEscape) {
-			drag::id = 0;
-			drag::part = 0;
+			drag_id = 0;
 			hot::key = 0;
 			hot::cursor = CursorArrow;
 			return false;
@@ -241,27 +857,6 @@ bool draw::drag::active(const char* id, int part) {
 		return true;
 	}
 	return false;
-}
-
-draw::state::state() :
-	forc(forc),
-	mouseinput(draw::mouseinput),
-	fore(draw::fore),
-	font(draw::font),
-	linw(draw::linw),
-	palt(draw::palt),
-	canvas(draw::canvas),
-	clip(clipping) {}
-
-draw::state::~state() {
-	draw::font = this->font;
-	::forc = this->forc;
-	draw::mouseinput = this->mouseinput;
-	draw::fore = this->fore;
-	draw::linw = this->linw;
-	draw::palt = this->palt;
-	draw::clipping = this->clip;
-	draw::canvas = this->canvas;
 }
 
 int draw::getbpp() {
@@ -280,18 +875,29 @@ unsigned char* draw::ptr(int x, int y) {
 	return canvas ? (canvas->bits + y * canvas->scanline + x * canvas->bpp / 8) : 0;
 }
 
+color draw::getcolor(color normal, unsigned flags) {
+	if(flags&Disabled)
+		return normal.mix(colors::window);
+	return normal;
+}
+
+color draw::getcolor(rect rc, color normal, color active, unsigned flags) {
+	if(flags&Disabled)
+		return normal.mix(colors::window);
+	if(areb(rc))
+		return active;
+	return normal;
+}
+
+void draw::decortext(unsigned flags) {
+	draw::fore = getcolor(colors::text, flags);
+}
+
 void draw::pixel(int x, int y) {
 	if(x >= clipping.x1 && x < clipping.x2 && y >= clipping.y1 && y < clipping.y2) {
 		if(!canvas)
 			return;
-		switch(canvas->bpp) {
-		case 8:
-			*((unsigned char*)canvas->bits + y * canvas->scanline + x) = forc;
-			break;
-		case 32:
-			*((color*)((char*)canvas->bits + y * canvas->scanline + x * 4)) = fore;
-			break;
-		}
+		*((color*)((char*)canvas->bits + y * canvas->scanline + x * 4)) = fore;
 	}
 }
 
@@ -339,25 +945,11 @@ void draw::line(int x0, int y0, int x1, int y1) {
 	if(y0 == y1) {
 		if(!correct(x0, y0, x1, y1, clipping, false))
 			return;
-		switch(canvas->bpp) {
-		case 8:
-			bop::set8(canvas->ptr(x0, y0), canvas->scanline, x1 - x0 + 1, 1, forc);
-			break;
-		case 32:
-			bop::set32(canvas->ptr(x0, y0), canvas->scanline, x1 - x0 + 1, 1, fore);
-			break;
-		}
+		set32(canvas->ptr(x0, y0), canvas->scanline, x1 - x0 + 1, 1, fore);
 	} else if(x0 == x1) {
 		if(!correct(x0, y0, x1, y1, clipping, false))
 			return;
-		switch(canvas->bpp) {
-		case 8:
-			bop::set8(canvas->ptr(x0, y0), canvas->scanline, 1, y1 - y0 + 1, forc);
-			break;
-		case 32:
-			bop::set32(canvas->ptr(x0, y0), canvas->scanline, 1, y1 - y0 + 1, fore);
-			break;
-		}
+		set32(canvas->ptr(x0, y0), canvas->scanline, 1, y1 - y0 + 1, fore);
 	} else if(line_antialiasing) {
 		if(linw != 1.0)
 			linew(x0, y0, x1, y1, linw);
@@ -408,9 +1000,9 @@ void draw::line(int x0, int y0, int x1, int y1) {
 void draw::bezierseg(int x0, int y0, int x1, int y1, int x2, int y2) {
 	int sx = x2 - x1, sy = y2 - y1;
 	long xx = x0 - x1, yy = y0 - y1, xy;             /* relative values for checks */
-	double dx, dy, err, ed, cur = xx * sy - yy * sx;                    /* curvature */
-	assert(xx*sx <= 0 && yy*sy <= 0);      /* sign of gradient must not change */
-	if(sx*(long)sx + sy * (long)sy > xx*xx + yy * yy) {     /* begin with longer part */
+	double dx, dy, err, ed, cur = xx * sy - yy * sx;    /* curvature */
+	assert(xx*sx <= 0 && yy*sy <= 0);				/* sign of gradient must not change */
+	if(sx*(long)sx + sy * (long)sy > xx*xx + yy * yy) { /* begin with longer part */
 		x2 = x0; x0 = sx + x1; y2 = y0; y0 = sy + y1; cur = -cur;     /* swap P0 P2 */
 	}
 	if(cur != 0) {                                                      /* no straight line */
@@ -501,16 +1093,10 @@ void draw::spline(point* original_points, int n) {
 	bezier(points[0].x, points[0].y, x1, y1, x2, y2);
 }
 
-void draw::line(int x0, int y0, int x1, int y1, unsigned char c1) {
-	draw::state push;
-	setcolor(c1);
-	line(x0, y0, x1, y1);
-}
-
 void draw::line(int x0, int y0, int x1, int y1, color c1) {
-	draw::state push;
-	fore = c1;
+	auto push_fore = fore; fore = c1;
 	line(x0, y0, x1, y1);
+	fore = push_fore;
 }
 
 void draw::linet(int x0, int y0, int x1, int y1) {
@@ -534,16 +1120,10 @@ void draw::rectb(rect rc) {
 	line(rc.x1, rc.y2 - 1, rc.x1, rc.y1);
 }
 
-void draw::rectb(rect rc, unsigned char c1) {
-	draw::state push;
-	setcolor(c1);
-	rectb(rc);
-}
-
 void draw::rectb(rect rc, color c1) {
-	draw::state push;
-	fore = c1;
+	auto push_fore = fore; fore = c1;
 	rectb(rc);
+	fore = push_fore;
 }
 
 void draw::rectf(rect rc) {
@@ -553,28 +1133,14 @@ void draw::rectf(rect rc) {
 		return;
 	if(rc.x1 == rc.x2)
 		return;
-	switch(canvas->bpp) {
-	case 8:
-		bop::set8(ptr(rc.x1, rc.y1), canvas->scanline,
-			rc.x2 - rc.x1, rc.y2 - rc.y1, forc);
-		break;
-	case 32:
-		bop::set32(ptr(rc.x1, rc.y1), canvas->scanline,
-			rc.x2 - rc.x1, rc.y2 - rc.y1, fore);
-		break;
-	}
-}
-
-void draw::rectf(rect rc, unsigned char c1) {
-	state push;
-	setcolor(c1);
-	rectf(rc);
+	set32(ptr(rc.x1, rc.y1), canvas->scanline,
+		rc.x2 - rc.x1, rc.y2 - rc.y1, fore);
 }
 
 void draw::rectf(rect rc, color c1) {
-	state push;
-	fore = c1;
+	auto push_fore = fore; fore = c1;
 	rectf(rc);
+	fore = push_fore;
 }
 
 void draw::rectf(rect rc, color c1, unsigned char alpha) {
@@ -588,24 +1154,19 @@ void draw::rectf(rect rc, color c1, unsigned char alpha) {
 	case 8:
 		break;
 	case 32:
-		bop::set32(ptr(rc.x1, rc.y1), canvas->scanline,
+		set32(ptr(rc.x1, rc.y1), canvas->scanline,
 			rc.x2 - rc.x1, rc.y2 - rc.y1, c1, alpha);
 		break;
 	}
 }
 
-void draw::rectf(rect rc, unsigned char c1, unsigned char alpha) {
-	state push;
-	setcolor(c1);
-	rectf(rc, fore, alpha);
-}
-
 void draw::rectx(rect rc, color c1) {
-	state push; fore = c1;
+	auto push_fore = fore; fore = c1;
 	linet(rc.x1, rc.y1, rc.x2, rc.y1);
 	linet(rc.x2, rc.y1 + 1, rc.x2, rc.y2);
 	linet(rc.x2 - 1, rc.y2, rc.x1, rc.y2);
 	linet(rc.x1, rc.y2 - 1, rc.x1, rc.y1);
+	fore = push_fore;
 }
 
 void draw::gradv(rect rc, const color c1, const color c2, int skip) {
@@ -629,7 +1190,7 @@ void draw::gradv(rect rc, const color c1, const color c2, int skip) {
 		c.r = (unsigned char)(c1.r*k1 + c2.r*k2);
 		c.g = (unsigned char)(c1.g*k1 + c2.g*k2);
 		c.b = (unsigned char)(c1.b*k1 + c2.b*k2);
-		bop::set32(canvas->ptr(rc.x1, y), canvas->scanline, w1, 1, c);
+		set32(canvas->ptr(rc.x1, y), canvas->scanline, w1, 1, c);
 	}
 }
 
@@ -651,7 +1212,7 @@ void draw::gradh(rect rc, const color c1, const color c2, int skip) {
 		c.r = (unsigned char)(c1.r*k1 + c2.r*k2);
 		c.g = (unsigned char)(c1.g*k1 + c2.g*k2);
 		c.b = (unsigned char)(c1.b*k1 + c2.b*k2);
-		bop::set32(canvas->ptr(x, rc.y1), canvas->scanline, 1, h1, c);
+		set32(canvas->ptr(x, rc.y1), canvas->scanline, 1, h1, c);
 	}
 }
 
@@ -713,15 +1274,9 @@ void draw::circle(int xm, int ym, int r) {
 }
 
 void draw::circle(int x, int y, int r, const color c1) {
-	state push;
-	fore = c1;
+	auto fore_push = fore; fore = c1;
 	circle(x, y, r);
-}
-
-void draw::setcolor(unsigned char index) {
-	forc = index;
-	if(palt)
-		fore = palt[index];
+	fore = fore_push;
 }
 
 void draw::setclip(rect rcn) {
@@ -738,33 +1293,40 @@ void draw::setclip(rect rcn) {
 }
 
 static void intersect_rect(rect& r1, const rect& r2) {
-	if(hot::mouse.in(r2))
-		r1 = r2;
-	else if(!r1.intersect(r2))
+	if(!r1.intersect(r2))
 		return;
-	else {
-		if(hot::mouse.x > r2.x2 && r2.x2 > r1.x1)
-			r1.x1 = r2.x2;
-		if(hot::mouse.x < r2.x1 && r2.x1 < r1.x2)
-			r1.x2 = r2.x1;
+	if(hot::mouse.in(r2)) {
+		if(r2.y1 > r1.y1)
+			r1.y1 = r2.y1;
+		if(r2.x1 > r1.x1)
+			r1.x1 = r2.x1;
+		if(r2.y2 < r1.y2)
+			r1.y2 = r2.y2;
+		if(r2.x2 < r1.x2)
+			r1.x2 = r2.x2;
+	} else {
 		if(hot::mouse.y > r2.y2 && r2.y2 > r1.y1)
 			r1.y1 = r2.y2;
-		if(hot::mouse.y < r2.y1 && r2.y1 < r1.y2)
+		else if(hot::mouse.y < r2.y1 && r2.y1 < r1.y2)
 			r1.y2 = r2.y1;
+		else if(hot::mouse.x > r2.x2 && r2.x2 > r1.x1)
+			r1.x1 = r2.x2;
+		else if(hot::mouse.x < r2.x1 && r2.x1 < r1.x2)
+			r1.x2 = r2.x1;
 	}
 }
 
 areas draw::area(rect rc) {
-	if(!hot::mouse.in(clipping))
-		return AreaNormal;
 	if(sys_optimize_mouse_move)
 		intersect_rect(sys_static_area, rc);
-	if(drag::id)
+	if(drag::active())
+		return AreaNormal;
+	if(!hot::mouse.in(clipping))
 		return AreaNormal;
 	if(!mouseinput)
 		return AreaNormal;
 	if(hot::mouse.in(rc)) {
-		lastarea = rc;
+		hot::hilite = rc;
 		return hot::pressed ? AreaHilitedPressed : AreaHilited;
 	}
 	return AreaNormal;
@@ -895,7 +1457,7 @@ void draw::text(int x, int y, const char* string, int count, unsigned flags) {
 int draw::textc(int x, int y, int width, const char* string, int count, unsigned flags) {
 	state push;
 	setclip({x, y, x + width, y + texth()});
-	text(x, y, string, count, flags);
+	text(draw::aligned(x, width, flags, textw(string, count)), y, string, count, flags);
 	return texth();
 }
 
@@ -952,312 +1514,6 @@ int	draw::text(rect rc, const char* string, unsigned state, int* max_width) {
 		}
 		return y1 - rc.y1;
 	}
-}
-
-static const char* textspc(const char* p, int x0, int& x, int tab_width) {
-	int tb;
-	while(true) {
-		switch(p[0]) {
-		case ' ':
-			p++;
-			x += draw::textw(' ');
-			continue;
-		case '\t':
-			p++;
-			if(!tab_width)
-				tb = draw::textw(' ') * 4;
-			else
-				tb = tab_width;
-			x = x0 + ((x - x0 + tb) / tb)*tb;
-			continue;
-		}
-		break;
-	}
-	return p;
-}
-
-static int textfln(int x0, int y0, int width, const char** string, color c1, int* max_width, int tab_width) {
-	char temp[4096];
-	int y = y0;
-	int x = x0;
-	int x2 = x0 + width;
-	const char* p = *string;
-	unsigned flags = 0;
-	draw::fore = c1;
-	if(max_width)
-		*max_width = 0;
-	temp[0] = 0;
-	while(true) {
-		if(p[0] == '*' && p[1] == '*') {
-			p += 2;
-			if(flags&TextBold)
-				flags &= ~TextBold;
-			else
-				flags |= TextBold;
-			continue;
-		} else if(p[0] == '*') {
-			p++;
-			if(flags&TextItalic)
-				flags &= ~TextItalic;
-			else {
-				if((flags&TextItalic) == 0)
-					x += draw::texth() / 3;
-				flags |= TextItalic;
-			}
-			continue;
-		} else if(p[0] == '[' && p[1] == '[')
-			p++;
-		else if(p[0] == ']' && p[1] == ']')
-			p++;
-		else if(p[0] == '[') {
-			p++;
-			switch(*p) {
-			case '~':
-				p++;
-				draw::fore = colors::text.mix(colors::window, 64);
-				break;
-			case '+':
-				p++;
-				draw::fore = colors::green;
-				break;
-			case '-':
-				p++;
-				draw::fore = colors::red;
-				break;
-			case '!':
-				p++;
-				draw::fore = colors::yellow;
-				break;
-			case '#':
-				p++;
-				flags |= TextUscope;
-				draw::fore = colors::special;
-				break;
-			default:
-				draw::fore = colors::special;
-				break;
-			}
-			glink(temp, &p);
-		} else if(p[0] == ']') {
-			p++;
-			draw::fore = c1;
-			temp[0] = 0;
-			flags &= ~TextUscope;
-		}
-		// Обработаем пробелы и табуляцию
-		p = textspc(p, x0, x, tab_width);
-		int w;
-		if(p[0] == ':' && p[1] >= 'a' && p[1] <= 'z') {
-			p++;
-			char temp[128];
-			p = psidn(p, temp, temp + sizeof(temp) - 1);
-			if(*p == ':')
-				p++;
-			w = 0;
-			if(metrics::icons) {
-				int index = 0;
-				if(textf_icons_id) {
-					for(auto p = textf_icons_id; p->id; p++) {
-						if(strcmp(p->id, temp) == 0) {
-							index = p->value;
-							break;
-						}
-					}
-				}
-				auto fr = metrics::icons->get(index);
-				w = fr.sx;
-				if(x + w > x2) {
-					if(max_width)
-						*max_width = imax(*max_width, x - x0);
-					x = x0;
-					y += draw::texth();
-				}
-				draw::image(x + fr.sx / 2, y, metrics::icons, index, 0);
-			}
-		} else {
-			const char* p2 = word(p);
-			w = draw::textw(p, p2 - p);
-			if(x + w > x2) {
-				if(max_width)
-					*max_width = imax(*max_width, x - x0);
-				x = x0;
-				y += draw::texth();
-			}
-			draw::text(x, y, p, p2 - p, flags);
-			p = p2;
-		}
-		int x4 = x;
-		x += w;
-		p = textspc(p, x0, x, tab_width);
-		if(temp[0] || (flags&TextUscope) != 0) {
-			int x3 = imin(x2, x);
-			int y2 = y + draw::texth();
-			if(flags&TextUscope)
-				draw::line(x4, y2, x3, y2, draw::fore);
-			rect rc = {x4, y, x3, y2};
-			if(draw::areb(rc)) {
-				if(flags&TextUscope) {
-					hot::cursor = CursorHand;
-					if(temp[0] && hot::key == MouseLeft && !hot::pressed) {
-						zcpy(draw::link, temp, sizeof(draw::link) - 1);
-						//draw::execute(HtmlLink);
-					}
-				} else
-					zcpy(draw::link, temp, sizeof(draw::link) - 1);
-			}
-		}
-		// Отметим перевод строки и окончание строки
-		if(p[0] == 0 || p[0] == 10 || p[0] == 13) {
-			y += draw::texth();
-			p = szskipcr(p);
-			break;
-		}
-	}
-	if(max_width)
-		*max_width = imax(*max_width, x - x0);
-	*string = p;
-	return y - y0;
-}
-
-static int render_control(const char** result, int x, int y, int width) {
-	char type[64];
-	char name[64];
-	char buffer[4096];
-	auto p = *result;
-	auto pb = buffer;
-	auto pe = buffer + sizeof(buffer) - 1;
-	p = psidn(p, type, type + sizeof(type) - 1);
-	p = zskipsp(p);
-	while(*p && *p != ')') {
-		p = psidn(p, name, name + sizeof(name) - 1);
-		p = zskipsp(p);
-		int value_number = 1;
-		const char* value_text = 0;
-		if(*p == '=') {
-			p = zskipsp(p + 1);
-			if(isnum(*p) || *p == '-')
-				value_number = sz2num(p, &p);
-			else if(*p == '\"' || *p == '\'') {
-				value_text = pb;
-				p = psstr(p + 1, pb, p[0]);
-				pb = zend(pb);
-				if(pb < pe)
-					pb = pb + 1;
-			} else {
-				// Error
-				while(*p != ')' && *p)
-					p++;
-			}
-			p = zskipsp(p);
-		}
-		//auto fd = draw::element_type[0].find(name);
-		//if(fd)
-		//{
-		//	if(fd->type==text_type)
-		//		fd->set(fd->ptr(&e), (int)value_text);
-		//	else if(fd->type == number_type)
-		//		fd->set(fd->ptr(&e), value_number);
-		//}
-	}
-	if(*p == ')')
-		p++;
-	p = szskipcr(p);
-	*result = p;
-	//auto pm = draw::widget::plugin::find(type);
-	//if(pm)
-	//	return pm->render(x, y, width, e);
-	return 0;
-}
-
-int draw::textf(int x, int y, int width, const char* string, int* max_width,
-	int min_height, int* cashe_height, const char** cashe_string, int tab_width) {
-	state push;
-	color color_text = fore;
-	const char* p = string;
-	int y0 = y;
-	if(cashe_height) {
-		*cashe_string = p;
-		*cashe_height = 0;
-	}
-	if(max_width)
-		*max_width = 0;
-	while(p[0]) {
-		int mw2 = 0;
-		if(cashe_height && (y - y0) <= min_height) {
-			*cashe_string = p;
-			*cashe_height = y - y0;
-		}
-		if(match(&p, "###")) // Header 3
-		{
-			p = zskipsp(p);
-			font = metrics::h3;
-			y += textfln(x, y, width, &p, colors::h3, &mw2, tab_width);
-		} else if(match(&p, "##")) // Header 2
-		{
-			p = zskipsp(p);
-			font = metrics::h2;
-			y += textfln(x, y, width, &p, colors::h2, &mw2, tab_width);
-		} else if(match(&p, "#")) // Header 1
-		{
-			p = zskipsp(p);
-			font = metrics::h1;
-			y += textfln(x, y, width, &p, colors::h1, &mw2, tab_width);
-		} else if(match(&p, "...")) // Без форматирования
-		{
-			p = szskipcr(p);
-			font = metrics::font;
-			color c1 = colors::window.mix(colors::edit, 256 - 32);
-			y += texth() / 2;
-			while(p[0]) {
-				int c = textbc(p, width);
-				if(!c)
-					break;
-				rectf({x, y, x + width, y + texth()}, c1);
-				text(x, y, p, c);
-				y += texth();
-				p += c;
-				if(match(&p, "...")) {
-					p = szskipcr(p);
-					y += texth() / 2;
-					break;
-				}
-			}
-		} else if(match(&p, "* ")) // Список
-		{
-			int dx = texth() / 2;
-			int rd = texth() / 6;
-			circlef(x + dx + 2, y + dx, rd, color_text);
-			circle(x + dx + 2, y + dx, rd, color_text);
-			y += textfln(x + texth(), y, width - texth(), &p, color_text, &mw2, tab_width);
-		} else if(p[0] == '$' && p[1] == '(') {
-			p = zskipsp(p + 2);
-			y += render_control(&p, x, y, width);
-		} else {
-			y += textfln(x, y, width, &p, color_text, &mw2, tab_width);
-			if(p[0]) {
-				if(p[0] == ':' && p[1] == ':' && p[2] == ':')
-					p += 3;
-				else
-					y += metrics::padding;
-			}
-		}
-		// Возвратим стандартные настройки блока
-		font = metrics::font;
-		fore = color_text;
-		if(max_width) {
-			if(*max_width < mw2)
-				*max_width = mw2;
-		}
-	}
-	return y - y0;
-}
-
-int draw::textf(rect& rc, const char* string, int tab_width) {
-	state push;
-	clipping.clear();
-	rc.y2 = rc.y1 + draw::textf(0, 0, rc.width(), string, &rc.x2, 0, 0, 0, tab_width);
-	rc.x2 += rc.x1;
-	return rc.height();
 }
 
 int draw::textlb(const char* string, int index, int width, int* line_index, int* line_count) {
@@ -1457,65 +1713,6 @@ static unsigned char* skip_alc(unsigned char* s, int h) {
 	}
 }
 
-bool draw::hittest(int x, int y, const sprite* e, int id, int flags, point mouse) {
-	int x2, y2;
-	if(!mouse.in(clipping) || !e)
-		return false;
-	const sprite::frame& f = e->get(id);
-	if(!f.offset)
-		return false;
-	if(flags&ImageMirrorH) {
-		x2 = x;
-		if((flags&ImageNoOffset) == 0)
-			x2 += f.ox;
-		x = x2 - f.sx;
-	} else {
-		if((flags&ImageNoOffset) == 0)
-			x -= f.ox;
-		x2 = x + f.sx;
-	}
-	if(flags&ImageMirrorV) {
-		y2 = y;
-		if((flags&ImageNoOffset) == 0)
-			y2 += f.oy;
-		y = y2 - f.sy;
-	} else {
-		if((flags&ImageNoOffset) == 0)
-			y -= f.oy;
-		y2 = y + f.sy;
-	}
-	unsigned char* s = (unsigned char*)e + f.offset;
-	if(y2<clipping.y1 || y>clipping.y2 || x2<clipping.x1 || x>clipping.x2)
-		return false;
-	int wd = (flags&ImageMirrorV) ? -1 : 1;
-	int sy = (flags&ImageMirrorV) ? y2 - 1 : y;
-	rect rc = {x, y, x2, y2};
-	if(!mouse.in(rc))
-		return false;
-	switch(f.encode) {
-	case sprite::RLE8:
-		if(flags&ImageMirrorH)
-			return bop::rle8h(x2 - 1, sy, -1, wd, s, y2 - y, mouse);
-		else
-			return bop::rle8h(x, sy, 1, wd, s, y2 - y, mouse);
-	case sprite::RLE:
-		if(flags&ImageMirrorH) {
-			//	bop::rle32m(ptr(x2 - 1, sy), wd, s, y2 - y,
-			//		ptr(clipping.x1, sy),
-			//		ptr(clipping.x2, sy),
-			//		alpha);
-		} else {
-			//	bop::rle32(ptr(x, sy), wd, s, y2 - y,
-			//		ptr(clipping.x1, sy),
-			//		ptr(clipping.x2, sy),
-			//		alpha);
-		}
-		return false;
-	default:
-		return true;
-	}
-}
-
 void draw::image(int x, int y, const sprite* e, int id, int flags, unsigned char alpha) {
 	const int cbd = 1;
 	int x2, y2;
@@ -1550,7 +1747,6 @@ void draw::image(int x, int y, const sprite* e, int id, int flags, unsigned char
 	unsigned char* s = (unsigned char*)e + f.offset;
 	if(y2<clipping.y1 || y>clipping.y2 || x2<clipping.x1 || x>clipping.x2)
 		return;
-	int bypp = canvas->bpp / 8;
 	if(y < clipping.y1) {
 		if((flags&ImageMirrorV) == 0) {
 			switch(f.encode) {
@@ -1591,16 +1787,14 @@ void draw::image(int x, int y, const sprite* e, int id, int flags, unsigned char
 			x2 = clipping.x2;
 		if(x >= x2)
 			return;
-		if(bypp == 4) {
-			if(flags&ImageMirrorH)
-				bop::raw32m(ptr(x2 - 1, y), wd, s, f.sx * 3,
-					x2 - x,
-					y2 - y);
-			else
-				bop::raw32(ptr(x, y), wd, s, f.sx * 3,
-					x2 - x,
-					y2 - y);
-		}
+		if(flags&ImageMirrorH)
+			raw32m(ptr(x2 - 1, y), wd, s, f.sx * 3,
+				x2 - x,
+				y2 - y);
+		else
+			raw32(ptr(x, y), wd, s, f.sx * 3,
+				x2 - x,
+				y2 - y);
 		break;
 	case sprite::RAW8:
 		if(x < clipping.x1) {
@@ -1611,97 +1805,62 @@ void draw::image(int x, int y, const sprite* e, int id, int flags, unsigned char
 			x2 = clipping.x2;
 		if(x >= x2)
 			return;
-		if(bypp == 1) {
-			if(flags&ImageMirrorH) {
-				if(flags&ImageTransparent)
-					bop::raw8tm(ptr(x2 - 1, y), wd, s, f.sx,
-						x2 - x, y2 - y);
-				else
-					bop::raw8m(ptr(x2 - 1, y), wd, s, f.sx,
-						x2 - x, y2 - y);
-			} else {
-				if(flags&ImageTransparent)
-					bop::raw8t(ptr(x, y), wd, s, f.sx,
-						x2 - x,
-						y2 - y);
-				else
-					bop::cpy(ptr(x, y), wd,
-						s, f.sx,
-						x2 - x, y2 - y, 1);
-			}
-		} else if(bypp == 4) {
-			if(!f.pallette || (flags&ImagePallette))
-				pal = draw::palt;
-			else
-				pal = (color*)e->offs(f.pallette);
-			if(!pal)
-				return;
-			if(flags&ImageMirrorH)
-				bop::raw832m(ptr(x2 - 1, y), wd, s, f.sx,
-					x2 - x,
-					y2 - y,
-					pal);
-			else
-				bop::raw832(ptr(x, y), wd, s, f.sx, x2 - x, y2 - y, pal);
-		}
+		if(!f.pallette || (flags&ImagePallette))
+			pal = draw::palt;
+		else
+			pal = (color*)e->offs(f.pallette);
+		if(!pal)
+			return;
+		if(flags&ImageMirrorH)
+			raw832m(ptr(x2 - 1, y), wd, s, f.sx,
+				x2 - x,
+				y2 - y,
+				pal);
+		else
+			raw832(ptr(x, y), wd, s, f.sx, x2 - x, y2 - y, pal);
 		break;
 	case sprite::RLE8:
-		if(bypp == 1) {
-			if(flags&ImageMirrorH)
-				bop::rle8m(ptr(x2 - 1, sy), wd, s, y2 - y,
-					ptr(clipping.x1, sy),
-					ptr(clipping.x2, sy));
-			else
-				bop::rle8(ptr(x, sy), wd, s, y2 - y,
-					ptr(clipping.x1, sy),
-					ptr(clipping.x2, sy));
-		} else if(bypp == 4) {
-			if(!f.pallette || (flags&ImagePallette))
-				pal = draw::palt;
-			else
-				pal = (color*)e->offs(f.pallette);
-			if(!pal)
-				return;
-			if(flags&ImageMirrorH)
-				bop::rle832m(ptr(x2 - 1, sy), wd, s, y2 - y,
-					ptr(clipping.x1, sy),
-					ptr(clipping.x2, sy),
-					alpha, pal);
-			else
-				bop::rle832(ptr(x, sy), wd, s, y2 - y,
-					ptr(clipping.x1, sy),
-					ptr(clipping.x2, sy),
-					alpha, pal);
-		}
+		if(!f.pallette || (flags&ImagePallette))
+			pal = draw::palt;
+		else
+			pal = (color*)e->offs(f.pallette);
+		if(!pal)
+			return;
+		if(flags&ImageMirrorH)
+			rle832m(ptr(x2 - 1, sy), wd, s, y2 - y,
+				ptr(clipping.x1, sy),
+				ptr(clipping.x2, sy),
+				alpha, pal);
+		else
+			rle832(ptr(x, sy), wd, s, y2 - y,
+				ptr(clipping.x1, sy),
+				ptr(clipping.x2, sy),
+				alpha, pal);
 		break;
 	case sprite::RLE:
-		if(bypp == 4) {
-			if(flags&ImageMirrorH)
-				bop::rle32m(ptr(x2 - 1, sy), wd, s, y2 - y,
-					ptr(clipping.x1, sy),
-					ptr(clipping.x2, sy),
-					alpha);
-			else
-				bop::rle32(ptr(x, sy), wd, s, y2 - y,
-					ptr(clipping.x1, sy),
-					ptr(clipping.x2, sy),
-					alpha);
-		}
+		if(flags&ImageMirrorH)
+			rle32m(ptr(x2 - 1, sy), wd, s, y2 - y,
+				ptr(clipping.x1, sy),
+				ptr(clipping.x2, sy),
+				alpha);
+		else
+			rle32(ptr(x, sy), wd, s, y2 - y,
+				ptr(clipping.x1, sy),
+				ptr(clipping.x2, sy),
+				alpha);
 		break;
 	case sprite::ALC:
-		if(bypp != 4)
-			break;
 		if(flags&TextBold)
-			bop::alc32(ptr(x, sy - 1), wd, s, y2 - y,
+			alc32(ptr(x, sy - 1), wd, s, y2 - y,
 				ptr(clipping.x1, sy - 1),
 				ptr(clipping.x2, sy - 1),
 				fore, (flags&TextItalic) != 0);
 		if(flags&TextBold)
-			bop::alc32(ptr(x, sy - 1), wd, s, y2 - y,
+			alc32(ptr(x, sy - 1), wd, s, y2 - y,
 				ptr(clipping.x1, sy - 1),
 				ptr(clipping.x2, sy - 1),
 				fore, (flags&TextItalic) != 0);
-		bop::alc32(ptr(x, sy), wd, s, y2 - y,
+		alc32(ptr(x, sy), wd, s, y2 - y,
 			ptr(clipping.x1, sy), ptr(clipping.x2, sy),
 			fore, (flags&TextItalic) != 0);
 		break;
@@ -1711,9 +1870,10 @@ void draw::image(int x, int y, const sprite* e, int id, int flags, unsigned char
 }
 
 void draw::image(int x, int y, const sprite* e, int id, int flags, unsigned char alpha, color* pal) {
-	draw::state push;
+	auto pal_push = draw::palt;
 	draw::palt = pal;
 	image(x, y, e, id, flags | ImagePallette, alpha);
+	draw::palt = pal_push;
 }
 
 void draw::stroke(int x, int y, const sprite* e, int id, int flags, unsigned char thin, unsigned char* koeff) {
@@ -1825,42 +1985,16 @@ void draw::blit(surface& ds, int x1, int y1, int w, int h, unsigned flags, draw:
 	int ox;
 	if(!correctb(x1, y1, w, h, ox))
 		return;
-	if(ds.bpp == 8) {
-		if(flags&ImageMirrorH) {
-			if(flags&ImageTransparent)
-				bop::raw8tm(
-					ds.ptr(x1 + w - 1, y1), ds.scanline,
-					ss.ptr(xs, ys) + ox, ss.scanline,
-					w, h);
-			else
-				bop::raw8m(
-					ds.ptr(x1 + w - 1, y1), ds.scanline,
-					ss.ptr(xs, ys) + ox, ss.scanline,
-					w, h);
-		} else {
-			if(flags&ImageTransparent)
-				bop::raw8t(
-					ds.ptr(x1, y1), ds.scanline,
-					ss.ptr(xs, ys) + ox, ss.scanline,
-					w, h);
-			else
-				bop::cpy(
-					ds.ptr(x1, y1), ds.scanline,
-					ss.ptr(xs, ys) + ox, ss.scanline,
-					w, h, 1);
-		}
-	} else if(ds.bpp == 32) {
-		if(flags&ImageTransparent)
-			bop::cpy32t(
-				ds.ptr(x1, y1), ds.scanline,
-				ss.ptr(xs, ys) + ox * 4, ss.scanline,
-				w, h);
-		else
-			bop::cpy(
-				ds.ptr(x1, y1), ds.scanline,
-				ss.ptr(xs, ys) + ox * 4, ss.scanline,
-				w, h, 4);
-	}
+	if(flags&ImageTransparent)
+		cpy32t(
+			ds.ptr(x1, y1), ds.scanline,
+			ss.ptr(xs, ys) + ox * 4, ss.scanline,
+			w, h);
+	else
+		cpy(
+			ds.ptr(x1, y1), ds.scanline,
+			ss.ptr(xs, ys) + ox * 4, ss.scanline,
+			w, h, 4);
 }
 
 void draw::blit(surface& dest, int x, int y, int width, int height, unsigned flags, surface& source, int x_source, int y_source, int width_source, int height_source) {
@@ -1877,14 +2011,212 @@ void draw::blit(surface& dest, int x, int y, int width, int height, unsigned fla
 	int ox;
 	if(!correctb(x_source, y_source, width, height, ox))
 		return;
-	if(dest.bpp == 32) {
-		bop::scale32(
-			dest.ptr(x, y), dest.scanline, width, height,
-			source.ptr(x_source, y_source) + ox * 4, source.scanline, width_source, height_source);
+	scale32(
+		dest.ptr(x, y), dest.scanline, width, height,
+		source.ptr(x_source, y_source) + ox * 4, source.scanline, width_source, height_source);
+}
+
+const pma* pma::getheader(const char* id) const {
+	auto p = this;
+	while(p->name[0]) {
+		if(p->name[0] == id[0]
+			&& p->name[1] == id[1]
+			&& p->name[2] == id[2])
+			return p;
+		p = (pma*)((char*)p + p->size);
+	}
+	return 0;
+}
+
+const char* pma::getstring(int id) const {
+	auto p = getheader("STR");
+	if(!p || id > count)
+		return "";
+	return (char*)this + ((unsigned*)((char*)this + sizeof(*this)))[id];
+}
+
+int pma::find(const char* name) const {
+	auto p = getheader("STR");
+	for(int i = 1; i <= count; i++) {
+		if(strcmp(getstring(i), name) == 0)
+			return i;
+	}
+	return 0;
+}
+
+int sprite::ganim(int index, int tick) {
+	if(!cicles)
+		return 0;
+	cicle* c = gcicle(index);
+	if(!c->count)
+		return 0;
+	if(flags&NoIndex)
+		return c->start + tick % c->count;
+	return gindex(c->start + tick % c->count);
+}
+
+int sprite::glyph(unsigned sym) const {
+	// First interval (latin plus number plus ASCII)
+	unsigned* pi = (unsigned*)edata();
+	unsigned* p2 = pi + esize() / sizeof(unsigned);
+	unsigned n = 0;
+	while(pi < p2) {
+		if(sym >= pi[0] && sym <= pi[1])
+			return sym - pi[0] + n;
+		n += pi[1] - pi[0] + 1;
+		pi += 2;
+	}
+	return 't' - 0x21; // Unknown symbol is question mark
+}
+
+rect sprite::frame::getrect(int x, int y, unsigned flags) const {
+	int x2, y2;
+	if(!offset)
+		return{0, 0, 0, 0};
+	if(flags&ImageMirrorH) {
+		x2 = x;
+		if((flags&ImageNoOffset) == 0)
+			x2 += ox;
+		x = x2 - sx;
+	} else {
+		if((flags&ImageNoOffset) == 0)
+			x -= ox;
+		x2 = x + sx;
+	}
+	if(flags&ImageMirrorV) {
+		y2 = y;
+		if((flags&ImageNoOffset) == 0)
+			y2 += oy;
+		y = y2 - sy;
+	} else {
+		if((flags&ImageNoOffset) == 0)
+			y -= oy;
+		y2 = y + sy;
+	}
+	return{x, y, x2, y2};
+}
+
+draw::surface::surface() : width(0), height(0), scanline(0), bpp(32), bits(0) {
+}
+
+draw::surface::surface(int width, int height, int bpp) : surface() {
+	resize(width, height, bpp, true);
+}
+
+draw::surface::plugin* draw::surface::plugin::first;
+
+draw::surface::plugin::plugin(const char* name, const char* filter) : name(name), filter(filter), next(0) {
+	seqlink(this);
+}
+
+unsigned char* draw::surface::ptr(int x, int y) {
+	return bits + y * scanline + x * (bpp / 8);
+}
+
+draw::surface::~surface() {
+	resize(0, 0, 0, true);
+}
+
+void draw::surface::resize(int width, int height, int bpp, bool alloc_memory) {
+	if(this->width == width && this->height == height && this->bpp == bpp)
+		return;
+	this->bpp = bpp;
+	this->width = width;
+	this->height = height;
+	this->scanline = color::scanline(width, bpp);
+	if(width) {
+		unsigned size = (height + 1)*scanline;
+		if(alloc_memory) {
+			if(!bits)
+				bits = new unsigned char[size];
+			else
+				bits = (unsigned char*)realloc(bits, size);
+		}
+	} else {
+		if(bits)
+			delete bits;
+		bits = 0;
 	}
 }
 
-//void draw::initialize() {
-//	set_light_theme();
-//	command_app_initialize->execute();
-//}
+void draw::surface::flipv() {
+	color::flipv(bits, scanline, height);
+}
+
+void draw::surface::convert(int new_bpp, color* pallette) {
+	if(bpp == new_bpp) {
+		bpp = iabs(new_bpp);
+		return;
+	}
+	auto old_scanline = scanline;
+	scanline = color::scanline(width, new_bpp);
+	if(iabs(new_bpp) <= bpp)
+		color::convert(bits, width, height, new_bpp, 0, bits, bpp, pallette, old_scanline);
+	else {
+		unsigned char* new_bits = new unsigned char [(height + 1)*scanline];
+		color::convert(
+			new_bits, width, height, new_bpp, pallette,
+			bits, bpp, pallette, old_scanline);
+		delete bits;
+		bits = new_bits;
+	}
+	bpp = iabs(new_bpp);
+}
+
+draw::renderplugin::renderplugin(int priority) : next(0), priority(priority) {
+	if(!first)
+		first = this;
+	else {
+		auto p = first;
+		while(p->next && p->next->priority<priority)
+			p = p->next;
+		this->next = p->next;
+		p->next = this;
+	}
+}
+
+bool draw::defproc(int id) {
+	for(auto p = draw::renderplugin::first; p; p = p->next) {
+		if(p->translate(id))
+			return true;
+	}
+	return false;
+}
+
+void draw::initialize() {
+	// Initilaize all plugins
+	for(auto p = renderplugin::first; p; p = p->next)
+		p->initialize();
+	// Set default window colors
+	draw::font = metrics::font;
+	draw::fore = colors::text;
+	draw::fore_stroke = colors::blue;
+}
+
+bool draw::ismodal() {
+	// Before plugin events
+	for(auto p = renderplugin::first; p; p = p->next)
+		p->before();
+	// Break modal loop
+	if(!break_modal)
+		return true;
+	break_modal = false;
+	return false;
+}
+
+void draw::breakmodal(int result) {
+	break_modal = true;
+	break_result = result;
+}
+
+void draw::buttoncancel() {
+	breakmodal(0);
+}
+
+void draw::buttonok() {
+	breakmodal(1);
+}
+
+int draw::getresult() {
+	return break_result;
+}

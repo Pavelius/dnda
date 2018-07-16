@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "draw.h"
 #include "io.h"
 #include "resources.h"
 

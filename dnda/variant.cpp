@@ -6,7 +6,9 @@ const char* variant::getname() const {
 	case Skill: return getstr(skill);
 	case State: return getstr(state);
 	case Enchantment: return getstr(enchantment);
-	case Text: return text;
+	case String: return text;
+	case Item: return getstr(itemtype);
+	case ItemObject: return getstr(itemobject.gettype());
 	default: return "";
 	}
 }

@@ -1,47 +1,39 @@
 #include "crt.h"
-#include "command.h"
 #include "draw.h"
 
-command*	command_after_render;
-command*	command_clear_render;
-static int	current_command;
-extern rect	sys_static_area;
+static int		current_command;
+static void		(*current_execute)();
 
 void draw::execute(int id, int param) {
-	hot::key = 0;
 	current_command = id;
+	hot::key = 0;
 	hot::param = param;
 }
 
+void draw::execute(void(*proc)(), int param) {
+	execute(InputExecute, param);
+	current_execute = proc;
+}
+
 int draw::input(bool redraw) {
-	auto temp_hotkey = hot::key;
-	auto temp_command = current_command;
-	// Очистим данные
-	current_command = 0;
-	hot::key = 0;
-	command_clear_render->execute();
-	// Если была команда, надо ее выполнить
-	if(temp_command) {
-		hot::key = temp_command;
+	if(current_command) {
+		if(current_execute) {
+			current_execute();
+			hot::key = InputUpdate;
+			return hot::key;
+		}
+		hot::key = current_command;
 		return hot::key;
 	}
-	if(hot::key)
-		return hot::key;
-	// Нарисуем функционал расширения после выполнения всех комманд.
-	// Таким образм скриншот, если он делается по команде не будет иметь
-	// Такие вещи как строка сообщения и подсказка.
-	command_after_render->execute();
-	int id = InputUpdate;
+	// After render plugin events
+	for(auto p = renderplugin::first; p; p = p->next)
+		p->after();
+	hot::key = InputUpdate;
 	if(redraw)
 		draw::sysredraw();
 	else
-		id = draw::rawinput();
-	if(!id)
+		hot::key = draw::rawinput();
+	if(!hot::key)
 		exit(0);
-	if(hot::mouse.x < 0 || hot::mouse.y < 0)
-		sys_static_area.clear();
-	else
-		sys_static_area = {0, 0, draw::getwidth(), draw::getheight()};
-	hot::cursor = CursorArrow;
-	return id;
+	return hot::key;
 }
