@@ -136,7 +136,7 @@ static struct skill_info {
 {"Внимательность", "внимательности", {Wisdow, Dexterity}},
 {"Атлетика", "атлетики", {Strenght, Dexterity}, {{TargetDoor, 1}, {bashdoor, 0, testbash}, {}, "%герой разнес%ла двери в щепки.", {}, 20}},
 {"Убийство", "убийства", {Dexterity, Dexterity}, {{TargetNeutral, 1}, {killing, killing_fail}, {}, "%герой нанес%ла подлый удар.", {}, 50}},
-{"Концентрация", "концетрации", {Wisdow, Constitution}},
+{"Концентрация", "концетрации", {Wisdow, Wisdow}},
 {"Обезвредить ловушки", "ловушек", {Dexterity, Intellegence}, {{TargetTrap, 1}, {removetrap}, {}, "%герой обезвредил%а ловушку.", {}, 30}},
 {"Слышать звуки", "слуха", {Wisdow, Intellegence}},
 {"Прятаться в тени", "скрытности", {Dexterity, Dexterity}, {{TargetSelf}, {setstate}, {Hiding, Turn / 2}, "%герой внезапно изчез%ла из поля зрения."}},

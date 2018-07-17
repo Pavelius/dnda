@@ -29,7 +29,7 @@ static struct role_info {
 {"Лягушка", Animal, Female, Neutral, Monster, 1, {Bite, Dexterity}},
 {"Муравей", Insect, Male, Chaotic, Monster, 0, {Bite, Hitin}},
 {"Муравей-воин", Insect, Male, Chaotic, Monster, 1, {item(Bite, OfPoison), Hitin, Strenght}},
-{"Матка муравьев", Insect, Female, Chaotic, Monster, 5, {item(Bite, OfPoison).setquality(2).set(BlessedItem), Hitin, Strenght, Strenght, Constitution}},
+{"Матка муравьев", Insect, Female, Chaotic, Monster, 5, {item(Bite, OfPoison).setquality(2).set(BlessedItem), Hitin, Strenght, Strenght, Constitution}, {AntWorker, AntWorker, AntWarrior, AntWarrior}},
 {"Персонаж", Human, Male, Neutral, Commoner},
 };
 assert_enum(role, Character);
@@ -53,8 +53,6 @@ creature::creature(role_s role) {
 	this->gender = e.gender;
 	this->type = e.type;
 	this->role = role;
-	if(isagressive())
-		reaction = Hostile;
 	applyability();
 	for(auto i : e.features) {
 		switch(i.type) {

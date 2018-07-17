@@ -203,7 +203,7 @@ enum encumbrance_s : unsigned char {
 };
 enum variant_s : unsigned char {
 	NoVariant,
-	Ability, Item, Skill, State, Enchantment, ItemObject,
+	Ability, Item, Skill, Spell, State, Enchantment, ItemObject,
 	String
 };
 enum speech_s : unsigned char {
@@ -212,9 +212,6 @@ enum speech_s : unsigned char {
 };
 enum manual_s : unsigned char {
 	Element, Header
-};
-enum reaction_s : unsigned char {
-	Friendly, Indifferent, Hostile
 };
 struct attackinfo;
 struct creature;
@@ -383,6 +380,7 @@ struct variant {
 		ability_s		ability;
 		enchantment_s	enchantment;
 		skill_s			skill;
+		spell_s			spell;
 		state_s			state;
 		item_s			itemtype;
 		item			itemobject;
@@ -390,6 +388,7 @@ struct variant {
 	};
 	constexpr variant() : type(NoVariant), skill(NoSkill) {}
 	constexpr variant(skill_s v) : type(Skill), skill(v) {}
+	constexpr variant(spell_s v) : type(Spell), spell(v) {}
 	constexpr variant(state_s v) : type(State), state(v) {}
 	constexpr variant(enchantment_s v) : type(Enchantment), enchantment(v) {}
 	constexpr variant(ability_s v) : type(Ability), ability(v) {}
@@ -557,7 +556,6 @@ struct creature {
 	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start, bool los = true) const;
 	void				set(state_s value, unsigned segments, bool after_recoil = false);
 	void				set(spell_s value, int level);
-	void				set(reaction_s value) { reaction = value; }
 	void				setcharmer(creature* value) { charmer = value; }
 	static void			setblocks(short unsigned* movements, short unsigned value);
 	void				setguard(short unsigned value) { guard = value; }
@@ -602,7 +600,6 @@ private:
 	direction_s			direction;
 	int					experience;
 	unsigned			money;
-	reaction_s			reaction;
 	//
 	static bool			playturn();
 	void				updateweight();

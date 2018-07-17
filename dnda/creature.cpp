@@ -555,8 +555,7 @@ int	creature::getmaxhits() const {
 int	creature::getmaxmana() const {
 	auto result = mmp;
 	result += get(Intellegence);
-	if(skills[Concetration])
-		result += get(Concetration) / 4;
+	result += get(Concetration) / 4;
 	return result;
 }
 
@@ -735,16 +734,12 @@ bool creature::walkaround(aref<creature*> creatures) {
 	// When we try to stand and think
 	if(d100() < 40) {
 		auto skill = aiskill(creatures);
-		auto spell = aispell(creatures);
-		if(skill && spell) {
-			if(d100() < 50)
-				skill = NoSkill;
-		}
-		if(skill) {
+		if(skill && d100() < 60) {
 			use(skill);
 			return false;
 		}
-		if(spell) {
+		auto spell = aispell(creatures);
+		if(spell && d100() < 60) {
 			use(spell);
 			return false;
 		}
