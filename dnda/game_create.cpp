@@ -18,8 +18,7 @@ struct vector {
 extern adat<site, 128>	sites;
 static vector			rooms[256];
 static unsigned char	stack_put, stack_get;
-extern tile_s location_type;
-static direction_s connectors_side[] = {Up, Left, Right, Down};
+static direction_s		connectors_side[] = {Up, Left, Right, Down};
 static slot_s slots_weapons_armor[] = {Melee, Ranged, OffHand, Head, Elbows, Legs, Torso};
 static item_s item_treasure[] = {Coin, Coin, Coin, Coin, RingRed};
 static item_s item_food[] = {Ration, Ration, Ration, BreadEvlen, BreadHalflings, BreadDwarven, Sausage};

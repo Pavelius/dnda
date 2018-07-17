@@ -551,6 +551,8 @@ aref<item_s> item::getitems(aref<item_s> result, aref<slot_s> source) {
 	for(auto type = NoItem; type < ManyItems; type = (item_s)(type + 1)) {
 		item it(type, Mundane, NoEffect, 0);
 		bool valid = false;
+		if(it.isnatural())
+			continue;
 		for(auto slot : source) {
 			if(it.is(slot)) {
 				valid = true;

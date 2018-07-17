@@ -657,8 +657,9 @@ struct areainfo {
 	unsigned char	rooms; // Количество комнат
 	unsigned short	artifacts;
 	bool			isdungeon; // Underground dungeons has 'true'
+	race_s			habbitants[4];
 	constexpr areainfo() : index(Blocked), level(1), rooms(0), isdungeon(false),
-		artifacts(0),
+		artifacts(0), habbitants(),
 		positions{Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked} {}
 };
 struct manual {
