@@ -24,6 +24,7 @@ static struct role_info {
 {"Скелет", Undead, Male, Chaotic, Monster, 1, {Spear, Dexterity}},
 {"Зомби", Undead, Male, Chaotic, Monster, 2, {Dagger, Strenght}},
 {"Кобольд", Kobold, Male, Chaotic, Monster, 0, {BowShort, Dagger}},
+{"Кобольд-шаман", Kobold, Male, Chaotic, Mage, 3, {Staff, Wand1, MagicMissile}},
 {"Собака", Animal, Female, Neutral, Monster, 2, {Bite, Dexterity}},
 {"Рысь", Animal, Female, Chaotic, Monster, 4, {Bite, Fur, Dexterity, Strenght, Constitution}},
 {"Лягушка", Animal, Female, Neutral, Monster, 1, {Bite, Dexterity}},

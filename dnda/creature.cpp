@@ -38,7 +38,7 @@ static struct equipment_info {
 {Animal, Paladin, {SwordLong, ScaleMail}},
 {Animal, Ranger, {SwordLong, SwordShort, LeatherArmour}},
 {Animal, Theif, {SwordShort, LeatherArmour}},
-{Animal, Mage, {Staff, WandGreen, ScrollRed, ScrollGreen, PotionBlue}},
+{Animal, Mage, {Staff, Wand2, Scroll1, Scroll2, Potion1}},
 };
 
 static struct race_info {
@@ -76,7 +76,7 @@ static struct class_info {
 } class_data[] = {{"Крестьянин", 4, 1, 4},
 {"Клерик", 8, 2, 1, {0, 0, 0, 0, 2, 1}, {Diplomacy, History, Healing}, {Bless, HealingSpell}},
 {"Воин", 10, 3, 1, {2, 0, 1, -2, 0, -1}, {Survival, WeaponFocusBlades, WeaponFocusAxes}},
-{"Маг", 4, 1, 1, {-2, 0, 0, 2, 1, 2}, {Alchemy, Concetration, Literacy}, {Identify, MagicMissile, Sleep}},
+{"Маг", 4, 1, 1, {-2, 0, 0, 2, 1, 2}, {Alchemy, Concetration, Literacy}, {Armor, MagicMissile, Sleep}},
 {"Паладин", 10, 3, 1, {2, 0, 1, 0, 1, 2}, {Diplomacy, Literacy, WeaponFocusBlades}, {DetectEvil}},
 {"Следопыт", 10, 2, 1, {0, 2, 1, 0, 1, -1}, {Survival, WeaponFocusBows}, {}},
 {"Вор", 6, 1, 1, {0, 2, 0, 0, 0, 1}, {PickPockets, Lockpicking, HideInShadow, Acrobatics, DisarmTraps, Bluff, Backstabbing}},

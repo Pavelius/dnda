@@ -28,13 +28,13 @@ enum item_s : unsigned char {
 	Cloack1, Cloack2, Cloack3, Cloack4, Cloack5,
 	Boot1, Boot2, IronBoot1, IronBoot2, IronBoot3,
 	Ration, Apple, BreadHalflings, BreadEvlen, BreadDwarven, Cake, Sausage, Meat,
-	ScrollRed, ScrollGreen, ScrollBlue,
-	WandRed, WandGreen, WandBlue,
+	Scroll1, Scroll2, Scroll3,
+	Wand1, Wand2, Wand3, Wand4, Wand5,
 	Book1, Book2, Book3, Book4, Book5,
-	PotionRed, PotionGreen, PotionBlue,
+	Potion1, Potion2, Potion3, Potion4, Potion5,
 	RingRed, RingBlue, RingGreen,
 	Amulet1, Amulet2, Amulet3, Amulet4, Amulet5,
-	DoorKey, Coin,
+	DoorKey, Coin, CoinSP, CoinGP,
 	Claws, Slam, Bite, Hitin, Fur,
 	ManyItems
 };
@@ -83,7 +83,7 @@ enum role_s : unsigned char {
 	GoblinWarrior, GoblinRockthrower, OrcWarrior, LargeBat, GiantRat,
 	HumanMale, HumanGuard, HumanChild, HumanFemale,
 	Shopkeeper, DwarvenSmith, Bartender, Skeleton, Zombie,
-	KobolWarrior,
+	KobolWarrior, KoboldShaman,
 	LargeDog, Lynx, GiantFrog,
 	AntWorker, AntWarrior, AntQueen,
 	GnollWarrior,
@@ -307,7 +307,7 @@ class item {
 	unsigned char		forsale : 1;
 public:
 	constexpr item() : type(NoItem), effect(NoEffect), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
-	constexpr item(spell_s spell) : type(ScrollRed), effect((enchantment_s)spell), count(0), magic(), quality(0), identify(KnowEffect), forsale(0), damaged(0) {}
+	constexpr item(spell_s spell) : type(Scroll1), effect((enchantment_s)spell), count(0), magic(), quality(0), identify(KnowEffect), forsale(0), damaged(0) {}
 	constexpr item(item_s type) : type(type), effect(NoEffect), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
 	constexpr item(item_s type, enchantment_s effect) : type(type), effect(effect), count(0), magic(Mundane), quality(0), identify(KnowEffect), forsale(0), damaged(0) {}
 	item(item_s type, int chance_artifact, int chance_magic, int chance_cursed, int chance_quality);

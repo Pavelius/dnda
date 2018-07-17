@@ -77,15 +77,15 @@ int main(int argc, char* argv[]) {
 
 	p1->equip(item(Book1, 4, 20, 20, 40));
 	p1->equip(Repair);
-	p1->equip(item(PotionRed, (enchantment_s)Experience));
-	p1->equip(item(WandBlue, (enchantment_s)MagicMissile).setcharges(10));
+	p1->equip(item(Potion1, (enchantment_s)Experience));
+	p1->equip(item(Wand1, (enchantment_s)MagicMissile).setcharges(10));
 	p1->equip(DetectMagic);
 	p1->equip(DoorKey);
 	p1->equip(Apple);
 	p1->equip(item(Cloack1, 4, 30, 20, 50));
 
 	p2->equip(Cloack5);
-	p2->equip(item(PotionRed, (enchantment_s)Drunken));
+	p2->equip(item(Potion1, (enchantment_s)Drunken));
 
 	p3->equip(BowLong);
 	p3->equip(Arrow);

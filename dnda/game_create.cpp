@@ -22,13 +22,13 @@ static direction_s connectors_side[] = {Up, Left, Right, Down};
 static slot_s slots_weapons_armor[] = {Melee, Ranged, OffHand, Head, Elbows, Legs, Torso};
 static item_s item_treasure[] = {Coin, Coin, Coin, Coin, RingRed};
 static item_s item_food[] = {Ration, Ration, Ration, BreadEvlen, BreadHalflings, BreadDwarven, Sausage};
-static item_s item_potion_scrolls[] = {ScrollRed, ScrollRed, ScrollRed,
-ScrollGreen, ScrollGreen, ScrollBlue,
+static item_s item_potion_scrolls[] = {Scroll1, Scroll2, Scroll3,
+Scroll1, Scroll2, Scroll3,
 Book1, Book2, Book3, Book4, Book5,
 Amulet1, Amulet2, Amulet3, Amulet4, Amulet5,
 Boot1, Boot2, IronBoot1, IronBoot2, IronBoot3,
-PotionRed, PotionGreen, PotionBlue,
-WandRed, WandGreen, WandBlue,
+Potion1, Potion2, Potion3, Potion4, Potion5,
+Wand1, Wand2, Wand3, Wand4, Wand5,
 RingRed, RingGreen, RingBlue};
 
 static void show_minimap_step(short unsigned index, bool visualize) {

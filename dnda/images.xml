@@ -317,6 +317,8 @@
     <png input="...\item231"/>
     <png input="...\item232"/>
     <png input="...\item100"/>
+    <png input="...\item229"/>
+    <png input="...\item230"/>
     
     <png input="...\item88"/>
     <png input="...\item200" ox="32" oy="50"/>
@@ -327,6 +329,8 @@
     <png input="...\item244"/>
     <png input="...\item482"/>
     <png input="...\item49"/>
+    <png input="...\item63"/>
+    <png input="...\item64"/>
     
     <png input="...\item204"/>
     <png input="...\item44"/>
@@ -339,6 +343,8 @@
     <png input="...\item174"/>
     
     <png input="...\item354"/>
+    <png input="...\items37"/>
+    <png input="...\items37"/>
     <png input="...\items37"/>
   </library>
   <library output="...\doors" count="4" ox="32" oy="-2">
@@ -423,6 +429,7 @@
     <files input="...\8.png" ox="34"/>
     <files input="...\16.png"/>
     <files input="...\5.png"/>
+    <files input="...\14.png"/>
     <files input="...\6.png"/>
     <files input="...\7.png"/>
     <files input="...\9.png"/>
