@@ -61,13 +61,12 @@ int main(int argc, char* argv[]) {
 	create("city", get(10, 10), 0, false, false);
 	//auto start_index = game::statistic.positions[0];
 	auto start_index = get(10, 10);
-	auto p1 = add(start_index, new creature(Human, Female, Mage));
-	auto p2 = add(start_index, new creature(Dwarf, Male, Fighter));
-	auto p3 = add(start_index, new creature(Elf, Male, Theif));
+	auto p1 = creature::add(start_index, Human, Female, Mage);
+	auto p2 = creature::add(start_index, Dwarf, Male, Fighter);
+	auto p3 = creature::add(start_index, Elf, Male, Theif);
 
-	add(get(14, 14), new creature(GnollWarrior));
-	add(get(14, 14), new creature(GnollWarrior));
-	add(get(14, 14), new creature(LargeDog));
+	creature::add(get(14, 14), GnollWarrior);
+	creature::add(get(14, 14), LargeDog);
 
 	p1->join(p1);
 	p2->join(p1);

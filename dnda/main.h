@@ -435,6 +435,8 @@ struct creature {
 	void				actnc(const char* format, ...) const { actvnc(format, xva_start(format)); }
 	void				actvnc(const char* format, const char* param) const;
 	void				actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
+	static creature*	add(short unsigned index, role_s role);
+	static creature*	add(short unsigned index, race_s race, gender_s gender, class_s type);
 	void				addexp(int count);
 	static void			addexp(int value, short unsigned position, int range, const creature* exclude, const creature* enemies);
 	bool				aiboost();
@@ -520,7 +522,6 @@ struct creature {
 	bool				is(encumbrance_s value) const { return encumbrance == value; }
 	bool				isagressive() const;
 	bool				isallow(spell_s id) const;
-	static bool			isbooming();
 	bool				ischaracter() const { return role == Character; }
 	bool				isenemy(const creature* target) const;
 	bool				isfriend(const creature* target) const;
@@ -651,8 +652,10 @@ struct areainfo {
 	short unsigned	positions[8]; // Several positions
 	unsigned char	level; // Уровень поздземелья
 	unsigned char	rooms; // Количество комнат
+	unsigned short	artifacts;
 	bool			isdungeon; // Underground dungeons has 'true'
 	constexpr areainfo() : index(Blocked), level(1), rooms(0), isdungeon(false),
+		artifacts(0),
 		positions{Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked} {}
 };
 struct manual {
@@ -666,7 +669,7 @@ struct manual {
 };
 namespace game {
 site*				add(site_s type, rect rc);
-creature*			add(short unsigned index, creature* element);
+creature*			add(short unsigned index, role_s role);
 bool				create(const char* id, short unsigned index, int level, bool explored = false, bool visualize = false);
 int					distance(short unsigned i1, short unsigned i2);
 void				drop(short unsigned i, item object);

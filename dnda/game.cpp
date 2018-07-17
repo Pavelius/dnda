@@ -374,16 +374,6 @@ void game::drop(short unsigned i, item object) {
 	p->index = i;
 }
 
-creature* game::add(short unsigned index, creature* element) {
-	if(!element)
-		return 0;
-	index = getfree(index);
-	if(index == Blocked)
-		return 0;
-	element->move(index);
-	return element;
-}
-
 int game::distance(short unsigned i1, short unsigned i2) {
 	auto dx = (int)getx(i1) - (int)getx(i2);
 	auto dy = (int)gety(i1) - (int)gety(i2);

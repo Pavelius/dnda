@@ -335,8 +335,26 @@ aref<creature*> creature::getcreatures(aref<creature*> result, short unsigned st
 	return aref<creature*>(result.data, pb - result.data);
 }
 
-bool creature::isbooming() {
-	return creature_data.count >= sizeof(creature_data.data) / sizeof(creature_data.data[0]) - 4;
+creature* creature::add(short unsigned index, role_s role) {
+	if(creature_data.count >= (sizeof(creature_data.data) / sizeof(creature_data.data[0]) - 8))
+		return 0;
+	index = getfree(index);
+	if(index == Blocked)
+		return 0;
+	auto p = new creature(role);
+	p->move(index);
+	return p;
+}
+
+creature* creature::add(short unsigned index, race_s race, gender_s gender, class_s type) {
+	if(creature_data.count >= sizeof(creature_data.data) / sizeof(creature_data.data[0]))
+		return 0;
+	index = getfree(index);
+	if(index == Blocked)
+		return 0;
+	auto p = new creature(race, gender, type);
+	p->move(index);
+	return p;
 }
 
 void creature::hint(const char* format, ...) const {

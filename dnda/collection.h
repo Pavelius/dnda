@@ -1,6 +1,7 @@
 #include "initializer_list.h"
 
 extern "C" void*			realloc(void *ptr, unsigned size);
+extern "C" int				strcmp(const char* p1, const char* p2);
 
 #pragma once
 
