@@ -429,6 +429,7 @@
     <files input="...\10.png"/>
     <files input="...\11.png"/>
     <files input="...\12.png"/>
+    <files input="...\13.png"/>
   </library>
   <library output="...\ammo" count="6">
     <files input="...\missiles\*.png"/>

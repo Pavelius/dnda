@@ -65,12 +65,9 @@ int main(int argc, char* argv[]) {
 	auto p2 = add(start_index, new creature(Dwarf, Male, Fighter));
 	auto p3 = add(start_index, new creature(Elf, Male, Theif));
 
-	add(get(14, 14), new creature(Lynx));
+	add(get(14, 14), new creature(GnollWarrior));
+	add(get(14, 14), new creature(GnollWarrior));
 	add(get(14, 14), new creature(LargeDog));
-	add(get(14, 14), new creature(AntWorker));
-	add(get(14, 14), new creature(AntWorker));
-	add(get(14, 14), new creature(AntWarrior));
-	add(get(14, 14), new creature(AntQueen));
 
 	p1->join(p1);
 	p2->join(p1);

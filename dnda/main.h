@@ -68,7 +68,7 @@ enum enchantment_s : unsigned char {
 enum race_s : unsigned char {
 	Animal,
 	Human, Dwarf, Elf, Halfling,
-	Goblin, Kobold, Orc,
+	Goblin, Kobold, Orc, Gnoll,
 	Insect, Undead
 };
 enum class_s : unsigned char {
@@ -86,6 +86,7 @@ enum role_s : unsigned char {
 	KobolWarrior,
 	LargeDog, Lynx, GiantFrog,
 	AntWorker, AntWarrior, AntQueen,
+	GnollWarrior,
 	Character
 };
 enum alignment_s : unsigned char {
@@ -436,6 +437,7 @@ struct creature {
 	void				actvs(creature& opponent, const char* format, ...) const { actv(opponent, format, xva_start(format)); }
 	void				addexp(int count);
 	static void			addexp(int value, short unsigned position, int range, const creature* exclude, const creature* enemies);
+	bool				aiboost();
 	skill_s				aiskill();
 	skill_s				aiskill(aref<creature*> creatures);
 	spell_s				aispell(aref<creature*> creatures, target_s target = NoTarget);

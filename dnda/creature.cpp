@@ -51,12 +51,13 @@ static struct race_info {
 //
 {"Человек", {9, 9, 9, 9, 9, 9}, {11, 11, 11, 11, 11, 11}, {Bargaining, Gambling, Swimming}},
 {"Гном", {11, 6, 13, 9, 9, 9}, {14, 9, 15, 11, 11, 11}, {Smithing, Mining, Athletics}, {{ResistPoison, 30}}},
-{"Эльф", {8, 12, 6, 11, 10, 11}, {10, 14, 8, 13, 12, 13}, {Survival, WeaponFocusBows, Swimming}},
+{"Эльф", {8, 12, 6, 11, 10, 11}, {10, 14, 8, 13, 12, 13}, {Survival, WeaponFocusBows, Swimming}, {{ResistCharm, 40}}},
 {"Полурослик", {6, 10, 10, 9, 10, 9}, {8, 13, 11, 11, 12, 11}, {HideInShadow, Acrobatics, Swimming}},
 //
 {"Гоблин", {5, 12, 8, 6, 9, 6}, {7, 14, 10, 8, 11, 8}, {HideInShadow, Acrobatics, Swimming}},
 {"Кобольд", {5, 13, 7, 6, 9, 6}, {7, 15, 9, 8, 11, 8}, {HideInShadow, Acrobatics, Swimming}},
 {"Орк", {12, 9, 11, 6, 9, 6}, {15, 11, 13, 8, 11, 8}, {Athletics, Mining, Swimming}},
+{"Гнолл", {13, 9, 11, 5, 9, 5}, {16, 11, 13, 7, 11, 7}, {Athletics, Survival, Swimming}},
 //
 {"Насекомое", {4, 5, 4, 1, 1, 1}, {6, 9, 6, 1, 1, 1}},
 {"Мертвец", {10, 6, 10, 4, 1, 1}, {12, 8, 13, 5, 1, 1}},
@@ -876,6 +877,8 @@ void creature::makemove() {
 	auto creatures = getcreatures(creature_data, position, getlos());
 	auto enemy = getenemy(creatures);
 	if(enemy) {
+		if(aiboost())
+			return;
 		auto spell = aispell({&enemy, 1}, TargetHostile);
 		if(spell)
 			use(spell);
@@ -1842,6 +1845,32 @@ bool creature::saving(bool interactive, skill_s save, int bonus) const {
 			if(interactive)
 				act("%герой перенес%ла эффект без последствий.");
 			return true;
+		}
+	}
+	return false;
+}
+
+bool creature::aiboost() {
+	auto php = getmaxhits() ? (hp * 100) / getmaxhits() : 0;
+	auto pmp = getmaxmana() ? (mp * 100) / getmaxmana() : 0;
+	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
+		if(!wears[slot])
+			continue;
+		if(!wears[slot].getidentify() < KnowEffect)
+			continue;
+		switch(wears[slot].getstate()) {
+		case RestoreHits:
+			if(php < 50) {
+				use(wears[slot]);
+				return true;
+			}
+			break;
+		case RestoreMana:
+			if(pmp < 30) {
+				use(wears[slot]);
+				return true;
+			}
+			break;
 		}
 	}
 	return false;
