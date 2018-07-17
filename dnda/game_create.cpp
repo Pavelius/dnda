@@ -490,7 +490,7 @@ static void create_city_level(int x, int y, int w, int h, int level, rooma& room
 				w++;
 			}
 			create_road(x, y + h1 - 3, w, 3);
-			for(int i = xrand(1, 3); i >= 0; i--)
+			for(int i = xrand(2, 4); i >= 0; i--)
 				create_commoner(random(x, y + h1 - 3, w, 3));
 		}
 	}
