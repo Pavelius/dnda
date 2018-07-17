@@ -879,6 +879,8 @@ void creature::makemove() {
 	if(enemy) {
 		if(aiboost())
 			return;
+		if(aiusewand(creatures, TargetHostile))
+			return;
 		auto spell = aispell({&enemy, 1}, TargetHostile);
 		if(spell)
 			use(spell);
@@ -1856,7 +1858,7 @@ bool creature::aiboost() {
 	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
 		if(!wears[slot])
 			continue;
-		if(!wears[slot].getidentify() < KnowEffect)
+		if(wears[slot].getidentify() < KnowEffect)
 			continue;
 		switch(wears[slot].getstate()) {
 		case RestoreHits:

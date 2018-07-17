@@ -81,7 +81,7 @@ static void identify(effectparam& e) {
 	e.player.act("%1 на мгновение осветился белым светом.", e.itm->getname(temp, zendof(temp)));
 	// Identify has little chance to curse item
 	auto chance = 30 - e.level * 2;
-	if(d100() < chance && e.itm->getmagic()!=Artifact)
+	if(d100() < chance && e.itm->getmagic() != Artifact)
 		e.itm->set(Cursed);
 	e.itm->set(KnowEffect);
 }
@@ -198,4 +198,27 @@ spell_s creature::aispell(aref<creature*> creatures, target_s target) {
 	if(recomended.count > 0)
 		return recomended.data[rand() % recomended.count];
 	return NoSpell;
+}
+
+bool creature::aiusewand(aref<creature*> creatures, target_s target) {
+	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
+		if(!wears[slot])
+			continue;
+		auto spell = wears[slot].getspell();
+		if(!spell)
+			continue;
+		if(wears[slot].istome())
+			continue;
+		if(wears[slot].getcharges()<=0)
+			continue;
+		if(!spell_data[spell].effect.type.iscreature())
+			continue;
+		if(target && spell_data[spell].effect.type.target != target)
+			continue;
+		if(!spell_data[spell].effect.type.isallow(*this, creatures))
+			continue;
+		use(wears[slot]);
+		return true;
+	}
+	return false;
 }
