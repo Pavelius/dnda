@@ -201,24 +201,24 @@ spell_s creature::aispell(aref<creature*> creatures, target_s target) {
 }
 
 bool creature::aiusewand(aref<creature*> creatures, target_s target) {
-	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
-		if(!wears[slot])
+	for(auto& it : wears) {
+		if(!it)
 			continue;
-		auto spell = wears[slot].getspell();
-		if(!spell)
-			continue;
-		if(wears[slot].istome())
-			continue;
-		if(wears[slot].getcharges()<=0)
-			continue;
-		if(!spell_data[spell].effect.type.iscreature())
-			continue;
-		if(target && spell_data[spell].effect.type.target != target)
-			continue;
-		if(!spell_data[spell].effect.type.isallow(*this, creatures))
-			continue;
-		use(wears[slot]);
-		return true;
+		auto spell = it.getspell();
+		if(spell) {
+			if(it.istome())
+				continue;
+			if(it.getcharges() <= 0)
+				continue;
+			if(!spell_data[spell].effect.type.iscreature())
+				continue;
+			if(target && spell_data[spell].effect.type.target != target)
+				continue;
+			if(!spell_data[spell].effect.type.isallow(*this, creatures))
+				continue;
+			use(it);
+			return true;
+		}
 	}
 	return false;
 }
