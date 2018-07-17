@@ -113,7 +113,10 @@ void logs::addvnc(stringcreator& sc, const char* format, const char* vl) {
 		if(p[-1] == ' ' && format[0] == ' ')
 			format++;
 	}
-	sc.printv(p, state_message + sizeof(state_message) - 1, format, vl);
+	if(vl)
+		sc.printv(p, state_message + sizeof(state_message) - 1, format, vl);
+	else
+		zcpy(p, format, sizeof(state_message) - 1);
 }
 
 void logs::addv(stringcreator& sc, const char* format, const char* vl) {

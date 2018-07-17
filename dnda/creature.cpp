@@ -1667,7 +1667,8 @@ void creature::lookfloor() {
 		if(i != 0)
 			logs::addnc(" è ");
 		char temp[260];
-		logs::addnc(source[i]->getname(temp, zendof(temp), true));
+		stringcreator sc;
+		logs::addvnc(sc, source[i]->getname(temp, zendof(temp), true), 0);
 	}
 	logs::add(".");
 }

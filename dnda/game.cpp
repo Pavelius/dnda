@@ -505,7 +505,8 @@ void game::lookhere(short unsigned index) {
 			}
 			source[i]->getname(temp, zendof(temp));
 			szlower(temp, 1);
-			logs::addnc(temp);
+			stringcreator sc;
+			logs::addvnc(sc, temp, 0);
 		}
 		logs::add(".");
 	}
