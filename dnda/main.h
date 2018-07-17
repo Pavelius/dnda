@@ -204,7 +204,7 @@ enum encumbrance_s : unsigned char {
 };
 enum variant_s : unsigned char {
 	NoVariant,
-	Ability, Item, Skill, Spell, State, Enchantment, ItemObject,
+	Ability, Enchantment, God, Item, ItemObject, Skill, Spell, State,
 	String
 };
 enum speech_s : unsigned char {
@@ -380,6 +380,7 @@ struct variant {
 	union {
 		ability_s		ability;
 		enchantment_s	enchantment;
+		diety_s			god;
 		skill_s			skill;
 		spell_s			spell;
 		state_s			state;
@@ -388,13 +389,14 @@ struct variant {
 		const char*		text;
 	};
 	constexpr variant() : type(NoVariant), skill(NoSkill) {}
+	constexpr variant(ability_s v) : type(Ability), ability(v) {}
+	constexpr variant(diety_s v) : type(God), god(v) {}
+	constexpr variant(enchantment_s v) : type(Enchantment), enchantment(v) {}
+	constexpr variant(item v) : type(ItemObject), itemobject(v) {}
+	constexpr variant(item_s v) : type(Item), itemtype(v) {}
 	constexpr variant(skill_s v) : type(Skill), skill(v) {}
 	constexpr variant(spell_s v) : type(Spell), spell(v) {}
 	constexpr variant(state_s v) : type(State), state(v) {}
-	constexpr variant(enchantment_s v) : type(Enchantment), enchantment(v) {}
-	constexpr variant(ability_s v) : type(Ability), ability(v) {}
-	constexpr variant(item_s v) : type(Item), itemtype(v) {}
-	constexpr variant(item v) : type(ItemObject), itemobject(v) {}
 	constexpr variant(const char* v) : type(String), text(v) {}
 	explicit operator bool() const { return type != NoVariant; }
 	const char*			getname() const;
@@ -626,6 +628,7 @@ struct speech {
 	speech*			fail;
 	bool			stop_analize;
 	skillvalue		skill;
+	variant			value;
 	void(*proc)(dialog& e, const speech& sp);
 	explicit operator bool() const { return type != NoTalking; }
 };

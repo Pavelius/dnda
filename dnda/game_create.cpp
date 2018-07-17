@@ -345,6 +345,8 @@ static void create_objects(site& e, int x, int y, int w, int h, site_s type) {
 		for(auto i = xrand(1, 3); i > 0; i--)
 			creature::add(pt, HumanGuard);
 		break;
+	case CityHall:
+		break;
 	}
 }
 

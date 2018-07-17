@@ -22,6 +22,8 @@ void logs::driver::parseidentifier(char* result, const char* result_max, const c
 		grammar::of(result, name);
 	else if(strcmp(identifier, "√≈–ќ≈ћ") == 0)
 		grammar::of(result, name_opponent);
+	else if(strcmp(identifier, "ƒќ„№_ћќя") == 0)
+		msg(*this, gender_opponent, result, result_max, "сын мой", "дочь мо€", "божье создание");
 	else if(strcmp(identifier, "ась") == 0)
 		msg(*this, gender, result, result_max, "с€", identifier, "ос€");
 	else if(strcmp(identifier, "ј—№") == 0)

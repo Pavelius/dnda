@@ -490,7 +490,21 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 	auto spell = getspell();
 	auto state = getstate();
 	auto skill = getskill();
-	sc.prints(result, result_maximum, item_data[type].name);
+	result[0] = 0;
+	if(identify >= KnowColor) {
+		switch(magic) {
+		case Artifact:
+			sc.prints(zend(result), result_maximum, "[");
+			break;
+		case Cursed:
+			sc.prints(zend(result), result_maximum, "[-");
+			break;
+		case BlessedItem:
+			sc.prints(zend(result), result_maximum, "[+");
+			break;
+		}
+	}
+	sc.prints(zend(result), result_maximum, item_data[type].name);
 	if(effect && identify >= KnowEffect) {
 		sc.prints(zend(result), result_maximum, " %1%", iscursed() ? enchantment_data[effect].name_cursed : enchantment_data[effect].name);
 		if(forsale)
@@ -520,6 +534,10 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 	}
 	if(getcount() > 2)
 		sc.prints(zend(result), result_maximum, " %1i רע", getcount());
+	if(identify >= KnowColor) {
+		if(magic!=Mundane)
+			sc.prints(zend(result), result_maximum, "]");
+	}
 	return result;
 }
 
