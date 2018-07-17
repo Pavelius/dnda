@@ -18,6 +18,15 @@ static bool isnoguard(const creature& player, const dialog& e) {
 	return player.getguard() == Blocked;
 }
 
+static bool ishightpriest(const creature& player, const dialog& e) {
+	auto p = player.getsite();
+	return p && p->type == Temple && p->owner == &player;
+}
+
+static bool ishenchmen(const creature& player, const dialog& e) {
+	return player.isfriend(e.player) && player.getrole() == Character;
+}
+
 static void setguard(dialog& e, const speech& sp) {
 	e.opponent->setguard(e.opponent->getposition());
 }
@@ -59,7 +68,7 @@ static void knownbuilding(dialog& e, const speech& sp) {
 		"В той стороне находится %1.",
 		"Если пойдешь в том направлении найдешь %1.",
 	};
-	// Исследуем область
+	// Remove FOW
 	for(auto x = p->x1; x < p->x2; x++)
 		for(auto y = p->y1; y < p->y2; y++)
 			game::set(game::get(x, y), Explored, true);
@@ -67,35 +76,36 @@ static void knownbuilding(dialog& e, const speech& sp) {
 	e.opponent->say(maprnd(talk_start), name);
 }
 
-//static speech old_house[] = {{Speech, 0, "А что рассказывать? Он был разрушен еще со времен войны орков. Сейчас зарос бурьяном и там никто не живет."},
-//{Speech, 0, "Много разных слухов ходят об этом старом доме. Говрят там когда-то повесился какой-то знаменитый дворянин."},
-//{Speech, 0, "У нас ходит легенда, что по ночам что-то появляется у того дома в полнолуние. Но это лишь легенда - никто никогда ничего не видел."},
-//{Speech, 0, "Обычный такой дом. Со странностями, правда."},
-//{}};
-//static speech test_dialog[] = {{Speech, 0, "Привет %ГЕРОЙ. Чем могу быть полезен?"},
-//{Answer, 0, "Что вы можете рассказать про старый дом у обочины?", old_house},
-//{Answer, 0, "Где мы могли бы найти достойное оружие или броню?"},
-//{Answer, 0, "Возможно нам стоит обсудить переспективы дальнейшего сотрудничества?", 0, 0, false, {Diplomacy, 20}},
-//{Answer, 0, "Пока ничего не надо."},
-//{}};
+static speech hero_history[] = {{Speech, 0, "В основном тем чем придется. Немного собирал мусор, немного играл в карты."},
+{}};
 static speech party_member[] = {{Action, noint, "%герой дружественно рычить."},
 {Action, noint, "%герой мурлыкая трется об ладонь."},
 {Action, noint, "%герой с интересом смотрит на тебя.", 0, 0, true},
-{Speech, lowint, "Чего твоя хететь?"},
+{Speech, lowint, "Чего твоя хотеть?"},
 {Speech, lowint, "Угу?", 0, 0, true},
 {Speech, 0, "Какие планы?"},
 {Speech, 0, "Что будем делать?"},
 {Speech, 0, "Говори."},
 {Answer, isguard, "Пошли со мной.", 0, 0, false, {}, remguard},
 {Answer, isnoguard, "Охраняй это место.", 0, 0, false, {}, setguard},
+{Answer, 0, "Чего ты постоянно молчишь? Будь немного веселей. Трави шутки что-ли."},
+{Answer, 0, "Хороший ты парень. ем ты занимался до встречи со мной?", hero_history},
 {Answer, 0, "Ничего особенного. Продолжаем движение."},
 {}};
-static speech smalltalk[] = {{Action, noint, "%герой раздраженно рычит."},
+static speech priest_talk[] = {{Speech, 0, "Что еще тебя мучит сын мой?"},
+{Speech, 0, "Чего еще желаешь?"},
+{Answer, 0, "Расскажи мне что это за место?", priest_talk},
+{Answer, 0, "Такое огромное здание? И ты здесь главный?", priest_talk},
+{Answer, 0, "Пожалуй мне пора идти.", priest_talk},
+{}};
+static speech smalltalk[] = {{Speech, ishenchmen, "Да, босс, слушаю.", 0, party_member, true},
+{Action, noint, "%герой раздраженно рычит."},
 {Action, noint, "%герой недоуменно смотрит на %ГЕРОЙ.", 0, 0, true},
 {Speech, lowint, "Чего твоя хотеть?"},
 {Speech, lowint, "Твоя тут нравиться?"},
 {Speech, lowint, "Моя устал%а сегодня."},
 {Speech, lowint, "Моя гулять здесь.", 0, 0, true},
+{Speech, ishightpriest, "Здраствуй друг. Чего желаешь?", 0, priest_talk, true},
 {Speech, 0, "Привет! Как дела?"},
 {Speech, 0, "Хороший день, да?"},
 {Speech, 0, "Эх! Устал%а я..."},
@@ -104,8 +114,5 @@ static speech smalltalk[] = {{Action, noint, "%герой раздраженно рычит."},
 
 void creature::chat(creature* e) {
 	dialog dg(this, e);
-	if(isfriend(e) && e->getleader() == this && e->role == Character)
-		dg.start(party_member);
-	else
-		dg.start(smalltalk);
+	dg.start(smalltalk);
 }

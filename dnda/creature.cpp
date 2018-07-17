@@ -953,10 +953,7 @@ bool creature::isparty(const creature* value) const {
 bool creature::isfriend(const creature* value) const {
 	if(!value)
 		return false;
-	return party == value
-		|| charmer == value
-		|| value->party == this
-		|| value->charmer == this;
+	return &getai() == &value->getai();
 }
 
 bool creature::isenemy(const creature* target) const {

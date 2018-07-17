@@ -8,7 +8,7 @@ aref<const speech*> dialog::select(aref<const speech*> source, const speech* p, 
 			if(p->type != type)
 				continue;
 			if(p->test) {
-				if(p->type == Speech) {
+				if(p->type == Answer) {
 					if(!p->test(*player, *this))
 						continue;
 				} else {
@@ -72,8 +72,11 @@ const speech* dialog::phase(const speech* p) {
 	auto ask = say(p, Action);
 	if(!ask)
 		ask = say(p, Speech);
-	if(ask)
+	if(ask) {
 		apply(*ask);
+		if(ask->fail)
+			p = ask->fail;
+	}
 	if(say(p, Answer)) {
 		auto index = logs::input();
 		apply(p[index]);
