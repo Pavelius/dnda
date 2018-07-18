@@ -559,6 +559,7 @@ struct creature {
 	static void			select(creature** result, rect rc);
 	aref<item*>			select(aref<item*> result, target_s target) const;
 	aref<creature*>		select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const;
+	static aref<role_s>	select(aref<role_s> result, int min_level, int max_level);
 	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start, bool los = true) const;
 	void				set(state_s value, unsigned segments, bool after_recoil = false);
 	void				set(spell_s value, int level);

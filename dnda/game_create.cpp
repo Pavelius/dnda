@@ -296,7 +296,7 @@ static void create_door(short unsigned index) {
 		set(index, Sealed, true);
 }
 
-static void create_shop(int x0, int y0, int w, int h, int chance, unsigned char level, bool forsale, aref<item_s> source) {
+static void create_shop(int x0, int y0, int w, int h, int chance, unsigned char level, bool forsale, aref<item_s> source, int chance_curse = 0, identify_s identify = KnowEffect) {
 	if(!source)
 		return;
 	for(auto y = y0; y < y0 + h; y++) {
@@ -306,7 +306,7 @@ static void create_shop(int x0, int y0, int w, int h, int chance, unsigned char 
 			if(x < 0 || x >= max_map_x)
 				continue;
 			if(d100() < chance)
-				create_item(get(x, y), source.data[rand() % source.count], level, forsale, KnowEffect, 0);
+				create_item(get(x, y), source.data[rand() % source.count], level, forsale, identify, chance_curse);
 		}
 	}
 }
@@ -331,17 +331,17 @@ static void create_objects(site& e, int x, int y, int w, int h, site_s type) {
 		break;
 	case ShopPotionAndScrolls:
 		create_shopkeeper(e, pt);
-		create_shop(x, y, w, h, 90, 30, true, item_potion_scrolls);
+		create_shop(x, y, w, h, 90, 10, true, item_potion_scrolls);
 		break;
 	case ShopFood:
 		create_shopkeeper(e, pt);
-		create_shop(x, y, w, h, 90, 5, true, item_food);
+		create_shop(x, y, w, h, 90, 10, true, item_food, 25, Unknown);
 		break;
 	case TreasureRoom:
 		create_shop(x, y, w, h, 80, 10, false, item_treasure);
 		break;
 	case Barracs:
-		for(auto i = xrand(1, 3); i > 0; i--)
+		for(auto i = xrand(2, 4); i > 0; i--)
 			creature::add(pt, HumanGuard);
 		break;
 	case CityHall:
