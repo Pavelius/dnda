@@ -47,16 +47,18 @@ const char* creature::getmonstername() const {
 	return role_data[role].name;
 }
 
-aref<role_s> creature::select(aref<role_s> result, int min_level, int max_level) {
+aref<role_s> creature::select(aref<role_s> result, int min_level, int max_level, const race_s races[4]) {
 	auto pb = result.data;
 	auto pe = result.data + result.count;
 	for(auto& e : role_data) {
-		if(e.level >= min_level && e.level <= max_level) {
-			if(pb < pe)
-				*pb++ = (role_s)(&e - role_data);
-			else
-				break;
-		}
+		if(e.level < min_level || e.level > max_level)
+			continue;
+		if(races && e.race!=races[0] && e.race != races[1] && e.race != races[2] && e.race != races[3])
+			continue;
+		if(pb < pe)
+			*pb++ = (role_s)(&e - role_data);
+		else
+			break;
 	}
 	return aref<role_s>(result.data, pb - result.data);
 }

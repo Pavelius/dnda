@@ -19,6 +19,7 @@ extern adat<site, 128>	sites;
 static vector			rooms[256];
 static unsigned char	stack_put, stack_get;
 static direction_s		connectors_side[] = {Up, Left, Right, Down};
+static adat<role_s>		monsters;
 static slot_s slots_weapons_armor[] = {Melee, Ranged, OffHand, Head, Elbows, Legs, Torso};
 static item_s item_treasure[] = {Coin, Coin, Coin, Coin, RingRed};
 static item_s item_food[] = {Ration, Ration, Ration, BreadEvlen, BreadHalflings, BreadDwarven, Sausage};
@@ -241,8 +242,8 @@ static creature* create_bartender(site& e, short unsigned index) {
 }
 
 static void create_monster(short unsigned index) {
-	static role_s monsters[] = {GoblinWarrior, OrcWarrior, GiantRat, Skeleton, Zombie};
-	creature::add(index, maprnd(monsters));
+	if(monsters)
+		creature::add(index, monsters.data[rand()%monsters.count]);
 }
 
 static creature* create_priest(site& e, short unsigned index) {
@@ -813,6 +814,9 @@ bool game::create(const char* id, short unsigned index, int level, bool explored
 			if(statistic.level < 1)
 				statistic.level = 1;
 		}
+		// Create monster list
+		monsters.clear();
+		creature::select(monsters.data, statistic.level - 1, statistic.level + 2, 0);
 		// Set new random values
 		auto count = max_map_x * max_map_y;
 		for(short unsigned i = 0; i < count; i++)
