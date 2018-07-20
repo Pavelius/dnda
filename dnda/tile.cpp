@@ -41,5 +41,7 @@ int	creature::getmoverecoil() const {
 	// RULE: Encumbrance slow movement.
 	if(getencumbrance())
 		result += 4;
+	if(is(Slowed))
+		result += 4;
 	return result;
 }

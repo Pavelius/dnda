@@ -109,7 +109,7 @@ enum state_s : unsigned char {
 	NoState,
 	Anger, Armored, Blessed, Charmed, Drunken, Hiding, Goodwill,
 	Lighted, Paralized, PoisonedWeak, Poisoned, PoisonedStrong,
-	Shielded, Sick, Scared, Sleeped, Weaken,
+	Shielded, Sick, Scared, Sleeped, Slowed, Weaken,
 	// Ability boost effect
 	Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic,
 	LastState = Charismatic,

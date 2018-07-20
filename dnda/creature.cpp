@@ -1471,6 +1471,8 @@ int creature::getattacktime(slot_s slot) const {
 	tm += 4 * getencumbrance();
 	if(tm < Minute / 4)
 		tm = Minute / 4;
+	if(is(Slowed))
+		tm += 6;
 	return tm;
 }
 
