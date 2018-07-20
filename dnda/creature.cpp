@@ -1152,7 +1152,12 @@ void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier
 	case OfParalize:
 		// RULE: chance be paralized depends on quality
 		if(!defender->roll(ResistParalize, 8 - ai.quality * 4))
-			defender->set(Paralized, Minute, true);
+			defender->set(Paralized, Minute);
+		break;
+	case OfSlowing:
+		// RULE: chance be paralized depends on quality
+		if(!defender->roll(ResistParalize, - ai.quality * 5))
+			defender->set(Slowed, Minute);
 		break;
 	case OfWeakness:
 		if(ai.quality < 0) {
@@ -1511,7 +1516,7 @@ void creature::remove(state_s value) {
 		states[value] = segments;
 }
 
-void creature::set(state_s value, unsigned segments_count, bool after_recoil) {
+void creature::set(state_s value, unsigned segments_count) {
 	switch(value) {
 	case RestoreHits:
 		heal(xrand(10, 20), false);
@@ -1530,7 +1535,7 @@ void creature::set(state_s value, unsigned segments_count, bool after_recoil) {
 		break;
 	default:
 		if(value <= LastState) {
-			unsigned stop = ((after_recoil && recoil) ? recoil : segments) + segments_count;
+			unsigned stop = recoil + segments_count;
 			if(states[value] < stop)
 				states[value] = stop;
 		}

@@ -33,7 +33,7 @@ void action::applyrnd(creature& player, item& it) const {
 
 static void setstate(creature& player, item& it, const action& e) {
 	if(e.value.type == State)
-		player.set(e.value.state, e.duration, true);
+		player.set(e.value.state, e.duration);
 }
 
 static void waitmore(creature& player, item& it, const action& e) {

@@ -58,7 +58,7 @@ enum enchantment_s : unsigned char {
 	OfOrcSlying,
 	OfParalize, OfPoison, OfPrecision,
 	OfRegeneration,
-	OfSickness, OfSharping, OfSmashing, OfSpeed, OfStrenght, OfSustenance,
+	OfSickness, OfSharping, OfSlowing, OfSmashing, OfSpeed, OfStrenght, OfSustenance,
 	OfVampirism, OfWeakness, OfWisdow,
 	// Resistances
 	OfAcidResistance, OfCharmResistance, OfColdResistance, OfFireResistance, OfParalizeResistance,
@@ -561,7 +561,7 @@ struct creature {
 	aref<creature*>		select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const;
 	static aref<role_s>	select(aref<role_s> result, int min_level, int max_level, const race_s races[4]);
 	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start, bool los = true) const;
-	void				set(state_s value, unsigned segments, bool after_recoil = false);
+	void				set(state_s value, unsigned segments);
 	void				set(spell_s value, int level);
 	void				setcharmer(creature* value) { charmer = value; }
 	static void			setblocks(short unsigned* movements, short unsigned value);

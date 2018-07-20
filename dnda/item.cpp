@@ -51,6 +51,7 @@ static struct enchantment_info {
 {"regeneration", "регенерации", "увядания", 10},
 {"sickness", "болезни", "тошноты", 5},
 {"sharping", "остроты", "тупости", 5},
+{"slowing", "замедления", "замедления", 7},
 {"smashing", "раскалывания", "заботы", 5},
 {"speed", "скорости", "замедления", 3},
 {"strenght", "силы", "слабости", 8},
@@ -77,9 +78,9 @@ static const char* item_adv[][4] = {{"", "", "", ""},
 {"реликт", "реликт", "реликт", "реликт"},
 };
 static enchantment_s bite_effect[] = {OfPoison, OfWeakness};
-static enchantment_s swords_effect[] = {OfCold, OfDefence, OfDexterity, OfFire, OfSpeed, OfPrecision, OfSharping, OfVampirism, OfWeakness};
+static enchantment_s swords_effect[] = {OfCold, OfDefence, OfDexterity, OfFire, OfSlowing, OfSpeed, OfPrecision, OfSharping, OfVampirism, OfWeakness};
 static enchantment_s axe_effect[] = {OfCold, OfFire, OfStrenght, OfSharping, OfSmashing};
-static enchantment_s bludgeon_effect[] = {OfConstitution, OfFire, OfSmashing, OfStrenght};
+static enchantment_s bludgeon_effect[] = {OfConstitution, OfFire, OfSlowing, OfSmashing, OfStrenght};
 static enchantment_s pierce_effect[] = {OfDefence, OfDexterity, OfPoison, OfPrecision, OfSickness, OfSpeed, OfWeakness};
 static enchantment_s armor_effect[] = {OfDefence, OfArmor, OfCharisma, OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof};
 static enchantment_s shield_effect[] = {OfDefence, OfArmor, OfAcidResistance, OfColdResistance, OfElectricityResistance, OfFireResistance, OfPoisonResistance, OfWaterproof, OfMissileDeflection, OfMissileDeflection};
