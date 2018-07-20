@@ -1,27 +1,25 @@
 #include "main.h"
 
-struct roomeffect {
+static struct room_info {
 	struct search_item { // This is for skill Alertness
 		const char*		text;
-		char			chance;
+		char			chance; // Bonus to skill Alertness
 		char			quality; // Blessed of Cursed is fate decided
 		char			magic; // Chance to be artifact is magic/10.
 		aref<item_s>	items;
 	};
 	struct monster_info {
 		char			chance;
-		aref<role_s>	monsters;
 		char			level;
+		aref<role_s>	monsters;
 	};
-	struct skill_info {
-		skill_s			skill;
-		char			bonus;
-		void(*success)(roomeffect& e);
-		void(*fail)(roomeffect& e);
-		explicit operator bool() const { return skill != NoSkill; }
-	};
+	const char*			name; // Message appear to player when enter to room
 	const char*			entering; // Message appear to player when enter to room
 	search_item			search;
 	monster_info		appear;
-	skill_info			skills[4];
+	aref<effectinfo>	skills;
+} room_data[] = {{},
+{" омната с оружием", "Ќа стелажах вокруг вас сто€ло было размещено разнообразное оружие.",
+{"Ќа одном из стеллажей вы нашли более менее работоспособное оружие.", 0, 50},
+{}},
 };
