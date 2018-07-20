@@ -609,6 +609,7 @@ private:
 	unsigned			money;
 	//
 	static bool			playturn();
+	void				updaterooms();
 	void				updateweight();
 	bool				walkaround(aref<creature*> creatures);
 };
