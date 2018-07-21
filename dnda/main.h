@@ -614,152 +614,149 @@ private:
 	bool				walkaround(aref<creature*> creatures);
 };
 struct site : rect {
-	site_s			type;
-	diety_s			diety;
-	unsigned char	name[2];
-	creature*		owner;
-	constexpr site() : rect({0, 0, 0, 0}), type(EmpthyRoom), diety(NoGod), name(), owner() {}
+	site_s				type;
+	diety_s				diety;
+	unsigned char		name[2];
+	unsigned char		found;
+	creature*			owner;
+	constexpr site() : rect({0, 0, 0, 0}), type(EmpthyRoom), diety(NoGod), name(), owner(), found(0) {}
 	operator bool() const { return x1 != x2; }
-	char*			getname(char* result) const;
+	int					getfoundchance() const;
+	char*				getname(char* result) const;
 };
 struct speech {
-	speech_s		type;
+	speech_s			type;
 	bool(*test)(const creature& player, const dialog& e);
-	const char*		text;
-	speech*			success;
-	speech*			fail;
-	bool			stop_analize;
-	skillvalue		skill;
-	variant			value;
+	const char*			text;
+	speech*				success;
+	speech*				fail;
+	bool				stop_analize;
+	skillvalue			skill;
+	variant				value;
 	void(*proc)(dialog& e, const speech& sp);
 	explicit operator bool() const { return type != NoTalking; }
 };
 struct dialog {
-	creature*		player;
-	creature*		opponent;
-	speech*			result;
+	creature*			player;
+	creature*			opponent;
+	speech*				result;
 	constexpr dialog(creature* player, creature* opponent) : player(player), opponent(opponent), result(0) {}
-	void			start(const speech* p);
+	void				start(const speech* p);
 private:
-	void			apply(const speech& e);
+	void				apply(const speech& e);
 	aref<const speech*>	select(aref<const speech*> source, const speech* p, speech_s type) const;
-	const speech*	say(const speech* pb, speech_s type);
-	const speech*	phase(const speech* p);
+	const speech*		say(const speech* pb, speech_s type);
+	const speech*		phase(const speech* p);
 };
-bool				lowint(const creature& player, const dialog& e);
-bool				noint(const creature& player, const dialog& e);
+bool					lowint(const creature& player, const dialog& e);
+bool					noint(const creature& player, const dialog& e);
 struct groundinfo {
-	item			object;
-	short unsigned	index;
+	item				object;
+	short unsigned		index;
 };
 struct areainfo {
-	short unsigned	index; // Позиция на карте мира
-	short unsigned	positions[8]; // Several positions
-	unsigned char	level; // Уровень поздземелья
-	unsigned char	rooms; // Количество комнат
-	unsigned short	artifacts;
-	bool			isdungeon; // Underground dungeons has 'true'
-	race_s			habbitants[4];
+	short unsigned		index; // Позиция на карте мира
+	short unsigned		positions[8]; // Several positions
+	unsigned char		level; // Уровень поздземелья
+	unsigned char		rooms; // Количество комнат
+	unsigned short		artifacts;
+	bool				isdungeon; // Underground dungeons has 'true'
+	race_s				habbitants[4];
 	constexpr areainfo() : index(Blocked), level(1), rooms(0), isdungeon(false),
 		artifacts(0), habbitants(),
 		positions{Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked} {}
 };
 struct manual {
 	typedef void(*proc)(stringbuffer& sc, manual& e);
-	manual_s		type;
-	variant			value;
-	const char*		text;
-	manual*			child;
-	aref<proc>		procs;
+	manual_s			type;
+	variant				value;
+	const char*			text;
+	manual*				child;
+	aref<proc>			procs;
 	explicit operator bool() const { return value.type != 0; }
 };
 namespace game {
-site*				add(site_s type, rect rc);
-bool				create(const char* id, short unsigned index, int level, bool explored = false, bool visualize = false);
-int					distance(short unsigned i1, short unsigned i2);
-void				drop(short unsigned i, item object);
-unsigned short		genname(race_s race, gender_s gender);
-inline short unsigned get(int x, int y) { return y * max_map_x + x; }
-const attackinfo&	getattackinfo(trap_s slot);
-direction_s			getdirection(point s, point d);
-short unsigned		getfree(short unsigned i);
-int					getindex(short unsigned i, tile_s value);
-site*				getlocation(short unsigned i);
-int					getitems(item** result, unsigned maximum_count, short unsigned index);
-short unsigned		getmovement(short unsigned i);
-const char*			getnamepart(unsigned short value);
-creature*			getnearest(aref<creature*> source, short unsigned position);
-creature*			getnearest(aref<creature*> source, short unsigned position, targetdesc ti);
-int					getnight();
-int					getrand(short unsigned i);
-aref<site>			getsites();
-short unsigned		getstepto(short unsigned index);
-short unsigned		getstepfrom(short unsigned index);
-const char*			getdate(char* result, const char* result_maximum, unsigned segments, bool show_time);
-trap_s				gettrap(short unsigned i);
-tile_s				gettile(short unsigned i);
-map_object_s		getobject(short unsigned i);
-inline unsigned char getx(short unsigned i) { return i % max_map_x; }
-inline unsigned char gety(short unsigned i) { return i / max_map_x; }
-void				initialize(short unsigned index, int level, tile_s tile);
-bool				is(short unsigned i, map_flag_s v);
-bool				isdungeon();
-bool				ispassable(short unsigned i);
-bool				ispassabledoor(short unsigned i);
-bool				ispassablelight(short unsigned i);
-void				looktarget(short unsigned index);
-void				lookhere(short unsigned index);
-void				makewave(short unsigned index, bool(*proc)(short unsigned) = ispassabledoor);
-bool				serialize(bool writemode);
-bool				serializep(short unsigned index, bool writemode);
-bool				serializew(bool writemode);
-void				set(short unsigned i, tile_s value);
-void				set(short unsigned i, tile_s value, int w, int h);
-void				set(short unsigned i, map_object_s value);
-void				set(short unsigned i, map_flag_s type, bool value = true);
-void				set(short unsigned i, unsigned char value);
-extern areainfo		statistic;
-short unsigned		to(short unsigned index, direction_s side);
-direction_s			turn(direction_s from, direction_s side);
+site*					add(site_s type, rect rc);
+bool					create(const char* id, short unsigned index, int level, bool explored = false, bool visualize = false);
+int						distance(short unsigned i1, short unsigned i2);
+void					drop(short unsigned i, item object);
+unsigned short			genname(race_s race, gender_s gender);
+inline short unsigned	get(int x, int y) { return y * max_map_x + x; }
+const attackinfo&		getattackinfo(trap_s slot);
+direction_s				getdirection(point s, point d);
+short unsigned			getfree(short unsigned i);
+int						getindex(short unsigned i, tile_s value);
+site*					getlocation(short unsigned i);
+int						getitems(item** result, unsigned maximum_count, short unsigned index);
+short unsigned			getmovement(short unsigned i);
+const char*				getnamepart(unsigned short value);
+creature*				getnearest(aref<creature*> source, short unsigned position);
+int						getnight();
+int						getrand(short unsigned i);
+aref<site>				getsites();
+short unsigned			getstepto(short unsigned index);
+short unsigned			getstepfrom(short unsigned index);
+const char*				getdate(char* result, const char* result_maximum, unsigned segments, bool show_time);
+trap_s					gettrap(short unsigned i);
+tile_s					gettile(short unsigned i);
+map_object_s			getobject(short unsigned i);
+inline unsigned char	getx(short unsigned i) { return i % max_map_x; }
+inline unsigned char	gety(short unsigned i) { return i / max_map_x; }
+void					initialize(short unsigned index, int level, tile_s tile);
+bool					is(short unsigned i, map_flag_s v);
+bool					isdungeon();
+bool					ispassable(short unsigned i);
+bool					ispassabledoor(short unsigned i);
+bool					ispassablelight(short unsigned i);
+void					looktarget(short unsigned index);
+void					lookhere(short unsigned index);
+void					makewave(short unsigned index, bool(*proc)(short unsigned) = ispassabledoor);
+bool					serialize(bool writemode);
+bool					serializep(short unsigned index, bool writemode);
+bool					serializew(bool writemode);
+void					set(short unsigned i, tile_s value);
+void					set(short unsigned i, tile_s value, int w, int h);
+void					set(short unsigned i, map_object_s value);
+void					set(short unsigned i, map_flag_s type, bool value = true);
+void					set(short unsigned i, unsigned char value);
+extern areainfo			statistic;
+short unsigned			to(short unsigned index, direction_s side);
+direction_s				turn(direction_s from, direction_s side);
 };
 namespace logs {
 struct driver : stringcreator {
-	gender_s		gender;
-	gender_s		gender_opponent;
-	const char*		name;
-	const char*		name_opponent;
+	gender_s			gender;
+	gender_s			gender_opponent;
+	const char*			name;
+	const char*			name_opponent;
 	constexpr driver() : gender(Male), gender_opponent(Male), name(""), name_opponent("") {}
 	constexpr driver(const char* name_param, gender_s gender_param) : name(name_param), gender(gender_param), name_opponent(""), gender_opponent(Male) {}
-	void			parseidentifier(char* result, const char* result_max, const char* identifier) override;
+	void				parseidentifier(char* result, const char* result_max, const char* identifier) override;
 };
-void				add(const char* format, ...);
-void				addnc(const char* format, ...);
-void				add(int id, const char* format, ...);
-void				addv(const char* format, const char* param);
-void				addv(stringcreator& driver, const char* format, const char* param);
-void				addvnc(stringcreator& driver, const char* format, const char* param);
-short unsigned		choose(const creature& e, short unsigned* source, int count);
-item*				choose(const creature& e, item** source, unsigned count, const char* title);
-bool				choose(creature& e, skill_s& result, aref<skill_s> source, bool can_escape = true);
-bool				choose(creature& e, skill_s& result, bool can_escape = true);
-bool				choose(creature& e, spell_s& result, aref<spell_s> source);
-bool				choose(creature& e, spell_s& result);
-bool				chooseyn();
-void				focusing(short unsigned index);
-bool				getindex(const creature& e, short unsigned& result, targetdesc ti);
-void				initialize();
-int					input();
-void				minimap(short unsigned position);
-void				next();
-void				raise(creature& e, int left);
-void				turn(creature& e);
-void				worldedit();
+void					add(const char* format, ...);
+void					addnc(const char* format, ...);
+void					add(int id, const char* format, ...);
+void					addv(const char* format, const char* param);
+void					addv(stringcreator& driver, const char* format, const char* param);
+void					addvnc(stringcreator& driver, const char* format, const char* param);
+short unsigned			choose(const creature& e, short unsigned* source, int count);
+item*					choose(const creature& e, item** source, unsigned count, const char* title);
+bool					choose(creature& e, skill_s& result, aref<skill_s> source, bool can_escape = true);
+bool					choose(creature& e, skill_s& result, bool can_escape = true);
+bool					choose(creature& e, spell_s& result, aref<spell_s> source);
+bool					choose(creature& e, spell_s& result);
+bool					chooseyn();
+void					focusing(short unsigned index);
+void					initialize();
+int						input();
+void					minimap(short unsigned position);
+void					next();
+void					raise(creature& e, int left);
+void					turn(creature& e);
+void					worldedit();
 }
-extern adat<groundinfo, 2048>	grounditems;
-unsigned			getday();
-unsigned			gethour();
-unsigned			getminute();
-unsigned			getmonth();
-unsigned			getturn();
-unsigned			getyear();
-extern unsigned		segments;
+extern adat<groundinfo, 2048> grounditems;
+unsigned				getday();
+unsigned				gethour();
+unsigned				getminute();
+extern unsigned			segments;

@@ -1927,7 +1927,7 @@ void logs::initialize() {
 	colors::h2 = colors::text.mix(colors::edit, 96);
 	colors::h3 = colors::text.mix(colors::edit, 128);
 	colors::special = color::create(255, 244, 32);
-	//colors::border = colors::window.mix(colors::text, 128);
+	colors::border = colors::window.mix(colors::text, 192);
 	colors::tips::text = color::create(255, 255, 255);
 	colors::tips::back = color::create(100, 100, 120);
 	colors::tabs::back = color::create(255, 204, 0);

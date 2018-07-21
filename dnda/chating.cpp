@@ -23,6 +23,10 @@ static bool ishightpriest(const creature& player, const dialog& e) {
 	return p && p->type == Temple && p->owner == &player;
 }
 
+static bool ischild(const creature& player, const dialog& e) {
+	return player.getrole()==HumanChild;
+}
+
 static bool ishenchmen(const creature& player, const dialog& e) {
 	return player.isfriend(e.player) && player.getrole() == Character;
 }
@@ -100,6 +104,9 @@ static speech priest_talk[] = {{Speech, 0, "Что еще тебя мучит %ДОЧЬ_МОЯ?"},
 {}};
 static speech smalltalk[] = {{Speech, ishenchmen, "Да, босс, слушаю.", 0, party_member, true},
 {Speech, ishightpriest, "Здраствуй %ДОЧЬ_МОЯ. Чего желаешь?", 0, priest_talk, true},
+{Speech, ischild, "Какой ты большой!"},
+{Speech, ischild, "Я знаю один секретный секрет!"},
+{Speech, ischild, "Мама мне не разрешает разговаривать с незнакомцами.", 0, 0, true},
 {Action, noint, "%герой раздраженно рычит."},
 {Action, noint, "%герой недоуменно смотрит на %ГЕРОЙ.", 0, 0, true},
 {Speech, lowint, "Чего твоя хотеть?"},
