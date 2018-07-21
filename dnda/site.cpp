@@ -16,7 +16,8 @@ static struct site_info {
 	const char*			name;
 	const char*			entering; // Message appear to player when enter to room
 	search_item			search;
-	monster_info		appear;
+	monster_info		mosnter;
+	adat<map_object_s, 4> objects;
 	aref<effectinfo>	skills;
 } site_data[] = {{"Комната"},
 {"Комната"},
@@ -38,4 +39,32 @@ int	site::getfoundchance() const {
 	if(found > 5)
 		return 0;
 	return 100 - (found * 20);
+}
+
+void site::wait(unsigned value) {
+	if(!recoil)
+		recoil = segments;
+	recoil += value;
+}
+
+short unsigned site::getposition() const {
+	return game::get(x1 + width() / 2, y1 + height() / 2);
+}
+
+creature* site::add(role_s role) const {
+	auto p = new creature(role);
+	if(!p)
+		return 0;
+	p->move(game::getfree(getposition()));
+	return p;
+}
+
+void site::initialize() {
+	if(site_data[type].mosnter.owner)
+		owner = add(site_data[type].mosnter.owner);
+}
+
+void site::entering(creature& player) {
+	if(site_data[type].entering)
+		player.hint(site_data[type].entering);
 }

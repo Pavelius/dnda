@@ -621,3 +621,10 @@ bool game::serializew(bool writemode) {
 	a.setr(mprnd);
 	return true;
 }
+
+void game::release(const creature* p) {
+	for(auto& e : sites) {
+		if(e.owner == p)
+			e.owner = 0;
+	}
+}

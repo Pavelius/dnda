@@ -464,6 +464,7 @@ void creature::release() const {
 		if(current_player == this)
 			current_player = new_leader;
 	}
+	game::release(this);
 }
 
 void creature::clear() {
@@ -731,10 +732,10 @@ void creature::updateweight() {
 	}
 }
 
-void creature::wait(int segments) {
+void creature::wait(int value) {
 	if(!recoil)
 		recoil = segments;
-	recoil += segments;
+	recoil += value;
 }
 
 creature* creature::getnearest(aref<creature*> source, targetdesc ti) const {
@@ -833,7 +834,12 @@ bool creature::move(short unsigned i) {
 	if(!ispassable(i))
 		return false;
 	position = i;
-	current_site = getlocation(position);
+	auto new_current_site = getlocation(position);
+	if(current_site != new_current_site) {
+		if(new_current_site)
+			new_current_site->entering(*this);
+	}
+	current_site = new_current_site;
 	if(isplayer())
 		lookfloor();
 	trapeffect();

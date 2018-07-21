@@ -619,10 +619,19 @@ struct site : rect {
 	unsigned char		name[2];
 	unsigned char		found;
 	creature*			owner;
-	constexpr site() : rect({0, 0, 0, 0}), type(EmpthyRoom), diety(NoGod), name(), owner(), found(0) {}
+	constexpr site() : rect({0, 0, 0, 0}), type(EmpthyRoom), diety(NoGod), name(), owner(),
+		found(0), recoil(0) {}
 	operator bool() const { return x1 != x2; }
+	void				entering(creature& player);
+	void				initialize();
 	int					getfoundchance() const;
 	char*				getname(char* result) const;
+	short unsigned		getposition() const;
+	void				update();
+private:
+	unsigned			recoil;
+	creature*			add(role_s role) const;
+	void				wait(unsigned count);
 };
 struct speech {
 	speech_s			type;
@@ -711,6 +720,7 @@ bool					ispassablelight(short unsigned i);
 void					looktarget(short unsigned index);
 void					lookhere(short unsigned index);
 void					makewave(short unsigned index, bool(*proc)(short unsigned) = ispassabledoor);
+void					release(const creature* p);
 bool					serialize(bool writemode);
 bool					serializep(short unsigned index, bool writemode);
 bool					serializew(bool writemode);
