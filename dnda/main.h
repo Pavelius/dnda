@@ -609,7 +609,6 @@ private:
 	unsigned			money;
 	//
 	static bool			playturn();
-	void				updaterooms();
 	void				updateweight();
 	bool				walkaround(aref<creature*> creatures);
 };
@@ -623,7 +622,6 @@ struct site : rect {
 		found(0), recoil(0) {}
 	operator bool() const { return x1 != x2; }
 	void				entering(creature& player);
-	void				initialize();
 	int					getfoundchance() const;
 	char*				getname(char* result) const;
 	short unsigned		getposition() const;

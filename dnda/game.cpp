@@ -9,8 +9,8 @@ areainfo				game::statistic;
 int						isqrt(int num);
 static unsigned			start_year;
 unsigned				segments = 7 * Hour;
-adat<site, 128>			sites;
 adat<groundinfo, 2048>	grounditems;
+adat<site, 128>			sites;
 static tile_s			mptil[max_map_x*max_map_y];
 static map_object_s		mpobj[max_map_x*max_map_y];
 static unsigned char	mprnd[max_map_x*max_map_y];
@@ -39,6 +39,13 @@ bool game::is(short unsigned i, map_flag_s v) {
 
 aref<site> game::getsites() {
 	return sites;
+}
+
+void game::release(const creature* p) {
+	for(auto& e : sites) {
+		if(e.owner == p)
+			e.owner = 0;
+	}
 }
 
 void game::set(short unsigned i, map_flag_s type, bool value) {
@@ -550,17 +557,13 @@ site* game::getlocation(short unsigned i) {
 	return 0;
 }
 
-char* site::getname(char* result) const {
-	zcpy(result, getstr(type));
-	return result;
-}
-
 template<> void archive::set<site>(site& e) {
 	set(e.type);
 	set(e.x1); set(e.y1); set(e.x2); set(e.y2);
 	set(e.diety);
 	set(e.name);
 	set(e.owner);
+	set(e.found);
 }
 
 archive::dataset creature_dataset();
@@ -620,11 +623,4 @@ bool game::serializew(bool writemode) {
 	a.setr(mpobj);
 	a.setr(mprnd);
 	return true;
-}
-
-void game::release(const creature* p) {
-	for(auto& e : sites) {
-		if(e.owner == p)
-			e.owner = 0;
-	}
 }

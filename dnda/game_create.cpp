@@ -439,7 +439,7 @@ static void create_corridor_content(short unsigned index) {
 	proc chances[] = {create_trap,
 		create_treasure, create_treasure,
 		//create_door,
-		create_monster, create_monster, create_monster,
+		create_monster, create_monster,
 		create_dungeon_item, create_dungeon_item,
 	};
 	maprnd(chances)(index);

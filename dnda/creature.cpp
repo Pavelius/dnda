@@ -247,6 +247,8 @@ bool creature::playturn() {
 		if(e.recoil <= segments)
 			e.recoil = segments + 1;
 	}
+	for(auto& e : getsites())
+		e.update();
 	return current_player != 0;
 }
 

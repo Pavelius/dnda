@@ -9,24 +9,17 @@ static struct site_info {
 		aref<item_s>	items;
 		explicit operator bool() const { return text != 0; }
 	};
-	struct monster_info {
-		role_s			owner;
-		role_s			wandering;
-	};
 	const char*			name;
 	const char*			entering; // Message appear to player when enter to room
 	search_item			search;
-	monster_info		mosnter;
-	adat<map_object_s, 4> objects;
-	aref<effectinfo>	skills;
 } site_data[] = {{"Комната"},
 {"Комната"},
 {"Лестница вниз"},
 {"Лестница вверх"},
 {"Дом"},
 {"Храм"},
-{"Таверна"},
-{"Бараки"},
+{"Таверна", "В комнате стояло много столов и вкусно пахло едой. Люди, которые здесь были отдыхали и пили."},
+{"Бараки", "Несколько кроватей стояло вдоль стен. Похоже здесь ночует стража."},
 {"Городской совет"},
 {"Магазин оружия и брони", "Небольшая комната в которой на столах и на стойках стояло множетсво оружия на продажу."},
 {"Магазин свитков и зельев", "Зал был заставлен шкафами в которых лежали свитки и тома. Рядом стояли столы с лежащими на них бутылочках непонятного содержимымого."},
@@ -52,19 +45,24 @@ short unsigned site::getposition() const {
 }
 
 creature* site::add(role_s role) const {
-	auto p = new creature(role);
-	if(!p)
-		return 0;
-	p->move(game::getfree(getposition()));
-	return p;
-}
-
-void site::initialize() {
-	if(site_data[type].mosnter.owner)
-		owner = add(site_data[type].mosnter.owner);
+	return creature::add(game::getfree(getposition()), role);
 }
 
 void site::entering(creature& player) {
 	if(site_data[type].entering)
 		player.hint(site_data[type].entering);
+}
+
+void site::update() {
+	if(recoil > segments)
+		return;
+	if(game::isdungeon()) {
+		add(GoblinWarrior);
+	}
+	wait(xrand(5 * Minute, 15 * Minute));
+}
+
+char* site::getname(char* result) const {
+	zcpy(result, getstr(type));
+	return result;
 }

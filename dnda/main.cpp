@@ -59,8 +59,8 @@ int main(int argc, char* argv[]) {
 	//return 0;
 	logs::initialize();
 	create("city", get(10, 10), 0, false, false);
-	//auto start_index = game::statistic.positions[0];
-	auto start_index = get(10, 10);
+	auto start_index = game::statistic.positions[0];
+	//auto start_index = get(10, 10);
 	auto p1 = creature::add(start_index, Human, Female, Mage);
 	auto p2 = creature::add(start_index, Dwarf, Male, Fighter);
 	auto p3 = creature::add(start_index, Elf, Male, Theif);
