@@ -35,6 +35,8 @@ static struct equipment_info {
 } equipment_data[] = {{Dwarf, Fighter, {AxeBattle, ScaleMail, Shield, BreadDwarven}},
 {Elf, Ranger, {SwordLong, SwordShort, LeatherArmour, BowLong}},
 {Elf, Fighter, {SwordLong, LeatherArmour, BowLong}},
+{Halfling, Fighter, {SwordShort, LeatherArmour, BreadHalflings}},
+{Halfling, Theif, {SwordShort, LeatherArmour, RingRed}},
 {Animal, Cleric, {Mace}},
 {Animal, Fighter, {SwordLong, LeatherArmour, Shield}},
 {Animal, Paladin, {SwordLong, ScaleMail}},
@@ -53,8 +55,8 @@ static struct race_info {
 //
 {"Человек", {9, 9, 9, 9, 9, 9}, {11, 11, 11, 11, 11, 11}, {Bargaining, Gambling, Swimming}},
 {"Гном", {11, 6, 13, 9, 9, 9}, {14, 9, 15, 11, 11, 11}, {Smithing, Mining, Athletics}, {{ResistPoison, 30}}},
-{"Эльф", {8, 12, 6, 11, 10, 11}, {10, 14, 8, 13, 12, 13}, {Survival, WeaponFocusBows, Swimming}, {{ResistCharm, 40}}},
-{"Полурослик", {6, 10, 10, 9, 10, 9}, {8, 13, 11, 11, 12, 11}, {HideInShadow, Acrobatics, Swimming}},
+{"Эльф", {8, 12, 6, 11, 10, 11}, {10, 14, 8, 13, 12, 13}, {Survival, WeaponFocusBows, Swimming}, {{ResistCharm, 30}}},
+{"Полурослик", {6, 11, 10, 9, 10, 9}, {8, 13, 11, 11, 12, 11}, {HideInShadow, Acrobatics, Swimming}},
 //
 {"Гоблин", {5, 12, 8, 6, 9, 6}, {7, 14, 10, 8, 11, 8}, {HideInShadow, Acrobatics, Swimming}},
 {"Кобольд", {5, 13, 7, 6, 9, 6}, {7, 15, 9, 8, 11, 8}, {HideInShadow, Acrobatics, Swimming}},
@@ -421,7 +423,7 @@ static spell_s choose_spells(creature* p) {
 	return source[rand() % count];
 }
 
-creature::creature(race_s race, gender_s gender, class_s type) {
+void creature::create(race_s race, gender_s gender, class_s type) {
 	clear();
 	this->race = race;
 	this->gender = gender;
@@ -432,6 +434,7 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 		raise(Literacy);
 	for(auto e : class_data[type].spells)
 		set(e, 1);
+	start_equipment(*this);
 	// Повысим навыки
 	auto skill_checks = maptbl(int_checks, abilities[Intellegence]);
 	raiseskills(skill_checks);
@@ -440,8 +443,6 @@ creature::creature(race_s race, gender_s gender, class_s type) {
 	mmp = 0; mp = getmaxmana();
 	// Имя
 	name = game::genname(race, gender);
-	//
-	start_equipment(*this);
 	updateweight();
 }
 
@@ -1959,10 +1960,10 @@ void creature::play() {
 			serialize(true);
 			auto object = getobject(exit_index);
 			if(object == StairsDown) {
-				create(AreaDungeon, statistic.index, statistic.level + 1);
+				game::create(AreaDungeon, statistic.index, statistic.level + 1);
 				serializep(statistic.positions[1], false);
 			} else {
-				create(AreaDungeon, statistic.index, statistic.level - 1);
+				game::create(AreaDungeon, statistic.index, statistic.level - 1);
 				serializep(statistic.positions[0], false);
 			}
 		}

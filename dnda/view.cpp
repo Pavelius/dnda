@@ -1582,10 +1582,10 @@ bool logs::chooseyn() {
 
 int logs::input() {
 	auto p = creature::getplayer();
-	if(!p)
-		return 0;
 	while(true) {
-		point camera = getcamera(game::getx(p->getposition()), game::gety(p->getposition()));
+		point camera = {0, 0};
+		if(p)
+			camera = getcamera(game::getx(p->getposition()), game::gety(p->getposition()));
 		view_zone(p, camera);
 		auto id = draw::input();
 		if(id >= Alpha + '1' && id <= (Alpha + '9')) {
@@ -1973,6 +1973,20 @@ static hotkey* gethotkey(int id) {
 	return 0;
 }
 
+void logs::choose(const menu* p) {
+	while(p) {
+		logs::add(p->text);
+		for(auto index = 1; p[index]; index++)
+			logs::add(index, p[index].text);
+		auto id = logs::input();
+		if(p[id].proc)
+			p[id].proc();
+		if(p[id].child)
+			choose(p[id].child);
+		p = p[id].next;
+	}
+}
+
 void logs::turn(creature& e) {
 	while(true) {
 		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
@@ -2000,10 +2014,3 @@ void logs::turn(creature& e) {
 		break;
 	}
 }
-
-//void draw::window::resizing(const rect& rc) {
-//	if(draw::canvas) {
-//		draw::canvas->resize(rc.x2, rc.y2, draw::canvas->bpp, true);
-//		draw::clipping.set(0, 0, rc.x2, rc.y2);
-//	}
-//}

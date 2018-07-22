@@ -54,45 +54,67 @@ static void test_overland() {
 	logs::worldedit();
 }
 
+static creature* create_character(bool interactive) {
+	if(!interactive)
+		return new creature(
+		(race_s)xrand(Human, Halfling),
+		(gender_s)xrand(Male, Female),
+		(class_s)xrand(Cleric, Theif));
+	logs::add("Кто вы?");
+	logs::add(Male, getstr(Male));
+	logs::add(Female, getstr(Female));
+	auto gender = (gender_s)logs::input();
+	logs::add("Из каких вы краев?");
+	for(auto i = Human; i <= Halfling; i = (race_s)(i + 1))
+		logs::add(i, getstr(i));
+	auto race = (race_s)logs::input();
+	logs::add("Чем вы занимаетесь?");
+	for(auto i = Cleric; i <= Theif; i = (class_s)(i + 1))
+		logs::add(i, getstr(i));
+	auto type = (class_s)logs::input();
+	return new creature(race, gender, type);
+}
+
+static void create_party(bool interactive) {
+	auto start_index = game::statistic.positions[0];
+	//auto start_index = get(10, 10);
+	if(!serializep(start_index, false)) {
+		//auto p1 = creature::add(start_index, Human, Female, Mage);
+		//auto p2 = creature::add(start_index, Dwarf, Male, Fighter);
+		//auto p3 = creature::add(start_index, Elf, Male, Theif);
+		auto p1 = create_character(interactive);
+		auto p2 = create_character(interactive);
+		auto p3 = create_character(interactive);
+		p1->join(p1);
+		p2->join(p1);
+		p3->join(p1);
+		p1->setplayer();
+#ifdef _DEBUG
+		p1->equip(item(Book1, 4, 20, 20, 40));
+		p1->equip(item(Potion1, (enchantment_s)Experience));
+		serializep(start_index, true);
+		serializep(start_index, false);
+#endif
+	}
+}
+
+static menu main_menu[] = {{"Главное меню"},
+{"Создать новую игру"},
+{"Продолжить сохраненную ранее игру"},
+{"Выйти"},
+{}};
+
 int main(int argc, char* argv[]) {
 	//test_overland();
 	//return 0;
 	logs::initialize();
+	logs::choose(main_menu);
 	create(AreaCity, get(10, 10), 0, false, false);
-	auto start_index = game::statistic.positions[0];
-	//auto start_index = get(10, 10);
-	auto p1 = creature::add(start_index, Human, Female, Mage);
-	auto p2 = creature::add(start_index, Dwarf, Male, Fighter);
-	auto p3 = creature::add(start_index, Elf, Male, Theif);
-
-	creature::add(get(14, 14), GnollWarrior);
-	creature::add(get(14, 14), LargeDog);
-
-	p1->join(p1);
-	p2->join(p1);
-	p3->join(p1);
-	//p4->join(p1);
-	p1->setplayer();
-
-	p1->equip(item(Book1, 4, 20, 20, 40));
-	p1->equip(Repair);
-	p1->equip(item(Potion1, (enchantment_s)Experience));
-	p1->equip(item(Wand1, (enchantment_s)MagicMissile).setcharges(10));
-	p1->equip(DetectMagic);
-	p1->equip(DoorKey);
-	p1->equip(Apple);
-	p1->equip(item(Cloack1, 4, 30, 20, 50));
-
-	p2->equip(Cloack5);
-	p2->equip(item(Potion1, (enchantment_s)Drunken));
-
-	p3->equip(BowLong);
-	p3->equip(Arrow);
-	p3->equip(item(SwordLong, OfStrenght).set(Artifact));
-	p3->equip(item(Dagger, OfDexterity).set(Cursed));
-	p3->equip(item(BracersLeather, OfDefence));
-
-	p1->play();
+	create_party(true);
+	auto p = creature::getplayer();
+	if(!p)
+		return 0;
+	p->play();
 }
 
 int __stdcall WinMain(void* ci, void* pi, char* cmd, int sw) {

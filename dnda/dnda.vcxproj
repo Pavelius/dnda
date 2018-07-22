@@ -153,6 +153,7 @@
     <ClCompile Include="dungeon.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="game_create.cpp" />
+    <ClCompile Include="gender.cpp" />
     <ClCompile Include="grammar.cpp" />
     <ClCompile Include="io.cpp" />
     <ClCompile Include="item.cpp" />

@@ -180,6 +180,9 @@
     <ClCompile Include="dungeon.cpp">
       <Filter>logic</Filter>
     </ClCompile>
+    <ClCompile Include="gender.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="collections">

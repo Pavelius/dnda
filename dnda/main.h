@@ -427,7 +427,7 @@ struct creature {
 	//
 	creature() = default;
 	creature(role_s value);
-	creature(race_s race, gender_s gender, class_s type);
+	creature(race_s race, gender_s gender, class_s type) { create(race, gender, type); }
 	explicit operator bool() const { return hp > 0; }
 	void* operator new(unsigned size);
 	//
@@ -458,6 +458,7 @@ struct creature {
 	item*				choose(aref<item*> source, bool interactive) const;
 	creature*			choose(aref<creature*> source, bool interactive) const;
 	short unsigned		choose(aref<short unsigned> source, bool interactive) const;
+	void				create(race_s race, gender_s gender, class_s type);
 	void				applyability();
 	void				clear();
 	void				clear(state_s value) { states[value] = 0; }
@@ -698,6 +699,13 @@ struct manual {
 	aref<proc>			procs;
 	explicit operator bool() const { return value.type != 0; }
 };
+struct menu {
+	const char*			text;
+	const menu*			child;
+	const menu*			next;
+	void(*proc)();
+	explicit operator bool() const { return text != 0; }
+};
 namespace game {
 site*					add(site_s type, rect rc);
 bool					create(dungeon_area_s type, short unsigned index, int level, bool explored = false, bool visualize = false);
@@ -771,6 +779,7 @@ bool					choose(creature& e, skill_s& result, aref<skill_s> source, bool can_esc
 bool					choose(creature& e, skill_s& result, bool can_escape = true);
 bool					choose(creature& e, spell_s& result, aref<spell_s> source);
 bool					choose(creature& e, spell_s& result);
+void					choose(const menu* p);
 bool					chooseyn();
 void					focusing(short unsigned index);
 void					initialize();
