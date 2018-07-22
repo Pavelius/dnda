@@ -29,16 +29,18 @@ static enchantment_s ability_effects[] = {OfStrenght, OfDexterity, OfConstitutio
 static state_s ability_states[] = {Strenghted, Dexterious, Healthy, Intellegenced, Wisdowed, Charismatic};
 
 static struct equipment_info {
-	race_s			race;
-	class_s			type;
-	item_s			equipment[8];
+	race_s				race;
+	class_s				type;
+	adat<variant, 16>	features;;
 } equipment_data[] = {{Dwarf, Fighter, {AxeBattle, ScaleMail, Shield, BreadDwarven}},
+{Elf, Ranger, {SwordLong, SwordShort, LeatherArmour, BowLong}},
+{Elf, Fighter, {SwordLong, LeatherArmour, BowLong}},
 {Animal, Cleric, {Mace}},
 {Animal, Fighter, {SwordLong, LeatherArmour, Shield}},
 {Animal, Paladin, {SwordLong, ScaleMail}},
 {Animal, Ranger, {SwordLong, SwordShort, LeatherArmour}},
 {Animal, Theif, {SwordShort, LeatherArmour}},
-{Animal, Mage, {Staff, Wand2, Scroll1, Scroll2, Potion1}},
+{Animal, Mage, {Staff, Wand2, Scroll1, Potion1}},
 };
 
 static struct race_info {
@@ -148,11 +150,7 @@ static int roll3d6() {
 static void start_equipment(creature& e) {
 	for(auto& ei : equipment_data) {
 		if((!ei.race || ei.race == e.getrace()) && ei.type == e.getclass()) {
-			for(auto i : ei.equipment) {
-				if(!i)
-					break;
-				e.equip(i);
-			}
+			e.apply(ei.features);
 			break;
 		}
 	}
@@ -1575,8 +1573,7 @@ void creature::athletics(bool interactive) {
 	}
 }
 
-void creature::levelup() {
-	bool interactive = isplayer();
+void creature::levelup(bool interactive) {
 	if(interactive) {
 		logs::add("%1 теперь %2 уровня [%3i].", getname(), getstr(type), level + 1);
 		logs::next();
@@ -1602,7 +1599,7 @@ void creature::addexp(int count) {
 	while(true) {
 		if(getexperiencelevel(experience) <= level)
 			break;
-		levelup();
+		levelup(isplayer());
 	}
 }
 
@@ -1778,6 +1775,32 @@ bool creature::apply(const effectinfo& effect, int level, bool interactive, cons
 			ep.proc.fail = fail_proc;
 	}
 	return ep.apply(format, format_param);
+}
+
+void creature::apply(aref<variant> features) {
+	item it;
+	for(auto i : features) {
+		switch(i.type) {
+		case Item:
+		case ItemObject:
+			if(i.type == Item)
+				it = item(i.itemtype, 0, 15, 10, 35);
+			else
+				it = i.itemobject;
+			it.set(KnowEffect);
+			equip(it);
+			if(it.getammo())
+				equip(item(it.getammo(), 0, 15, 10, 35).set(KnowEffect));
+			break;
+		case Skill:
+			raise(i.skill);
+			break;
+		case Ability:
+			abilities[i.ability] += 2;
+			break;
+		default: break;
+		}
+	}
 }
 
 void creature::use(item& it) {

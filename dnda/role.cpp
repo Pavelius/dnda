@@ -66,7 +66,6 @@ aref<role_s> creature::select(aref<role_s> result, int min_level, int max_level,
 }
 
 creature::creature(role_s role) {
-	item it;
 	clear();
 	auto& e = role_data[role];
 	this->race = e.race;
@@ -74,31 +73,10 @@ creature::creature(role_s role) {
 	this->type = e.type;
 	this->role = role;
 	applyability();
-	for(auto i : e.features) {
-		switch(i.type) {
-		case Item:
-		case ItemObject:
-			if(i.type == Item)
-				it = item(i.itemtype, 0, 15, 10, 35);
-			else
-				it = i.itemobject;
-			it.set(KnowEffect);
-			equip(it);
-			if(it.getammo())
-				equip(item(it.getammo(), 0, 15, 10, 35).set(KnowEffect));
-			break;
-		case Skill:
-			raise(i.skill);
-			break;
-		case Ability:
-			abilities[i.ability] += 2;
-			break;
-		default: break;
-		}
-	}
+	apply(e.features);
 	// Восполним хиты
 	for(int i = 0; i < e.level; i++)
-		levelup();
+		levelup(false);
 	hp = getmaxhits();
 	mp = getmaxmana();
 }

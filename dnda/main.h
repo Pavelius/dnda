@@ -172,8 +172,8 @@ enum spell_s : unsigned char {
 	Armor, Bless, BlessItem, CharmPerson, DetectEvil, DetectMagic, Fear, HealingSpell,
 	Identify, Invisibility, LightSpell, MagicMissile,
 	Repair, RemovePoisonSpell, RemoveSickSpell,
-	ShieldSpell, ShokingGrasp, Sleep,
-	FirstSpell = Armor, LastSpell = Sleep
+	ShieldSpell, ShokingGrasp, Sleep, SlowMonster,
+	FirstSpell = Armor, LastSpell = SlowMonster
 };
 enum map_flag_s : unsigned char {
 	Visible, Hidden, Opened, Sealed, Explored,
@@ -447,6 +447,7 @@ struct creature {
 	spell_s				aispell(aref<creature*> creatures, target_s target = NoTarget);
 	bool				aiusewand(aref<creature*> creatures, target_s target = NoTarget);
 	bool				alertness();
+	void				apply(aref<variant> features);
 	void				apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
 	bool				apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value, void(*fail_proc)(effectparam& e) = 0);
 	bool				askyn(creature* opponent, const char* format, ...);
@@ -534,7 +535,7 @@ struct creature {
 	bool				isplayer() const;
 	bool				isranged(bool interactive) const;
 	void				join(creature* party);
-	void				levelup();
+	void				levelup(bool interactive);
 	void				lookfloor();
 	void				makemove();
 	void				manipulate(short unsigned index);

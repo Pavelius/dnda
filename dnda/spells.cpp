@@ -17,6 +17,9 @@ void setstate(effectparam& e) {
 	} else if(e.state.type == Paralized) {
 		if(!e.cre->saving(e.interactive, ResistParalize, 0))
 			e.cre->set(e.state.type, duration);
+	} else if(e.state.type == Slowed) {
+		if(!e.cre->saving(e.interactive, ResistParalize, 10))
+			e.cre->set(e.state.type, duration);
 	} else
 		e.cre->set(e.state.type, duration);
 }
@@ -110,7 +113,8 @@ static struct spell_info {
 {"Исцелить болезнь", "лечения болезней", 15, {}, {{TargetFriendly}, {setstate}, {RemoveSick}, "%герой на мгновение окутался зеленым свечением."}},
 {"Щит", "щита", 6, {}, {{TargetSelf}, {setstate}, {Shielded, Hour / 2}, "Перед %героем появился полупрозрачный барьер."}},
 {"Шокирующая хватка", "электричества", 4, {}, {{TargetHostile, 1}, {setdamage}, {}, "Электрический разряд поразил %героя.", {3, 12, Electricity}}},
-{"Усыпление", "усыпления", 5, {}, {{TargetHostile, 4}, {setstate}, {Sleeped, Minute}, "Внезапно %герой заснул%а.", {}}},
+{"Усыпление", "усыпления", 5, {}, {{TargetHostile, 4}, {setstate}, {Sleeped, 2 * Minute}, "Внезапно %герой заснул%а.", {}}},
+{"Замедлить монстров", "замедления", 7, {}, {{TargetHostile, 4}, {setstate}, {Slowed, 5 * Minute}, "Внезапно %герой стал%а двигаться медленнее.", {}}},
 };
 assert_enum(spell, LastSpell);
 getstr_enum(spell);
