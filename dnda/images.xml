@@ -538,7 +538,7 @@
       <png input="...\hills_15"/>
     </group>
   </library>
-  <library output="...\decals" count="32">
+  <library output="...\decals" count="64">
     <group input="...\maps\world\decals">
       <png input="...\forrest_1"/>
       <png input="...\forrest_2"/>
@@ -546,6 +546,27 @@
       <png input="...\swamp_1"/>
       <png input="...\swamp_2"/>
       <png input="...\swamp_3"/>
+      <png input="...\clearing"/>
+      <png input="...\grave"/>
+      <png input="...\town"/>
+      <png input="...\terinyo"/>
+      <png input="...\hmv"/>
+      <png input="...\ruins"/>
+      <png input="...\pyramid"/>
+      <png input="...\bugtemple"/>
+      <png input="...\glade"/>
+      <png input="...\circle"/>
+      <png input="...\unicorn"/>
+      <png input="...\volcano"/>
+      <png input="...\dungeon"/>
+      <png input="...\dungeon2"/>
+      <png input="...\dungeon3"/>
+      <png input="...\tunnel"/>
+      <png input="...\water_c"/>
+      <png input="...\rift"/>
+      <png input="...\qtree"/>
+      <png input="...\toef"/>
+      <png input="...\dc_enter"/>
     </group>
   </library>
 </convert>

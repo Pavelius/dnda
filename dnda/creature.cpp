@@ -1936,10 +1936,10 @@ void creature::play() {
 			serialize(true);
 			auto object = getobject(exit_index);
 			if(object == StairsDown) {
-				create("dungeon", statistic.index, statistic.level + 1);
+				create(AreaDungeon, statistic.index, statistic.level + 1);
 				serializep(statistic.positions[1], false);
 			} else {
-				create("dungeon", statistic.index, statistic.level - 1);
+				create(AreaDungeon, statistic.index, statistic.level - 1);
 				serializep(statistic.positions[0], false);
 			}
 		}

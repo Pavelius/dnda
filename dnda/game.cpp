@@ -557,6 +557,14 @@ site* game::getlocation(short unsigned i) {
 	return 0;
 }
 
+creature* game::spawn(short unsigned index) {
+	role_s monsters[128];
+	auto result = creature::select(monsters, statistic.level - 1, statistic.level + 1, Chaotic, 0);
+	if(result)
+		return creature::add(index, result.random());
+	return 0;
+}
+
 template<> void archive::set<site>(site& e) {
 	set(e.type);
 	set(e.x1); set(e.y1); set(e.x2); set(e.y2);

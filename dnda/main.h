@@ -126,7 +126,7 @@ enum tile_s : unsigned char {
 };
 enum site_s : unsigned char {
 	EmpthyRoom, TreasureRoom,
-	StairsDownRoom, StairsUpRoom, House,
+	StairsDownRoom, StairsUpRoom, House, Lair,
 	Temple, Tavern, Barracs, CityHall,
 	ShopWeaponAndArmor, ShopPotionAndScrolls, ShopFood,
 };
@@ -559,7 +559,7 @@ struct creature {
 	static void			select(creature** result, rect rc);
 	aref<item*>			select(aref<item*> result, target_s target) const;
 	aref<creature*>		select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const;
-	static aref<role_s>	select(aref<role_s> result, int min_level, int max_level, const race_s races[4]);
+	static aref<role_s>	select(aref<role_s> result, int min_level, int max_level, alignment_s alignment, const race_s races[4]);
 	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start, bool los = true) const;
 	void				set(state_s value, unsigned segments);
 	void				set(spell_s value, int level);
@@ -628,7 +628,6 @@ struct site : rect {
 	void				update();
 private:
 	unsigned			recoil;
-	creature*			add(role_s role) const;
 	void				wait(unsigned count);
 };
 struct speech {
@@ -673,6 +672,22 @@ struct areainfo {
 		artifacts(0), habbitants(),
 		positions{Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked} {}
 };
+enum dungeon_area_s : unsigned char {
+	AreaMaze, AreaDungeon,
+	AreaPlain, AreaForest, AreaHills,
+	AreaCity,
+};
+struct dungeon {
+	struct layer {
+		dungeon_area_s	type;
+		unsigned char	count;
+	};
+	const char*			name; // name of area location
+	short unsigned		index; // overland index
+	unsigned char		icon; // overland icon overlay
+	unsigned char		level; // Start level: 0 form city, 1 for undeground dungeon
+	adat<layer, 8>		layers;
+};
 struct manual {
 	typedef void(*proc)(stringbuffer& sc, manual& e);
 	manual_s			type;
@@ -684,13 +699,14 @@ struct manual {
 };
 namespace game {
 site*					add(site_s type, rect rc);
-bool					create(const char* id, short unsigned index, int level, bool explored = false, bool visualize = false);
+bool					create(dungeon_area_s type, short unsigned index, int level, bool explored = false, bool visualize = false);
 int						distance(short unsigned i1, short unsigned i2);
 void					drop(short unsigned i, item object);
 unsigned short			genname(race_s race, gender_s gender);
 inline short unsigned	get(int x, int y) { return y * max_map_x + x; }
 const attackinfo&		getattackinfo(trap_s slot);
 direction_s				getdirection(point s, point d);
+aref<dungeon>			getdungeons();
 short unsigned			getfree(short unsigned i);
 int						getindex(short unsigned i, tile_s value);
 site*					getlocation(short unsigned i);
@@ -727,6 +743,7 @@ void					set(short unsigned i, tile_s value, int w, int h);
 void					set(short unsigned i, map_object_s value);
 void					set(short unsigned i, map_flag_s type, bool value = true);
 void					set(short unsigned i, unsigned char value);
+creature*				spawn(short unsigned index);
 extern areainfo			statistic;
 short unsigned			to(short unsigned index, direction_s side);
 direction_s				turn(direction_s from, direction_s side);

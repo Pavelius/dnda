@@ -19,7 +19,6 @@ extern adat<site, 128>	sites;
 static vector			rooms[256];
 static unsigned char	stack_put, stack_get;
 static direction_s		connectors_side[] = {Up, Left, Right, Down};
-static adat<role_s>		monsters;
 static slot_s slots_weapons_armor[] = {Melee, Ranged, OffHand, Head, Elbows, Legs, Torso};
 static item_s item_treasure[] = {Coin, Coin, Coin, Coin, RingRed};
 static item_s item_food[] = {Ration, Ration, Ration, BreadEvlen, BreadHalflings, BreadDwarven, Sausage};
@@ -242,8 +241,7 @@ static creature* create_bartender(site& e, short unsigned index) {
 }
 
 static void create_monster(short unsigned index) {
-	if(monsters)
-		creature::add(index, monsters.data[rand()%monsters.count]);
+	game::spawn(index);
 }
 
 static creature* create_priest(site& e, short unsigned index) {
@@ -509,10 +507,6 @@ static void change_tile(tile_s t1, tile_s t2) {
 	}
 }
 
-static void clear_rooms() {
-	stack_get = stack_put = 0;
-}
-
 static void put_block(short unsigned index, direction_s dir) {
 	auto& e = rooms[stack_put++];
 	e.index = index;
@@ -624,6 +618,12 @@ static void create_room(int x, int y, int w, int h) {
 			game::set(game::get(x1, y1), Floor);
 		}
 	}
+	auto p = sites.add();
+	p->x1 = x;
+	p->y1 = y;
+	p->x2 = p->x1 + w - 1;
+	p->y2 = p->y1 + h - 1;
+	p->type = Lair;
 }
 
 static int compare_rect(const void* p1, const void* p2) {
@@ -782,41 +782,47 @@ static void create_maze(int x, int y, int w, int h, rooma& rooms, bool visualize
 	change_tile(NoTile, Wall);
 }
 
+static void create_dungeon_lairs(rooma& rooms, bool visualize) {
+	for(auto& e : rooms) {
+		auto t = Lair;
+		auto p = sites.add();
+		*((rect*)p) = e;
+	}
+}
+
 static void worldmap_outdoor() {
 	auto count = max_map_x * max_map_y;
 	for(short unsigned i = 0; i < count; i++)
 		set(i, Plain);
 }
 
-bool game::create(const char* id, short unsigned index, int level, bool explored, bool visualize) {
+bool game::create(dungeon_area_s type, short unsigned index, int level, bool explored, bool visualize) {
 	static struct dungeon_info {
-		const char*	id;
+		const char*	name;
 		bool		isdungeon;
 		point		offset;
 		void(*floor)();
 		void(*rooms)(int x, int y, int w, int h, rooma& rooms, bool visualize);
 		void(*content)(rooma& rooms, bool visualize);
-	} source[] = {{"maze", true, {1, 1}, indoor_floor, create_maze},
-	{"dungeon", true, {1, 1}, indoor_floor, create_big_rooms, create_dungeon_content},
-	{"city", false, {2, 2}, outdoor_floor, create_city, create_city_buildings},
-	{"forest", false, {1, 1}, outdoor_floor},
+	} dungeon_area_data[] = {{"Лабиринт", true, {1, 1}, indoor_floor, create_maze},
+	{"Подземелье", true, {1, 1}, indoor_floor, create_big_rooms, create_dungeon_content},
+	{"Равнина", false, {1, 1}, outdoor_floor},
+	{"Лес", false, {1, 1}, outdoor_floor},
+	{"Холмы", false, {1, 1}, outdoor_floor},
+	{"Город", false, {2, 2}, outdoor_floor, create_city, create_city_buildings},
 	};
+	assert_enum(dungeon_area, AreaCity);
 	initialize(index, level, Plain);
 	if(!serialize(false)) {
-		auto p = findid(aref<dungeon_info>(source), id);
-		if(!p)
-			return false;
-		clear_rooms();
+		auto& a = dungeon_area_data[type];
+		stack_get = stack_put = 0;
 		statistic.index = index;
 		statistic.level = level;
-		statistic.isdungeon = p->isdungeon;
-		if(p->isdungeon) {
+		statistic.isdungeon = a.isdungeon;
+		if(a.isdungeon) {
 			if(statistic.level < 1)
 				statistic.level = 1;
 		}
-		// Create monster list
-		monsters.clear();
-		creature::select(monsters.data, statistic.level - 1, statistic.level + 2, 0);
 		// Set new random values
 		auto count = max_map_x * max_map_y;
 		for(short unsigned i = 0; i < count; i++)
@@ -827,14 +833,14 @@ bool game::create(const char* id, short unsigned index, int level, bool explored
 				set(i, Explored, true);
 		}
 		rooma rooms;
-		if(p->floor)
-			p->floor();
-		if(p->rooms) {
-			p->rooms(p->offset.x, p->offset.y, max_map_x - 1 - p->offset.x, max_map_y - 1 - p->offset.y, rooms, visualize);
+		if(a.floor)
+			a.floor();
+		if(a.rooms) {
+			a.rooms(a.offset.x, a.offset.y, max_map_x - 1 - a.offset.x, max_map_y - 1 - a.offset.y, rooms, visualize);
 			qsort(rooms.data, rooms.count, sizeof(rooms.data[0]), compare_rect);
 		}
-		if(p->content)
-			p->content(rooms, visualize);
+		if(a.content)
+			a.content(rooms, visualize);
 		change_tile(NoTile, Wall);
 		update_doors();
 		serialize(true);

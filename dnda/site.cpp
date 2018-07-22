@@ -17,6 +17,7 @@ static struct site_info {
 {"Лестница вниз"},
 {"Лестница вверх"},
 {"Дом"},
+{"Логово", "В помещении валялось куча костей и много другого хлама."},
 {"Храм"},
 {"Таверна", "В комнате стояло много столов и вкусно пахло едой. Люди, которые здесь были отдыхали и пили."},
 {"Бараки", "Несколько кроватей стояло вдоль стен. Похоже здесь ночует стража."},
@@ -44,10 +45,6 @@ short unsigned site::getposition() const {
 	return game::get(x1 + width() / 2, y1 + height() / 2);
 }
 
-creature* site::add(role_s role) const {
-	return creature::add(game::getfree(getposition()), role);
-}
-
 void site::entering(creature& player) {
 	if(site_data[type].entering)
 		player.hint(site_data[type].entering);
@@ -56,9 +53,8 @@ void site::entering(creature& player) {
 void site::update() {
 	if(recoil > segments)
 		return;
-	if(game::isdungeon()) {
-		add(GoblinWarrior);
-	}
+	if(game::isdungeon())
+		game::spawn(game::getfree(getposition()));
 	wait(xrand(5 * Minute, 15 * Minute));
 }
 

@@ -177,6 +177,9 @@
     <ClCompile Include="resources.cpp">
       <Filter>support</Filter>
     </ClCompile>
+    <ClCompile Include="dungeon.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="collections">

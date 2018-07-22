@@ -1,5 +1,6 @@
 #include "initializer_list.h"
 
+extern "C" int				rand(void);
 extern "C" void*			realloc(void *ptr, unsigned size);
 extern "C" int				strcmp(const char* p1, const char* p2);
 
@@ -46,6 +47,7 @@ struct adat {
 	int						indexof(const T* e) const { if(e >= data && e <= data + count) return e - data; return -1; }
 	int						indexof(const T t) const { for(unsigned i = 0; i < count; i++) if(data[i] == t) return i; return -1; }
 	bool					is(const T t) const { for(unsigned i = 0; i < count; i++) if(data[i] == t) return true; return false; }
+	T						random() const { return count ? data[rand() % count] : T(); }
 	void					remove(int index, int remove_count = 1) { if(index < 0) return; if(index<int(count - 1)) memcpy(data + index, data + index + 1, sizeof(data[0])*(count - index - 1)); count--; }
 };
 // Reference to array with dymanic size
@@ -69,6 +71,7 @@ template<class T> struct aref {
 	int						indexof(const T* t) const { if(t<data || t>data + count) return -1; return t - data; }
 	int						indexof(const T t) const { for(unsigned i = 0; i < count; i++) if(data[i] == t) return i; return -1; }
 	bool					is(const T value) const { return indexof(value) != -1; }
+	T						random() const { return count ? data[rand() % count] : T(); }
 	void					remove(int index, int elements_count = 1) { if(index < 0 || index >= count) return; count -= elements_count; if(index >= count) return; memmove(data + index, data + index + elements_count, sizeof(data[0])*(count - index)); }
 };
 //
