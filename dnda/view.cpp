@@ -1974,6 +1974,8 @@ static hotkey* gethotkey(int id) {
 }
 
 void logs::choose(const menu* p) {
+	auto width = 400;
+	auto height = (zlen(p)-1)*draw::texth() + metrics::h1->get(0).sy;
 	while(p) {
 		logs::add(p->text);
 		for(auto index = 1; p[index]; index++)
