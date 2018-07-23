@@ -289,7 +289,8 @@ struct effectparam : effectinfo {
 		effectinfo(effect_param), player(player), interactive(interactive),
 		cre(0), itm(0), pos(Blocked),
 		param(0), level(1), creatures(p_creatures),
-		skill_roll(0), skill_value(0), skill_bonus(0) {}
+		skill_roll(0), skill_value(0), skill_bonus(0) {
+	}
 	int					apply(const char* format, const char* format_param);
 	bool				applyfull();
 };
@@ -621,7 +622,8 @@ struct site : rect {
 	unsigned char		found;
 	creature*			owner;
 	constexpr site() : rect({0, 0, 0, 0}), type(EmpthyRoom), diety(NoGod), name(), owner(),
-		found(0), recoil(0) {}
+		found(0), recoil(0) {
+	}
 	operator bool() const { return x1 != x2; }
 	void				entering(creature& player);
 	int					getfoundchance() const;
@@ -671,7 +673,8 @@ struct areainfo {
 	race_s				habbitants[4];
 	constexpr areainfo() : index(Blocked), level(1), rooms(0), isdungeon(false),
 		artifacts(0), habbitants(),
-		positions{Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked} {}
+		positions{Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked} {
+	}
 };
 enum dungeon_area_s : unsigned char {
 	AreaMaze, AreaDungeon,
@@ -684,24 +687,75 @@ struct dungeon {
 		unsigned char	count;
 	};
 	const char*			name; // name of area location
-	short unsigned		index; // overland index
+	short unsigned		world_index; // overland index
 	unsigned char		icon; // overland icon overlay
 	unsigned char		level; // Start level: 0 form city, 1 for undeground dungeon
 	adat<layer, 8>		layers;
 };
 struct location {
-	short unsigned		index; // Позиция на карте мира
-	bool				isdungeon; // Underground dungeons has 'true'
-	race_s				habbitants[4];
+	struct grounditem : item {
+		short unsigned	index;
+	};
+	struct site : rect {
+		site_s			type;
+		diety_s			diety;
+		unsigned char	name[2];
+		unsigned char	found;
+		creature*		owner;
+		constexpr site() : rect(), type(), diety(), name(), owner(), found(), recoil() {}
+		operator bool() const { return x1 != x2; }
+		void			entering(creature& player);
+		int				getfoundchance() const;
+		char*			getname(char* result) const;
+		short unsigned	getposition() const;
+		void			update();
+	private:
+		unsigned		recoil;
+		void			wait(unsigned count);
+	};
+	void				create(short unsigned i, int level, tile_s tile);
+	void				drop(short unsigned i, item object);
+	short unsigned		get(int x, int y) const { return y * max_map_x + x; }
+	int					getavatar(short unsigned i, tile_s e) const;
+	static direction_s	getdirection(point s, point d);
+	short unsigned		getfree(short unsigned i) const;
+	short unsigned		getindex() const { return world_index; }
+	aref<item*>			getitems(aref<item*> result, short unsigned index);
+	int					getnight() const;
+	map_object_s		getobject(short unsigned i) const { return mpobj[i]; }
+	int					getrand(short unsigned i) const { return mprnd[i]; }
+	location::site*		getsite(short unsigned i) const;
+	short unsigned		getstepfrom(short unsigned index) const;
+	short unsigned		getstepto(short unsigned i) const;
+	tile_s				gettile(short unsigned i) const;
+	trap_s				gettrap(short unsigned i) const;
+	unsigned char		getx(short unsigned i) const { return i % max_map_x; }
+	unsigned char		gety(short unsigned i) const { return i / max_map_x; }
+	bool				is(short unsigned i, map_flag_s v) const { return (mpflg[i] & (1 << v)) != 0; }
+	bool				isdungeon() const { return type <= AreaDungeon; }
+	bool				ispassable(short unsigned i) const;
+	bool				ispassabledoor(short unsigned i) const;
+	bool				ispassablelight(short unsigned i) const;
+	void				makewave(short unsigned i, bool(location::*proc)(short unsigned) const);
+	bool				serialize(bool writemode);
+	void				set(short unsigned i, map_flag_s type, bool value);
+	void				set(short unsigned i, map_object_s value);
+	void				set(short unsigned i, tile_s value);
+	void				set(short unsigned i, unsigned char value);
+	static short unsigned to(short unsigned i, direction_s side);
+	static direction_s	turn(direction_s from, direction_s side);
 private:
-	unsigned char		level; // Уровень поздземелья
+	dungeon_area_s		type;
+	unsigned char		level;
 	unsigned char		artifacts;
-	adat<grounditem, 2048>	grounditems;
-	adat<site, 64>		sites;
+	short unsigned		world_index;
+	race_s				habbitants[4];
 	tile_s				mptil[max_map_x*max_map_y];
 	map_object_s		mpobj[max_map_x*max_map_y];
 	unsigned char		mprnd[max_map_x*max_map_y];
 	unsigned char		mpflg[max_map_x*max_map_y];
+	adat<grounditem, 2048> items;
+	adat<site, 64>		sites;
 };
 struct manual {
 	typedef void(*proc)(stringbuffer& sc, manual& e);
