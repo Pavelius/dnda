@@ -9,7 +9,7 @@ areainfo				game::statistic;
 int						isqrt(int num);
 static unsigned			start_year;
 unsigned				segments = 7 * Hour;
-adat<groundinfo, 2048>	grounditems;
+adat<grounditem, 2048>	grounditems;
 adat<site, 128>			sites;
 static tile_s			mptil[max_map_x*max_map_y];
 static map_object_s		mpobj[max_map_x*max_map_y];
@@ -377,7 +377,7 @@ void game::drop(short unsigned i, item object) {
 	if(!object)
 		return;
 	auto p = grounditems.add();
-	p->object = object;
+	*((item*)p) = object;
 	p->index = i;
 }
 
@@ -391,10 +391,10 @@ int game::getitems(item** result, unsigned maximum_count, short unsigned index) 
 	auto pb = result;
 	auto pe = pb + maximum_count - 1;
 	for(auto& li : grounditems) {
-		if(!li.object || li.index != index)
+		if(!li || li.index != index)
 			continue;
 		if(pb < pe)
-			*pb++ = (item*)&li.object;
+			*pb++ = &li;
 	}
 	*pb = 0;
 	return pb - result;

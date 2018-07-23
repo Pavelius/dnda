@@ -658,8 +658,7 @@ private:
 };
 bool					lowint(const creature& player, const dialog& e);
 bool					noint(const creature& player, const dialog& e);
-struct groundinfo {
-	item				object;
+struct grounditem : item {
 	short unsigned		index;
 };
 struct areainfo {
@@ -689,6 +688,20 @@ struct dungeon {
 	unsigned char		icon; // overland icon overlay
 	unsigned char		level; // Start level: 0 form city, 1 for undeground dungeon
 	adat<layer, 8>		layers;
+};
+struct location {
+	short unsigned		index; // Позиция на карте мира
+	bool				isdungeon; // Underground dungeons has 'true'
+	race_s				habbitants[4];
+private:
+	unsigned char		level; // Уровень поздземелья
+	unsigned char		artifacts;
+	adat<grounditem, 2048>	grounditems;
+	adat<site, 64>		sites;
+	tile_s				mptil[max_map_x*max_map_y];
+	map_object_s		mpobj[max_map_x*max_map_y];
+	unsigned char		mprnd[max_map_x*max_map_y];
+	unsigned char		mpflg[max_map_x*max_map_y];
 };
 struct manual {
 	typedef void(*proc)(stringbuffer& sc, manual& e);
@@ -790,7 +803,7 @@ void					raise(creature& e, int left);
 void					turn(creature& e);
 void					worldedit();
 }
-extern adat<groundinfo, 2048> grounditems;
+extern adat<grounditem, 2048> grounditems;
 unsigned				getday();
 unsigned				gethour();
 unsigned				getminute();

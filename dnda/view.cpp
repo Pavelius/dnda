@@ -554,13 +554,13 @@ static void view_board(point camera, bool show_fow = true, fxeffect* effects = 0
 	// Инициализируем видимые предметы
 	memset(stuff, 0, sizeof(stuff));
 	for(auto& e : grounditems) {
-		if(!e.object)
+		if(!e)
 			continue;
 		auto i = mget(rc.x1, rc.y1, game::getx(e.index), game::gety(e.index));
 		if(i == -1)
 			continue;
 		if(stuff[i] == NoItem)
-			stuff[i] = e.object.gettype();
+			stuff[i] = e.gettype();
 		else
 			stuff[i] = ManyItems;
 	}
@@ -1079,9 +1079,9 @@ static void character_pickup(creature& e) {
 	for(auto& s : grounditems) {
 		if(s.index != index)
 			continue;
-		if(!s.object)
+		if(!s)
 			continue;
-		*p++ = &s.object;
+		*p++ = &s;
 	}
 	*p = 0;
 	auto count = zlen(source);
