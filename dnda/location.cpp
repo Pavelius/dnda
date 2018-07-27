@@ -354,7 +354,7 @@ location::site* location::getsite(short unsigned i) const {
 	for(auto& e : sites) {
 		if(!e)
 			continue;
-		if(pt.x >= e.x1 && pt.x < e.x2 && pt.y >= e.y1 && pt.y<e.y2)
+		if(pt.x >= e.x1 && pt.x < e.x2 && pt.y >= e.y1 && pt.y < e.y2)
 			return (site*)&e;
 	}
 	return 0;
@@ -365,6 +365,97 @@ void location::create(short unsigned index, int level, tile_s tile) {
 	this->level = level;
 	memset(this, 0, sizeof(location));
 	memset(mptil, tile, sizeof(mptil));
+}
+
+void location::fill(int x, int y, int w, int h, int count, map_object_s object) {
+	for(int i = 0; i < count; i++) {
+		int x1 = xrand(x, x + w);
+		int y1 = xrand(y, y + h);
+		set(get(x1, y1), object);
+	}
+}
+
+void location::fill(int x, int y, int w, int h, int count, tile_s object) {
+	for(int i = 0; i < count; i++) {
+		int x1 = xrand(x, x + w);
+		int y1 = xrand(y, y + h);
+		set(get(x1, y1), object);
+	}
+}
+
+void location::fill(int x, int y, int w, int h, tile_s object) {
+	for(int x1 = x + w - 1; x1 >= x; x1--)
+		for(int y1 = y + h - 1; y1 >= y; y1--)
+			set(get(x1, y1), object);
+}
+
+short unsigned location::find(int x, int y, int w, int h, map_object_s value) {
+	int x2 = x + w;
+	int y2 = y + h;
+	for(int y1 = y; y1 < y2; y1++) {
+		for(int x1 = x; x1 < x2; x1++) {
+			auto i = get(x1, y1);
+			if(getobject(i) == value)
+				return i;
+		}
+	}
+	return Blocked;
+}
+
+void location::ellipse(int x0, int y0, int x1, int y1, tile_s object) {
+	int a = iabs(x1 - x0), b = iabs(y1 - y0), b1 = b & 1;
+	long dx = 4 * (1 - a)*b*b, dy = 4 * (b1 + 1)*a*a;
+	long err = dx + dy + b1 * a*a, e2; /* error of 1.step */
+	if(x0 > x1) { x0 = x1; x1 += a; } /* if called with swapped points */
+	if(y0 > y1) y0 = y1; /* .. exchange them */
+	y0 += (b + 1) / 2; y1 = y0 - b1;   /* starting pixel */
+	a *= 8 * a; b1 = 8 * b*b;
+	do {
+		fill(x0, y0, x1 - x0, 1, object);
+		fill(x0, y1, x1 - x0, 1, object);
+		e2 = 2 * err;
+		if(e2 <= dy) { y0++; y1--; err += dy += a; }  /* y step */
+		if(e2 >= dx || 2 * err > dy) { x0++; x1--; err += dx += b1; } /* x step */
+	} while(x0 <= x1);
+	while(y0 - y1 < b) {  /* too early stop of flat ellipses a=1 */
+		set(get(x0 - 1, y0), object); /* -> finish tip of ellipse */
+		set(get(x1 + 1, y0++), object);
+		set(get(x0 - 1, y1), object);
+		set(get(x1 + 1, y1--), object);
+	}
+}
+
+short unsigned location::center(const rect& rc) const {
+	return get(rc.x1 + rc.width() / 2, rc.y1 + rc.height() / 2);
+}
+
+// Set horizontal wall in interior room
+short unsigned location::setiwh(int x, int y, int s, tile_s o, map_object_s r, bool locked_doors) {
+	if(s <= 2)
+		return Blocked;
+	fill(x, y, s, 1, o);
+	auto i = get(x + xrand(1, s - 2), y);
+	set(i, Floor);
+	set(i, Floor);
+	set(i, r);
+	set(i, Opened, false);
+	if(locked_doors)
+		set(i, Sealed, true);
+	return i;
+}
+
+// Set vertical wall in interior room
+short unsigned location::setiwv(int x, int y, int s, tile_s o, map_object_s r, bool locked_doors) {
+	if(s <= 2)
+		return Blocked;
+	fill(x, y, 1, s, o);
+	auto i = get(x, y + xrand(1, s - 2));
+	set(i, Floor);
+	set(i, r);
+	set(i, Opened, false);
+	if(locked_doors)
+		set(i, Sealed, true);
+	return i;
 }
 
 template<> void archive::set<site>(site& e);
@@ -387,7 +478,6 @@ bool location::serialize(bool writemode) {
 	a.set(level);
 	a.set(world_index);
 	a.set(artifacts);
-	a.setr(habbitants);
 	a.setr(mpflg);
 	a.setr(mptil);
 	a.setr(mpobj);

@@ -60,7 +60,7 @@ static void create_objects(int x, int y, int w, int h, int count, tile_s object)
 	}
 }
 
-static int find(int x, int y, int w, int h, map_object_s value) {
+static short unsigned find(int x, int y, int w, int h, map_object_s value) {
 	int x2 = x + w;
 	int y2 = y + h;
 	for(int y1 = y; y1 < y2; y1++) {

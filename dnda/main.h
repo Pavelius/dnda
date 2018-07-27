@@ -694,7 +694,7 @@ struct dungeon {
 	adat<layer, 8>		layers;
 };
 struct location {
-	struct grounditem : item {
+	struct ground : item {
 		short unsigned	index;
 	};
 	struct site : rect {
@@ -714,8 +714,14 @@ struct location {
 		unsigned		recoil;
 		void			wait(unsigned count);
 	};
+	short unsigned		center(const rect& rc) const;
 	void				create(short unsigned i, int level, tile_s tile);
 	void				drop(short unsigned i, item object);
+	void				ellipse(int x0, int y0, int x1, int y1, tile_s object);
+	void				fill(int x, int y, int w, int h, int count, map_object_s object);
+	void				fill(int x, int y, int w, int h, int count, tile_s object);
+	void				fill(int x, int y, int w, int h, tile_s object);
+	short unsigned		find(int x, int y, int w, int h, map_object_s value);
 	short unsigned		get(int x, int y) const { return y * max_map_x + x; }
 	int					getavatar(short unsigned i, tile_s e) const;
 	static direction_s	getdirection(point s, point d);
@@ -743,6 +749,8 @@ struct location {
 	void				set(short unsigned i, map_object_s value);
 	void				set(short unsigned i, tile_s value);
 	void				set(short unsigned i, unsigned char value);
+	short unsigned		setiwh(int x, int y, int s, tile_s o, map_object_s r, bool locked_doors);
+	short unsigned		setiwv(int x, int y, int s, tile_s o, map_object_s r, bool locked_doors);
 	static short unsigned to(short unsigned i, direction_s side);
 	static direction_s	turn(direction_s from, direction_s side);
 private:
@@ -750,12 +758,11 @@ private:
 	unsigned char		level;
 	unsigned char		artifacts;
 	short unsigned		world_index;
-	race_s				habbitants[4];
 	tile_s				mptil[max_map_x*max_map_y];
 	map_object_s		mpobj[max_map_x*max_map_y];
 	unsigned char		mprnd[max_map_x*max_map_y];
 	unsigned char		mpflg[max_map_x*max_map_y];
-	adat<grounditem, 2048> items;
+	adat<ground, 2048>	items;
 	adat<site, 64>		sites;
 };
 struct manual {
