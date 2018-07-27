@@ -1995,9 +1995,9 @@ speech dont_need_this[];
 
 bool creature::give(creature& opponent, item& value, bool interactive) {
 	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
-		if(wears[slot])
+		if(opponent.wears[slot])
 			continue;
-		wears[slot] = value;
+		opponent.wears[slot] = value;
 		value.clear();
 		updateweight();
 		opponent.updateweight();
