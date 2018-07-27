@@ -162,7 +162,7 @@ enum img_s : unsigned char {
 enum target_s : unsigned char {
 	NoTarget,
 	TargetSelf, TargetFriendly, TargetFriendlyWounded, TargetNeutral, TargetHostile,
-	TargetItemMundane, TargetItemUnidentified, TargetItemDamaged, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
+	TargetItemAny, TargetItemMundane, TargetItemUnidentified, TargetItemDamaged, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
 	TargetObject,
 	TargetDoor, TargetDoorSealed, TargetHiddenObject,
 	TargetTrap,
@@ -485,7 +485,7 @@ struct creature {
 	int					getcost(spell_s value) const;
 	unsigned			getcostexp() const;
 	static creature*	getcreature(short unsigned index);
-	static aref<creature*> getcreatures(aref<creature*> result, short unsigned start, int range);
+	static aref<creature*> getcreatures(aref<creature*> result, short unsigned start, int range, creature* exclude = 0);
 	int					getdefence() const;
 	int					getdiscount(creature* customer) const;
 	direction_s			getdirection() const { return direction; }
@@ -519,6 +519,7 @@ struct creature {
 	site*				getsite() const { return current_site; }
 	int					getweight() const;
 	int					getweight(encumbrance_s id) const;
+	bool				give(creature& opponent, item& it, bool interactive);
 	void				heal(int value, bool interactive) { damage(-value, Magic, interactive); }
 	void				hint(const char* format, ...) const;
 	static void			initialize();

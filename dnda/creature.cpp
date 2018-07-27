@@ -314,13 +314,15 @@ static int isqrt(int num) {
 	return res;
 }
 
-aref<creature*> creature::getcreatures(aref<creature*> result, short unsigned start, int range) {
+aref<creature*> creature::getcreatures(aref<creature*> result, short unsigned start, int range, creature* exclude) {
 	auto pb = result.data;
 	auto pe = result.data + result.count;
 	auto x = game::getx(start);
 	auto y = game::gety(start);
 	for(auto& e : creature_data) {
 		if(!e)
+			continue;
+		if(exclude && exclude == &e)
 			continue;
 		auto dx = x - game::getx(e.position);
 		auto dy = y - game::gety(e.position);
@@ -1986,6 +1988,30 @@ void creature::remove(adat<creature, 16>& source) const {
 	}
 	*p = *this;
 	p->current_site = 0;
+}
+
+speech thank_you[];
+speech dont_need_this[];
+
+bool creature::give(creature& opponent, item& value, bool interactive) {
+	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
+		if(wears[slot])
+			continue;
+		wears[slot] = value;
+		value.clear();
+		updateweight();
+		opponent.updateweight();
+		if(interactive) {
+			dialog dg(this, &opponent);
+			dg.start(thank_you);
+		}
+		return true;
+	}
+	if(interactive) {
+		dialog dg(this, &opponent);
+		dg.start(dont_need_this);
+	}
+	return false;
 }
 
 template<> void archive::set<creature>(creature& e) {

@@ -1714,6 +1714,20 @@ static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 	}
 }
 
+static void character_give(creature& e) {
+	creature* source[128];
+	auto result = e.getcreatures(source, e.getposition(), 1, &e);
+	auto pc = e.choose(result, true);
+	if(!pc)
+		return;
+	item* source_item[128];
+	auto result_item = e.select(source_item, TargetItemWeapon);
+	auto pi = e.choose(result_item, true);
+	if(!pi)
+		return;
+	e.give(*pc, *pi, true);
+}
+
 extern manual manual_main;
 
 static void character_manual(creature& e) {
@@ -1799,6 +1813,7 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {Ctrl + Alpha + 'R', "Прочитать что-то", character_read},
 {Ctrl + Alpha + 'M', "Открыть мануал", character_manual},
 {Ctrl + Alpha + 'L', "Просмотр сообщений", character_logs},
+{Ctrl + Alpha + 'G', "Отдать предмет", character_give},
 #ifdef _DEBUG
 {Ctrl + Alpha + 'X', "Вселиться (отладка)", character_debug},
 #endif

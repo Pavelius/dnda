@@ -118,6 +118,14 @@ static speech smalltalk[] = {{Speech, ishenchmen, "Да, босс, слушаю.", 0, party_
 {Speech, 0, "Эх! Устал%а я..."},
 {Speech, 0, 0, 0, 0, false, {}, {}, knownbuilding},
 {}};
+speech thank_you[] {{Speech, 0, "Спасибо, это мне пригодиться."},
+{Speech, 0, "Спасибо, вот это ты правильно поступил%А."},
+{Speech, 0, "О, так неожиданно!"},
+{}};
+speech dont_need_this[]{{Speech, 0, "Мне это не надо."},
+{Speech, 0, "Отдаешь мусор, который тебе не надо?"},
+{Speech, 0, "Нет, отсавь это себе."},
+{}};
 
 void creature::chat(creature* e) {
 	dialog dg(this, e);

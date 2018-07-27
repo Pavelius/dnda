@@ -102,6 +102,7 @@ static struct target_info {
 {"Нейтрал", neutral},
 {"Враг", enemy},
 //
+{"Любой предмет", any_item},
 {"Обычный предмет", mundane_item},
 {"Неопознанный предмет", undefined_item},
 {"Съедобный предмет", damaged_item},
