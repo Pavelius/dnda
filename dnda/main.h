@@ -456,7 +456,7 @@ struct creature {
 	void				attack(creature* defender, slot_s slot, int bonus = 0, int multiplier = 0);
 	bool				canhear(short unsigned index) const;
 	void				chat(creature* opponent);
-	item*				choose(aref<item*> source, bool interactive) const;
+	item*				choose(aref<item*> source, bool interactive, const char* title = "Âûבטנאיעו ןנוהלוע") const;
 	creature*			choose(aref<creature*> source, bool interactive) const;
 	short unsigned		choose(aref<short unsigned> source, bool interactive) const;
 	void				create(race_s race, gender_s gender, class_s type);
@@ -692,78 +692,6 @@ struct dungeon {
 	unsigned char		icon; // overland icon overlay
 	unsigned char		level; // Start level: 0 form city, 1 for undeground dungeon
 	adat<layer, 8>		layers;
-};
-struct location {
-	struct ground : item {
-		short unsigned	index;
-	};
-	struct site : rect {
-		site_s			type;
-		diety_s			diety;
-		unsigned char	name[2];
-		unsigned char	found;
-		creature*		owner;
-		constexpr site() : rect(), type(), diety(), name(), owner(), found(), recoil() {}
-		operator bool() const { return x1 != x2; }
-		void			entering(creature& player);
-		int				getfoundchance() const;
-		char*			getname(char* result) const;
-		short unsigned	getposition() const;
-		void			update();
-	private:
-		unsigned		recoil;
-		void			wait(unsigned count);
-	};
-	short unsigned		center(const rect& rc) const;
-	void				create(short unsigned i, int level, tile_s tile);
-	void				drop(short unsigned i, item object);
-	void				ellipse(int x0, int y0, int x1, int y1, tile_s object);
-	void				fill(int x, int y, int w, int h, int count, map_object_s object);
-	void				fill(int x, int y, int w, int h, int count, tile_s object);
-	void				fill(int x, int y, int w, int h, tile_s object);
-	short unsigned		find(int x, int y, int w, int h, map_object_s value);
-	short unsigned		get(int x, int y) const { return y * max_map_x + x; }
-	int					getavatar(short unsigned i, tile_s e) const;
-	static direction_s	getdirection(point s, point d);
-	short unsigned		getfree(short unsigned i) const;
-	short unsigned		getindex() const { return world_index; }
-	aref<item*>			getitems(aref<item*> result, short unsigned index);
-	int					getnight() const;
-	map_object_s		getobject(short unsigned i) const { return mpobj[i]; }
-	int					getrand(short unsigned i) const { return mprnd[i]; }
-	location::site*		getsite(short unsigned i) const;
-	short unsigned		getstepfrom(short unsigned index) const;
-	short unsigned		getstepto(short unsigned i) const;
-	tile_s				gettile(short unsigned i) const;
-	trap_s				gettrap(short unsigned i) const;
-	unsigned char		getx(short unsigned i) const { return i % max_map_x; }
-	unsigned char		gety(short unsigned i) const { return i / max_map_x; }
-	bool				is(short unsigned i, map_flag_s v) const { return (mpflg[i] & (1 << v)) != 0; }
-	bool				isdungeon() const { return type <= AreaDungeon; }
-	bool				ispassable(short unsigned i) const;
-	bool				ispassabledoor(short unsigned i) const;
-	bool				ispassablelight(short unsigned i) const;
-	void				makewave(short unsigned i, bool(location::*proc)(short unsigned) const);
-	bool				serialize(bool writemode);
-	void				set(short unsigned i, map_flag_s type, bool value);
-	void				set(short unsigned i, map_object_s value);
-	void				set(short unsigned i, tile_s value);
-	void				set(short unsigned i, unsigned char value);
-	short unsigned		setiwh(int x, int y, int s, tile_s o, map_object_s r, bool locked_doors);
-	short unsigned		setiwv(int x, int y, int s, tile_s o, map_object_s r, bool locked_doors);
-	static short unsigned to(short unsigned i, direction_s side);
-	static direction_s	turn(direction_s from, direction_s side);
-private:
-	dungeon_area_s		type;
-	unsigned char		level;
-	unsigned char		artifacts;
-	short unsigned		world_index;
-	tile_s				mptil[max_map_x*max_map_y];
-	map_object_s		mpobj[max_map_x*max_map_y];
-	unsigned char		mprnd[max_map_x*max_map_y];
-	unsigned char		mpflg[max_map_x*max_map_y];
-	adat<ground, 2048>	items;
-	adat<site, 64>		sites;
 };
 struct manual {
 	typedef void(*proc)(stringbuffer& sc, manual& e);

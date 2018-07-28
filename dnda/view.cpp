@@ -1722,7 +1722,7 @@ static void character_give(creature& e) {
 		return;
 	item* source_item[128];
 	auto result_item = e.select(source_item, TargetItemWeapon);
-	auto pi = e.choose(result_item, true);
+	auto pi = e.choose(result_item, true, "Передать предмет");
 	if(!pi)
 		return;
 	e.give(*pc, *pi, true);

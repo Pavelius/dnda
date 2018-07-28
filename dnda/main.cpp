@@ -105,7 +105,6 @@ static menu main_menu[] = {{"Главное меню"},
 {}};
 
 int main(int argc, char* argv[]) {
-	auto location_size = sizeof(location);
 	//return 0;
 	//test_overland();
 	logs::initialize();

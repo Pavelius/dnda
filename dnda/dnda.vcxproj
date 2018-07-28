@@ -157,7 +157,6 @@
     <ClCompile Include="grammar.cpp" />
     <ClCompile Include="io.cpp" />
     <ClCompile Include="item.cpp" />
-    <ClCompile Include="location.cpp" />
     <ClCompile Include="site.cpp" />
     <ClCompile Include="logs_driver.cpp" />
     <ClCompile Include="main.cpp" />

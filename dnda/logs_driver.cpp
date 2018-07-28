@@ -30,6 +30,8 @@ void logs::driver::parseidentifier(char* result, const char* result_max, const c
 		msg(*this, gender_opponent, result, result_max, "ся", "ась", "ося");
 	else if(strcmp(identifier, "а") == 0)
 		msg(*this, gender, result, result_max, "", identifier, "о");
+	else if(strcmp(identifier, "А") == 0)
+		msg(*this, gender_opponent, result, result_max, "", "а", "о");
 	else if(strcmp(identifier, "ла") == 0)
 		msg(*this, gender, result, result_max, "", identifier, "ло");
 	else if(strcmp(identifier, "она") == 0)

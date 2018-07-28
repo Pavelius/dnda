@@ -269,13 +269,13 @@ aref<short unsigned> creature::select(aref<short unsigned> result, target_s targ
 	return aref<short unsigned>(result.data, pb - result.data);
 }
 
-item* creature::choose(aref<item*> source, bool interactive) const {
+item* creature::choose(aref<item*> source, bool interactive, const char* name) const {
 	if(!source) {
 		hint("У вас нет подходящео предмета.");
 		return 0;
 	}
 	if(interactive)
-		return logs::choose(*this, source.data, source.count, "Выбирайте предмет");
+		return logs::choose(*this, source.data, source.count, name);
 	return source.data[rand() % source.count];
 }
 
