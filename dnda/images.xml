@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <convert output="d:\projects\dnda\art" input="d:\resources\adom\gfx\adom">
   <library output="...\font">
-    <font input="Segoi UI" height="16"/>
+    <font input="Segoe UI" height="14"/>
   </library>
   <library output="...\h1">
-    <font input="Time New Roman" height="26"/>
+    <font input="Segoe UI" height="22"/>
   </library>
   <library output="...\h2">
-    <font input="Time New Roman" height="20"/>
+    <font input="Segoe UI" height="18"/>
   </library>
   <library output="...\h3">
-    <font input="Time New Roman" height="18"/>
+    <font input="Segoe UI" height="16"/>
   </library>  
   <library output="...\toolbar" count="32" ox ="12" oy="12" width="24" height="24">
     <toolbar input="D:\resources\toolbars\toolbar"/>
