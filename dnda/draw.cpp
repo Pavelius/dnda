@@ -2,6 +2,8 @@
 #include "crt.h"
 #include "draw.h"
 
+using namespace draw;
+
 #ifndef __GNUC__
 #pragma optimize("t", on)
 #endif
@@ -40,8 +42,6 @@ bool				hot::pressed; // flag if any of mouse keys is pressed
 int					hot::param; // Event numeric parameter (optional)
 rect				hot::element; // Event rectange (optional)
 rect				hot::hilite; // Event rectange (optional)
-bool				sys_optimize_mouse_move = true;
-rect				sys_static_area;
 // Locale draw variables
 static draw::surface current_surface;
 draw::renderplugin*	draw::renderplugin::first;
@@ -49,11 +49,6 @@ draw::surface*		draw::canvas = &current_surface;
 static bool			line_antialiasing = true;
 static bool			break_modal;
 static int			break_result;
-// Drag
-static int			drag_id;
-static drag_part_s	drag_part;
-point				draw::drag::mouse;
-int					draw::drag::value;
 // Metrics
 rect				metrics::edit = {4, 4, -4, -4};
 sprite*				metrics::font = (sprite*)loadb("art/fonts/font.pma");
@@ -832,33 +827,6 @@ draw::state::~state() {
 	draw::canvas = this->canvas;
 }
 
-rect draw::getarea() {
-	return sys_static_area;
-}
-
-void draw::drag::begin(int id, drag_part_s part) {
-	drag_id = id;
-	drag_part = part;
-	drag::mouse = hot::mouse;
-}
-
-bool draw::drag::active() {
-	return drag_id != 0;
-}
-
-bool draw::drag::active(int id, drag_part_s part) {
-	if(drag_id == id && drag_part == part) {
-		if(!hot::pressed || hot::key == KeyEscape) {
-			drag_id = 0;
-			hot::key = 0;
-			hot::cursor = CursorArrow;
-			return false;
-		}
-		return true;
-	}
-	return false;
-}
-
 int draw::getbpp() {
 	return canvas ? canvas->bpp : 1;
 }
@@ -1292,35 +1260,7 @@ void draw::setclip(rect rcn) {
 	draw::clipping = rc;
 }
 
-static void intersect_rect(rect& r1, const rect& r2) {
-	if(!r1.intersect(r2))
-		return;
-	if(hot::mouse.in(r2)) {
-		if(r2.y1 > r1.y1)
-			r1.y1 = r2.y1;
-		if(r2.x1 > r1.x1)
-			r1.x1 = r2.x1;
-		if(r2.y2 < r1.y2)
-			r1.y2 = r2.y2;
-		if(r2.x2 < r1.x2)
-			r1.x2 = r2.x2;
-	} else {
-		if(hot::mouse.y > r2.y2 && r2.y2 > r1.y1)
-			r1.y1 = r2.y2;
-		else if(hot::mouse.y < r2.y1 && r2.y1 < r1.y2)
-			r1.y2 = r2.y1;
-		else if(hot::mouse.x > r2.x2 && r2.x2 > r1.x1)
-			r1.x1 = r2.x2;
-		else if(hot::mouse.x < r2.x1 && r2.x1 < r1.x2)
-			r1.x2 = r2.x1;
-	}
-}
-
 areas draw::area(rect rc) {
-	if(sys_optimize_mouse_move)
-		intersect_rect(sys_static_area, rc);
-	if(drag::active())
-		return AreaNormal;
 	if(!hot::mouse.in(clipping))
 		return AreaNormal;
 	if(!mouseinput)
@@ -2219,4 +2159,56 @@ void draw::buttonok() {
 
 int draw::getresult() {
 	return break_result;
+}
+
+struct layout_info {
+	int					id;
+	layout_info*		previous;
+	callback_proc		proc;
+	callback_proc		def_proc;
+	static layout_info*	current;
+	layout_info(callback_proc proc) : proc(proc), def_proc(proc) {
+		previous = current;
+		current = this;
+	}
+	~layout_info() {
+		current = previous;
+	}
+};
+layout_info* layout_info::current;
+
+callback_proc draw::getlayout() {
+	return layout_info::current ? layout_info::current->def_proc : 0;
+}
+
+void draw::setlayout(callback_proc proc) {
+	layout_info e(proc);
+	while(e.proc)
+		e.proc();
+}
+
+void draw::setpage(callback_proc proc) {
+	if(!layout_info::current)
+		return;
+	layout_info::current->proc = proc;
+	breakmodal(1);
+}
+
+void draw::setpagedef(callback_proc proc) {
+	if(!layout_info::current)
+		return;
+	layout_info::current->def_proc = proc;
+}
+
+void draw::setpage() {
+	if(!layout_info::current)
+		return;
+	layout_info::current->proc = layout_info::current->def_proc;
+	breakmodal(1);
+}
+
+bool draw::isnext(callback_proc proc) {
+	if(!layout_info::current)
+		return false;
+	return layout_info::current->proc == proc;
 }

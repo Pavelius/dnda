@@ -1,8 +1,10 @@
 #include "crt.h"
 #include "draw.h"
 
-static int		current_command;
-static void		(*current_execute)();
+using namespace draw;
+
+static int				current_command;
+static callback_proc	current_execute;
 
 void draw::execute(int id, int param) {
 	current_command = id;
@@ -10,7 +12,7 @@ void draw::execute(int id, int param) {
 	hot::param = param;
 }
 
-void draw::execute(void(*proc)(), int param) {
+void draw::execute(callback_proc proc, int param) {
 	execute(InputExecute, param);
 	current_execute = proc;
 }

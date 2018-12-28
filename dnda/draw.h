@@ -169,13 +169,7 @@ extern sprite*			h3;
 extern int				scroll;
 }
 namespace draw {
-namespace drag {
-bool					active(int id, drag_part_s part = DragControl);
-bool					active();
-void					begin(int id, drag_part_s part = DragControl);
-extern point			mouse;
-extern int				value;
-}
+typedef void			(*callback_proc)();
 struct surface {
 	struct plugin {
 		const char*		name;
@@ -206,8 +200,7 @@ struct surface {
 	void				resize(int width, int height, int bpp, bool alloc_memory);
 	void				write(const char* url, color* pallette);
 };
-struct state // Push state in stack
-{
+struct state {
 	state();
 	~state();
 private:
@@ -244,7 +237,6 @@ extern const sprite*	font; // Currently selected font
 //
 int						aligned(int x, int width, unsigned state, int string_width);
 int						alignedh(const rect& rc, const char* string, unsigned state);
-void					addelement(int id, const rect& rc);
 areas					area(rect rc);
 bool					areb(rect rc);
 void					bezier(int x0, int y0, int x1, int y1, int x2, int y2);
@@ -261,16 +253,14 @@ void					circlef(int x, int y, int radius, const color c1, unsigned char alpha =
 void					create(int x, int y, int width, int height, unsigned flags, int bpp);
 void					decortext(unsigned flags);
 bool					defproc(int id);
-void					execute(void(*callback)(), int value = 0);
+void					execute(callback_proc proc, int value = 0);
 void					execute(int id, int value = 0);
-rect					getarea();
 int						getbpp();
 color					getcolor(color normal, unsigned flags);
 color					getcolor(rect rc, color normal, color hilite, unsigned flags);
 inline draw_event_s		getcontrol(unsigned flags) { return (draw_event_s)(flags&ControlMask); }
-int						getfocus();
 int						getheight();
-int						getnext(int id, int key);
+callback_proc			getlayout();
 int						getresult();
 int						getwidth();
 void					glyph(int x, int y, int sym, unsigned flags);
@@ -280,6 +270,7 @@ int						hittest(int x, int test_x, const char* string, int lenght);
 int						hittest(rect rc, const char* string, unsigned state, point mouse);
 inline bool				ischecked(unsigned flags) { return (flags&Checked) != 0; }
 inline bool				isdisabled(unsigned flags) { return (flags&Disabled) != 0; }
+bool					isnext(callback_proc proc);
 inline bool				isfocused(unsigned flags) { return (flags&Focused) != 0; }
 bool					ismodal();
 void					image(int x, int y, const sprite* e, int id, int flags, unsigned char alpha = 0xFF);
@@ -309,8 +300,10 @@ void					set(void(*proc)(int& x, int& y, int x0, int x2, int* max_width, int& w,
 void					setcaption(const char* string);
 void					setclip(rect rc);
 inline void				setclip() { clipping.set(0, 0, getwidth(), getheight()); }
-void					setfocus(int id, bool instant = false);
-void					settimer(unsigned milleseconds);
+void					setlayout(callback_proc proc);
+void					setpage();
+void					setpage(callback_proc proc);
+void					setpagedef(callback_proc proc);
 const char*				skiptr(const char* string);
 void					spline(point* points, int n);
 void					stroke(int x, int y, const sprite* e, int id, int flags, unsigned char thin = 1, unsigned char* koeff = 0);

@@ -130,6 +130,7 @@ static struct item_info {
 	unsigned char		charges;
 	foodinfo			food;
 } item_data[] = {{"Пусто"},
+//
 {"Боевой топор", 850, 5 * GP, Male, Iron, {1, {1, 8, Slashing}}, {5}, {Versatile}, {Melee}, WeaponFocusAxes, axe_effect},
 {"Дубина", 1000, 5 * CP, Female, Wood, {2, {1, 6}}, {4}, {}, {Melee}, NoSkill, bludgeon_effect},
 {"Кинжал", 50, 2 * GP, Male, Iron, {3, {1, 4, Piercing}, 5}, {5}, {}, {Melee, OffHand}, WeaponFocusBlades, swords_effect},

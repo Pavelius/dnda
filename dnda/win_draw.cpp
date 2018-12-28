@@ -263,14 +263,9 @@ void draw::setcaption(const char* string) {
 	SetWindowTextA(hwnd, string);
 }
 
-void draw::settimer(unsigned milleseconds) {
-	if(milleseconds)
-		SetTimer(hwnd, InputTimer, milleseconds, 0);
-	else
-		KillTimer(hwnd, InputTimer);
-}
-
-//if(draw::canvas) {
-//	draw::canvas->resize(rc.right, rc.bottom, draw::canvas->bpp, true);
-//	draw::clipping.set(0, 0, rc.right, rc.bottom);
+//void draw::settimer(unsigned milleseconds) {
+//	if(milleseconds)
+//		SetTimer(hwnd, InputTimer, milleseconds, 0);
+//	else
+//		KillTimer(hwnd, InputTimer);
 //}

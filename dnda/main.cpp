@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
 	//return 0;
 	//test_overland();
 	logs::initialize();
-	//logs::choose(main_menu);
+	logs::choose(main_menu);
 	create(AreaCity, get(10, 10), 0, false, false);
 	create_party(true);
 	auto p = creature::getplayer();
