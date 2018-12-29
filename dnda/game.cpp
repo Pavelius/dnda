@@ -5,18 +5,20 @@
 // Each minute has 12 segments, and each segment if 6 seconds duration.
 // Attack duration is 12 segments - speed of weapon - dexterity speed bonus but minimum of 3 segments
 
-areainfo				game::statistic;
-int						isqrt(int num);
 static unsigned			start_year;
 unsigned				segments = 7 * Hour;
+
+areainfo				game::statistic;
 adat<grounditem, 2048>	grounditems;
 adat<site, 128>			sites;
 static tile_s			mptil[max_map_x*max_map_y];
 static map_object_s		mpobj[max_map_x*max_map_y];
 static unsigned char	mprnd[max_map_x*max_map_y];
 static unsigned char	mpflg[max_map_x*max_map_y];
+
 static short unsigned	movements[max_map_x*max_map_y];
 static short unsigned	stack[256 * 256];
+
 static direction_s		all_aroud[] = {Left, Right, Up, Down, LeftDown, LeftUp, RightDown, RightUp};
 static const direction_s orientations_5b5[25] = {
 	LeftUp, LeftUp, Up, Up, RightUp,
@@ -25,6 +27,8 @@ static const direction_s orientations_5b5[25] = {
 	LeftDown, LeftDown, Down, RightDown, Right,
 	LeftDown, Down, Down, RightDown, RightDown
 };
+
+int						isqrt(int num);
 
 site* game::add(site_s type, rect rc) {
 	auto p = sites.add();
