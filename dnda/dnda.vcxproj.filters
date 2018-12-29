@@ -46,6 +46,9 @@
     <ClInclude Include="resources.h">
       <Filter>support</Filter>
     </ClInclude>
+    <ClInclude Include="package.h">
+      <Filter>support</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="archive.cpp">
@@ -182,6 +185,9 @@
     </ClCompile>
     <ClCompile Include="gender.cpp">
       <Filter>logic</Filter>
+    </ClCompile>
+    <ClCompile Include="package.cpp">
+      <Filter>support</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

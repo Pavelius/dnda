@@ -127,6 +127,7 @@
     <ClInclude Include="initializer_list.h" />
     <ClInclude Include="io.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="package.h" />
     <ClInclude Include="point.h" />
     <ClInclude Include="rect.h" />
     <ClInclude Include="resources.h" />
@@ -157,6 +158,7 @@
     <ClCompile Include="grammar.cpp" />
     <ClCompile Include="io.cpp" />
     <ClCompile Include="item.cpp" />
+    <ClCompile Include="package.cpp" />
     <ClCompile Include="site.cpp" />
     <ClCompile Include="logs_driver.cpp" />
     <ClCompile Include="main.cpp" />
