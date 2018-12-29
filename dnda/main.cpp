@@ -107,6 +107,8 @@ static menu main_menu[] = {{"Главное меню"},
 int main(int argc, char* argv[]) {
 	//return 0;
 	//test_overland();
+	package::pack("art", "E:/applications/test/all.pkg");
+	package::unpack("E:/applications/test/unpack", "E:/applications/test/all.pkg");
 	logs::initialize();
 	logs::choose(main_menu);
 	create(AreaCity, get(10, 10), 0, false, false);

@@ -1,6 +1,7 @@
 #include "collection.h"
 #include "crt.h"
 #include "grammar.h"
+#include "package.h"
 #include "point.h"
 #include "rect.h"
 #include "stringcreator.h"
