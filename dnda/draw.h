@@ -219,16 +219,6 @@ struct textplugin {
 	textplugin(const char* name, proc e);
 	static textplugin*	find(const char* name);
 };
-struct renderplugin {
-	int					priority;
-	renderplugin*		next;
-	static renderplugin* first;
-	renderplugin(int priority = 10);
-	virtual void		after() {}
-	virtual void		before() {}
-	virtual void		initialize() {}
-	virtual bool		translate(int id) { return false; }
-};
 typedef int(*widgetproc)(int x, int y, int width, unsigned flags, const char* label, int value, void* data, const char* tips);
 extern rect				clipping; // Clipping area
 extern color			fore; // Foreground color (curently selected color)
@@ -254,7 +244,7 @@ void					create(int x, int y, int width, int height, unsigned flags, int bpp);
 void					decortext(unsigned flags);
 bool					defproc(int id);
 void					execute(callback_proc proc, int value = 0);
-void					execute(int id, int value = 0);
+//void					execute(int id, int value = 0);
 int						getbpp();
 color					getcolor(color normal, unsigned flags);
 color					getcolor(rect rc, color normal, color hilite, unsigned flags);
@@ -276,7 +266,7 @@ bool					ismodal();
 void					image(int x, int y, const sprite* e, int id, int flags, unsigned char alpha = 0xFF);
 void					image(int x, int y, const sprite* e, int id, int flags, unsigned char alpha, color* pal);
 void					initialize();
-int						input(bool redraw = false);
+void					domodal();
 void					line(int x1, int y1, int x2, int y2); // Draw line
 void					line(int x1, int y1, int x2, int y2, color c1); // Draw line
 inline void				line(point p1, point p2, color c1) { line(p1.x, p1.y, p2.x, p2.y, c1); }

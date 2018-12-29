@@ -44,7 +44,6 @@ rect				hot::element; // Event rectange (optional)
 rect				hot::hilite; // Event rectange (optional)
 // Locale draw variables
 static draw::surface current_surface;
-draw::renderplugin*	draw::renderplugin::first;
 draw::surface*		draw::canvas = &current_surface;
 static bool			line_antialiasing = true;
 static bool			break_modal;
@@ -2103,30 +2102,7 @@ void draw::surface::convert(int new_bpp, color* pallette) {
 	bpp = iabs(new_bpp);
 }
 
-draw::renderplugin::renderplugin(int priority) : next(0), priority(priority) {
-	if(!first)
-		first = this;
-	else {
-		auto p = first;
-		while(p->next && p->next->priority<priority)
-			p = p->next;
-		this->next = p->next;
-		p->next = this;
-	}
-}
-
-bool draw::defproc(int id) {
-	for(auto p = draw::renderplugin::first; p; p = p->next) {
-		if(p->translate(id))
-			return true;
-	}
-	return false;
-}
-
 void draw::initialize() {
-	// Initilaize all plugins
-	for(auto p = renderplugin::first; p; p = p->next)
-		p->initialize();
 	// Set default window colors
 	draw::font = metrics::font;
 	draw::fore = colors::text;
@@ -2134,9 +2110,6 @@ void draw::initialize() {
 }
 
 bool draw::ismodal() {
-	// Before plugin events
-	for(auto p = renderplugin::first; p; p = p->next)
-		p->before();
 	// Break modal loop
 	if(!break_modal)
 		return true;

@@ -2,6 +2,8 @@
 #include "resources.h"
 #include "main.h"
 
+using namespace draw;
+
 template<class T> static const T* findkey(const T* source, int key) {
 	for(auto p = source; *p; p++) {
 		if(p->key == key)
@@ -287,13 +289,6 @@ static point getcamera(int mx, int my) {
 	if(pt.y < 0)
 		pt.y = 0;
 	return pt;
-}
-
-static int input() {
-	auto id = draw::input();
-	if(!id)
-		exit(0);
-	return id;
 }
 
 inline bool wget(short unsigned i, direction_s direction, tile_s value) {
@@ -1044,7 +1039,7 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 	const int dy = 20;
 	if(!title)
 		title = "Предметы";
-	while(true) {
+	while(ismodal()) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
 		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
@@ -1059,16 +1054,17 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 		}
 		y += padding;
 		y += view_total(x, y, width, source, count, &e);
-		auto id = draw::input();
-		switch(id) {
+		draw::domodal();
+		switch(hot::key) {
 		case KeyEscape:
 			return 0;
 		default:
-			if(getkey(id, count))
-				return source[id];
+			if(getkey(hot::key, count))
+				return source[hot::key];
 			break;
 		}
 	}
+	return 0;
 }
 
 static void character_pickup(creature& e) {
@@ -1135,7 +1131,7 @@ static void character_invertory(creature& e) {
 	const int width = 500;
 	const int height = 360;
 	const int dy = 20;
-	while(true) {
+	while(ismodal()) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
 		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
@@ -1158,14 +1154,14 @@ static void character_invertory(creature& e) {
 		}
 		y += padding;
 		y += view_total(x, y, width, source, p - source, &e);
-		auto id = draw::input();
-		switch(id) {
+		draw::domodal();
+		switch(hot::key) {
 		case KeyEscape:
 			return;
 		default:
-			if(getkey(id, Amunitions + 1)) {
+			if(getkey(hot::key, Amunitions + 1)) {
 				clear_state();
-				auto slot = (slot_s)id;
+				auto slot = (slot_s)hot::key;
 				if(e.wears[slot]) {
 					e.unequip(e.wears[slot]);
 				} else {
@@ -1190,7 +1186,7 @@ short unsigned logs::choose(const creature& e, short unsigned* source, int count
 	int current = 0;
 	fxeffect ef[2];
 	ef[0].res = gres(ResUI);
-	while(true) {
+	while(ismodal()) {
 		clear_state();
 		short unsigned current_index = source[current];
 		point camera = getcamera(game::getx(current_index), game::gety(current_index));
@@ -1198,11 +1194,11 @@ short unsigned logs::choose(const creature& e, short unsigned* source, int count
 		ef[0].y = game::gety(current_index) * ely;
 		game::looktarget(current_index);
 		view_zone(&e, camera, ef);
-		auto id = draw::input();
-		switch(id) {
+		draw::domodal();
+		switch(hot::key) {
 		case KeyEscape:
 			clear_state();
-			return 0xFFFF;
+			return Blocked;
 		case KeyEnter:
 			clear_state();
 			return current_index;
@@ -1218,34 +1214,36 @@ short unsigned logs::choose(const creature& e, short unsigned* source, int count
 		if(current < 0)
 			current = count - 1;
 	}
+	return Blocked;
 }
 
 static short unsigned choose_target(creature& e, short unsigned current_index) {
 	fxeffect ef[2];
 	ef[0].res = gres(ResUI);
-	while(true) {
+	while(ismodal()) {
 		point camera = getcamera(game::getx(current_index), game::gety(current_index));
 		ef[0].x = game::getx(current_index) * elx;
 		ef[0].y = game::gety(current_index) * ely;
 		view_zone(&e, camera, ef);
-		auto id = draw::input();
-		auto phk = gethotkey(id);
+		draw::domodal();
+		auto phk = gethotkey(hot::key);
 		if(phk) {
 			auto direction = getdirection(phk->key);
 			if(direction != Center) {
 				auto ni = game::to(current_index, direction);
-				if(ni != 0xFFFF)
+				if(ni != Blocked)
 					current_index = ni;
 				continue;
 			}
 		}
-		switch(id) {
+		switch(hot::key) {
 		case KeyEscape:
-			return 0xFFFF;
+			return Blocked;
 		case KeyEnter:
 			return current_index;
 		}
 	}
+	return Blocked;
 }
 
 int compare_skills(const void* p1, const void* p2) {
@@ -1273,7 +1271,7 @@ void logs::raise(creature& e, int left) {
 	const int height = 360;
 	const int dy = 20;
 	unsigned real_count = 0;
-	while(true) {
+	while(ismodal()) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
 		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
@@ -1298,11 +1296,11 @@ void logs::raise(creature& e, int left) {
 		draw::fore = old_fore;
 		if(!index)
 			textl(x, y, width, "У вас нет подходящих навыков");
-		auto id = draw::input();
-		if(getkey(id, real_count)) {
-			if(source_checks[source[id]]) {
-				source_checks[source[id]]--;
-				e.raise(source[id]);
+		draw::domodal();
+		if(getkey(hot::key, real_count)) {
+			if(source_checks[source[hot::key]]) {
+				source_checks[source[hot::key]]--;
+				e.raise(source[hot::key]);
 				if(--left <= 0)
 					return;
 			}
@@ -1316,7 +1314,7 @@ bool logs::choose(creature& e, skill_s& result, aref<skill_s> source, bool can_e
 	const int height = 360;
 	const int dy = 20;
 	unsigned real_count = 0;
-	while(true) {
+	while(ismodal()) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
 		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
@@ -1332,20 +1330,21 @@ bool logs::choose(creature& e, skill_s& result, aref<skill_s> source, bool can_e
 		}
 		if(!index)
 			textl(x, y, width, "У вас нет подходящих навыков");
-		auto id = draw::input();
-		switch(id) {
+		draw::domodal();
+		switch(hot::key) {
 		case KeyEscape:
 			if(can_escape)
 				return false;
 			break;
 		default:
-			if(getkey(id, real_count)) {
-				result = source[id];
+			if(getkey(hot::key, real_count)) {
+				result = source[hot::key];
 				return true;
 			}
 			break;
 		}
 	}
+	return false;
 }
 
 bool logs::choose(creature& e, skill_s& result, bool can_escape) {
@@ -1365,7 +1364,7 @@ bool logs::choose(creature& e, spell_s& result, aref<spell_s> source) {
 	const int width = 400;
 	const int height = 360;
 	const int dy = 20;
-	while(true) {
+	while(ismodal()) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
 		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
@@ -1388,18 +1387,19 @@ bool logs::choose(creature& e, spell_s& result, aref<spell_s> source) {
 		}
 		if(!index)
 			textl(x, y, width, "У вас нет заклинаний");
-		auto id = draw::input();
-		switch(id) {
+		draw::domodal();
+		switch(hot::key) {
 		case KeyEscape:
 			return false;
 		default:
-			if(getkey(id, index)) {
-				result = source[id];
+			if(getkey(hot::key, index)) {
+				result = source[hot::key];
 				return true;
 			}
 			break;
 		}
 	}
+	return false;
 }
 
 static void setplayer(creature& e, int index) {
@@ -1449,25 +1449,25 @@ static void dungeon_lookaround(creature& e) {
 	ef[0].res = gres(ResUI);
 	ef[0].frame = 1;
 	short unsigned current_index = e.getposition();
-	while(true) {
+	while(ismodal()) {
 		clear_state();
 		game::lookhere(current_index);
 		point camera = getcamera(game::getx(current_index), game::gety(current_index));
 		ef[0].x = game::getx(current_index) * elx;
 		ef[0].y = game::gety(current_index) * ely;
 		view_zone(&e, camera, ef);
-		auto id = draw::input();
-		auto phk = gethotkey(id);
+		draw::domodal();
+		auto phk = gethotkey(hot::key);
 		if(phk) {
 			auto direction = getdirection(phk->key);
 			if(direction != Center) {
 				auto ni = game::to(current_index, direction);
-				if(ni != 0xFFFF)
+				if(ni != Blocked)
 					current_index = ni;
 				continue;
 			}
 		}
-		switch(id) {
+		switch(hot::key) {
 		case KeyEscape:
 		case KeyEnter:
 			return;
@@ -1480,14 +1480,14 @@ void logs::minimap(short unsigned position) {
 	int w = max_map_x * mmaps + 280;
 	int h = max_map_y * mmaps;
 	point camera = getcamera(game::getx(position), game::gety(position));
-	while(true) {
+	while(ismodal()) {
 		draw::rectf({0, 0, draw::getwidth(), draw::getheight()}, colors::form);
 		if(game::statistic.level)
 			szprints(temp, zendof(temp), "Уровень %1i", game::statistic.level);
 		//view_dialog(bsgets(Minimap, Name), temp, 1);
 		view_mini((draw::getwidth() - w) / 2, (draw::getheight() - h) / 2, camera);
-		int id = draw::input();
-		switch(id) {
+		draw::domodal();
+		switch(hot::key) {
 		case 0:
 		case KeyEscape:
 			return;
@@ -1519,23 +1519,23 @@ void logs::focusing(short unsigned index) {
 	ef[0].res = gres(ResUI);
 	ef[0].frame = 1;
 	add("[...Пробел]");
-	while(true) {
+	while(ismodal()) {
 		point camera = getcamera(game::getx(index), game::gety(index));
 		ef[0].x = game::getx(index) * elx;
 		ef[0].y = game::gety(index) * ely;
 		view_zone(0, camera, ef);
-		auto id = draw::input();
-		auto phk = gethotkey(id);
+		draw::domodal();
+		auto phk = gethotkey(hot::key);
 		if(phk) {
 			auto direction = getdirection(phk->key);
 			if(direction != Center) {
 				auto ni = game::to(index, direction);
-				if(ni != 0xFFFF)
+				if(ni != Blocked)
 					index = ni;
 				continue;
 			}
 		}
-		switch(id) {
+		switch(hot::key) {
 		case KeySpace:
 			clear_state();
 			return;
@@ -1548,11 +1548,11 @@ void logs::next() {
 	if(!p)
 		return;
 	szprints(zend(state_message), zendof(state_message), "[...Пробел]");
-	while(true) {
+	while(ismodal()) {
 		point camera = getcamera(game::getx(p->getposition()), game::gety(p->getposition()));
 		view_zone(p, camera);
-		auto id = draw::input();
-		switch(id) {
+		draw::domodal();
+		switch(hot::key) {
 		case KeySpace:
 			clear_state();
 			return;
@@ -1565,11 +1565,11 @@ bool logs::chooseyn() {
 	if(!p)
 		return true;
 	add("([+Y/N])?");
-	while(true) {
+	while(ismodal()) {
 		point camera = getcamera(game::getx(p->getposition()), game::gety(p->getposition()));
 		view_zone(p, camera);
-		auto id = draw::input();
-		switch(id) {
+		draw::domodal();
+		switch(hot::key) {
 		case Alpha + 'Y':
 			clear_state();
 			return true;
@@ -1578,24 +1578,26 @@ bool logs::chooseyn() {
 			return false;
 		}
 	}
+	return false;
 }
 
 int logs::input() {
 	auto p = creature::getplayer();
-	while(true) {
+	while(ismodal()) {
 		point camera = {0, 0};
 		if(p)
 			camera = getcamera(game::getx(p->getposition()), game::gety(p->getposition()));
 		view_zone(p, camera);
-		auto id = draw::input();
-		if(id >= Alpha + '1' && id <= (Alpha + '9')) {
-			id = id - (Alpha + '1');
-			if(id < current_key_index) {
+		draw::domodal();
+		if(hot::key >= Alpha + '1' && hot::key <= (Alpha + '9')) {
+			hot::key = hot::key - (Alpha + '1');
+			if(hot::key < current_key_index) {
 				clear_state();
-				return answers[id];
+				return answers[hot::key];
 			}
 		}
 	}
+	return 0;
 }
 
 void testweapon(creature& e);
@@ -1663,7 +1665,7 @@ static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 	auto index = e.getposition();
 	unsigned current_index;
 	adat<manual*, 64> source;
-	while(true) {
+	while(ismodal()) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = padding * 3;
 		point camera = getcamera(game::getx(index), game::gety(index));
@@ -1701,14 +1703,14 @@ static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 				y += draw::textf(x1, y, width - 32, p->value.getname());
 			}
 		}
-		auto id = draw::input();
-		switch(id) {
+		draw::domodal();
+		switch(hot::key) {
 		case KeyEscape:
 			clear_state();
 			return;
 		default:
-			if(getkey(id, current_index))
-				view_manual(e, sc, *source.data[id]);
+			if(getkey(hot::key, current_index))
+				view_manual(e, sc, *source.data[hot::key]);
 			break;
 		}
 	}
@@ -1743,7 +1745,7 @@ static void character_logs(creature& e) {
 	const int pixel_per_line = draw::texth();
 	const int lines_per_screen = height / pixel_per_line;
 	int index = messages.count - lines_per_screen + 2;
-	while(true) {
+	while(ismodal()) {
 		if(index >= (int)messages.count)
 			index = messages.count - 1;
 		if(index < 0)
@@ -1756,10 +1758,9 @@ static void character_logs(creature& e) {
 		y += view_dialog({x, y, x + width, y + height}, "Сообщения");
 		for(unsigned i = index; i < messages.count && y < y0 + height; i++)
 			y += draw::textf(x, y, width, messages[i]);
-		auto id = draw::input();
-		switch(id) {
-		case KeyEscape:
-			return;
+		draw::domodal();
+		switch(hot::key) {
+		case KeyEscape: return;
 		case KeyUp: index--; break;
 		case KeyDown: index++; break;
 		case KeyPageDown: index += lines_per_screen - 2; break;
@@ -1908,8 +1909,8 @@ void logs::worldedit() {
 		view_world(camera, true, ef);
 		view_message();
 		context.info();
-		auto id = draw::input();
-		auto pid = findkey(context.getshortcuts(), id);
+		draw::domodal();
+		auto pid = findkey(context.getshortcuts(), hot::key);
 		if(pid && pid->proc) {
 			(context.*pid->proc)(*pid);
 			clear_state();
@@ -1954,7 +1955,7 @@ static void character_help(creature& e) {
 	const int width = 700;
 	const int height = 460;
 	const int dy = 20;
-	while(true) {
+	while(ismodal()) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = padding * 3;
 		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
@@ -1972,8 +1973,8 @@ static void character_help(creature& e) {
 				y1 = y;
 			}
 		}
-		auto id = draw::input();
-		switch(id) {
+		draw::domodal();
+		switch(hot::key) {
 		case KeyEscape:
 			return;
 		}
@@ -2005,10 +2006,11 @@ void logs::choose(const menu* p) {
 }
 
 void logs::turn(creature& e) {
-	while(true) {
+	while(ismodal()) {
 		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
 		view_zone(&e, camera);
-		auto phk = gethotkey(draw::input());
+		draw::domodal();
+		auto phk = gethotkey(hot::key);
 		if(!phk)
 			continue;
 		// Очистим логи
