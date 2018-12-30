@@ -37,7 +37,7 @@ int	site::getfoundchance() const {
 
 void site::wait(unsigned value) {
 	if(!recoil)
-		recoil = segments;
+		recoil = game::getseconds();
 	recoil += value;
 }
 
@@ -51,7 +51,7 @@ void site::entering(creature& player) {
 }
 
 void site::update() {
-	if(recoil > segments)
+	if(recoil > game::getseconds())
 		return;
 	if(game::isdungeon())
 		game::spawn(game::getfree(getposition()));

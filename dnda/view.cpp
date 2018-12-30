@@ -1403,7 +1403,7 @@ bool logs::choose(creature& e, spell_s& result, aref<spell_s> source) {
 }
 
 static void setplayer(creature& e, int index) {
-	auto p = e.gethenchmen(index);
+	auto p = creature::getplayer(index);
 	if(p)
 		p->setplayer();
 }
@@ -1440,7 +1440,7 @@ static void character_spell(creature& e) {
 
 static void character_time(creature& e) {
 	char temp[260];
-	game::getdate(temp, zendof(temp), segments, true);
+	game::getdate(temp, zendof(temp), game::getseconds(), true);
 	logs::add("Прошло %1.", temp);
 }
 
@@ -1848,10 +1848,8 @@ void logs::worldedit() {
 			tile = e.tile;
 		}
 		void savemap(const shortcut& e) {
-			game::serializew(true);
 		}
 		void readmap(const shortcut& e) {
-			game::serializew(false);
 		}
 		void minimap(const shortcut& e) {
 			logs::minimap(position);

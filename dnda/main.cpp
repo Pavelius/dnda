@@ -44,8 +44,7 @@ static void create_worldmap() {
 
 static void test_overland() {
 	logs::initialize();
-	game::initialize(get(10,10), 0, Plain);
-	game::serializew(false);
+	game::initialize(get(10, 10), 0, Plain);
 	// Set new random values
 	auto count = max_map_x * max_map_y;
 	for(short unsigned i = 0; i < count; i++)
@@ -58,8 +57,8 @@ static creature* create_character(bool interactive) {
 	if(!interactive)
 		return new creature(
 		(race_s)xrand(Human, Halfling),
-		(gender_s)xrand(Male, Female),
-		(class_s)xrand(Cleric, Theif));
+			(gender_s)xrand(Male, Female),
+			(class_s)xrand(Cleric, Theif));
 	logs::add("Кто вы?");
 	logs::add(Male, getstr(Male));
 	logs::add(Female, getstr(Female));
@@ -78,24 +77,20 @@ static creature* create_character(bool interactive) {
 static void create_party(bool interactive) {
 	auto start_index = game::statistic.positions[0];
 	//auto start_index = get(10, 10);
-	if(!serializep(start_index, false)) {
-		//auto p1 = creature::add(start_index, Human, Female, Mage);
-		//auto p2 = creature::add(start_index, Dwarf, Male, Fighter);
-		//auto p3 = creature::add(start_index, Elf, Male, Theif);
-		auto p1 = create_character(interactive);
-		auto p2 = create_character(interactive);
-		auto p3 = create_character(interactive);
-		p1->join(p1);
-		p2->join(p1);
-		p3->join(p1);
-		p1->setplayer();
+	//auto p1 = creature::add(start_index, Human, Female, Mage);
+	//auto p2 = creature::add(start_index, Dwarf, Male, Fighter);
+	//auto p3 = creature::add(start_index, Elf, Male, Theif);
+	auto p1 = create_character(interactive);
+	auto p2 = create_character(interactive);
+	auto p3 = create_character(interactive);
+	p1->join(p1);
+	p2->join(p1);
+	p3->join(p1);
+	p1->setplayer();
 #ifdef _DEBUG
-		p1->equip(item(Book1, 4, 20, 20, 40));
-		p1->equip(item(Potion1, (enchantment_s)Experience));
-		serializep(start_index, true);
-		serializep(start_index, false);
+	p1->equip(item(Book1, 4, 20, 20, 40));
+	p1->equip(item(Potion1, (enchantment_s)Experience));
 #endif
-	}
 }
 
 static menu main_menu[] = {{"Главное меню"},
@@ -105,14 +100,10 @@ static menu main_menu[] = {{"Главное меню"},
 {}};
 
 int main(int argc, char* argv[]) {
-	//return 0;
-	//test_overland();
-	package::pack("art", "E:/applications/test/all.pkg");
-	package::unpack("E:/applications/test/unpack", "E:/applications/test/all.pkg");
 	logs::initialize();
-	logs::choose(main_menu);
+	//logs::choose(main_menu);
 	create(AreaCity, get(10, 10), 0, false, false);
-	create_party(true);
+	create_party(false);
 	auto p = creature::getplayer();
 	if(!p)
 		return 0;

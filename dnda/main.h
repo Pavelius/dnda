@@ -496,7 +496,6 @@ struct creature {
 	char*				getfullname(char* result, const char* result_maximum, bool show_level, bool show_alignment) const;
 	gender_s			getgender() const { return gender; }
 	short unsigned		getguard() const { return guard; }
-	creature*			gethenchmen(int index) const;
 	int					gethits() const { return hp; }
 	creature*			gethorror() const { return horror; }
 	creature*			getleader() const;
@@ -513,6 +512,7 @@ struct creature {
 	static const char*	getname(skill_s id);
 	creature*			getnearest(aref<creature*> source, targetdesc ti) const;
 	static creature*	getplayer();
+	static creature*	getplayer(int index);
 	short unsigned		getposition() const { return position; }
 	race_s				getrace() const { return race; }
 	damageinfo			getraise(skill_s id) const;
@@ -574,7 +574,6 @@ struct creature {
 	void				sethorror(creature* value) { horror = value; }
 	void				setplayer();
 	void				setposition(short unsigned value) { position = value; }
-	static void			setleader(const creature* party, creature* leader);
 	void				setlos();
 	void				setmoney(int value) { money = value; }
 	void				trapeffect();
@@ -665,15 +664,18 @@ bool					noint(const creature& player, const dialog& e);
 struct grounditem : item {
 	short unsigned		index;
 };
-struct areainfo {
+struct coordinate {
+	constexpr coordinate() : index(Blocked), level(1) {}
 	short unsigned		index; // Позиция на карте мира
-	short unsigned		positions[8]; // Several positions
 	unsigned char		level; // Уровень поздземелья
+};
+struct areainfo : coordinate {
 	unsigned char		rooms; // Количество комнат
 	unsigned short		artifacts;
 	bool				isdungeon; // Underground dungeons has 'true'
 	race_s				habbitants[4];
-	constexpr areainfo() : index(Blocked), level(1), rooms(0), isdungeon(false),
+	short unsigned		positions[8]; // Several positions
+	constexpr areainfo() : rooms(0), isdungeon(false),
 		artifacts(0), habbitants(),
 		positions{Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked} {
 	}
@@ -712,18 +714,22 @@ struct menu {
 };
 namespace game {
 site*					add(site_s type, rect rc);
+void					addseconds(unsigned count);
 bool					create(dungeon_area_s type, short unsigned index, int level, bool explored = false, bool visualize = false);
 int						distance(short unsigned i1, short unsigned i2);
 void					drop(short unsigned i, item object);
 unsigned short			genname(race_s race, gender_s gender);
 inline short unsigned	get(int x, int y) { return y * max_map_x + x; }
 const attackinfo&		getattackinfo(trap_s slot);
+unsigned				getday();
 direction_s				getdirection(point s, point d);
 aref<dungeon>			getdungeons();
 short unsigned			getfree(short unsigned i);
+unsigned				gethour();
 int						getindex(short unsigned i, tile_s value);
 site*					getlocation(short unsigned i);
 int						getitems(item** result, unsigned maximum_count, short unsigned index);
+unsigned				getminute();
 short unsigned			getmovement(short unsigned i);
 const char*				getnamepart(unsigned short value);
 creature*				getnearest(aref<creature*> source, short unsigned position);
@@ -733,6 +739,7 @@ aref<site>				getsites();
 short unsigned			getstepto(short unsigned index);
 short unsigned			getstepfrom(short unsigned index);
 const char*				getdate(char* result, const char* result_maximum, unsigned segments, bool show_time);
+unsigned				getseconds();
 trap_s					gettrap(short unsigned i);
 tile_s					gettile(short unsigned i);
 map_object_s			getobject(short unsigned i);
@@ -749,8 +756,6 @@ void					lookhere(short unsigned index);
 void					makewave(short unsigned index, bool(*proc)(short unsigned) = ispassabledoor);
 void					release(const creature* p);
 bool					serialize(bool writemode);
-bool					serializep(short unsigned index, bool writemode);
-bool					serializew(bool writemode);
 void					set(short unsigned i, tile_s value);
 void					set(short unsigned i, tile_s value, int w, int h);
 void					set(short unsigned i, map_object_s value);
@@ -795,7 +800,3 @@ void					turn(creature& e);
 void					worldedit();
 }
 extern adat<grounditem, 2048> grounditems;
-unsigned				getday();
-unsigned				gethour();
-unsigned				getminute();
-extern unsigned			segments;

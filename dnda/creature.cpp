@@ -8,6 +8,7 @@ const unsigned poison_update = Minute * 4;
 static unsigned short		exit_index;
 static creature*			current_player;
 static adat<creature, 1024>	creature_data;
+static adat<creature, 6>	player_data;
 
 static int experience_level[] = {0,
 1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000
@@ -237,31 +238,20 @@ void creature::turnbegin() {
 
 bool creature::playturn() {
 	turnbegin();
+	auto tm = game::getseconds();
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;
 		e.update();
-		if(e.recoil > segments)
+		if(e.recoil > game::getseconds())
 			continue;
 		e.makemove();
-		if(e.recoil <= segments)
-			e.recoil = segments + 1;
+		if(e.recoil <= tm)
+			e.recoil = tm + 1;
 	}
 	for(auto& e : getsites())
 		e.update();
 	return current_player != 0;
-}
-
-creature* creature::gethenchmen(int index) const {
-	for(auto& e : creature_data) {
-		if(!e)
-			continue;
-		if(e.party == this) {
-			if(index-- == 0)
-				return &e;
-		}
-	}
-	return 0;
 }
 
 void creature::select(creature** result, rect rc) {
@@ -453,7 +443,7 @@ void creature::join(creature* value) {
 }
 
 void creature::release() const {
-	for(auto& e : creature_data) {
+	for(auto& e : player_data) {
 		if(!e)
 			continue;
 		if(e.horror == this)
@@ -461,11 +451,13 @@ void creature::release() const {
 		if(e.charmer == this)
 			e.charmer = 0;
 	}
-	if(isleader()) {
-		auto new_leader = gethenchmen(0);
-		setleader(party, new_leader);
-		if(current_player == this)
-			current_player = new_leader;
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		if(e.horror == this)
+			e.horror = 0;
+		if(e.charmer == this)
+			e.charmer = 0;
 	}
 	game::release(this);
 }
@@ -521,7 +513,7 @@ int creature::getdefence() const {
 }
 
 bool creature::is(state_s value) const {
-	return segments <= states[value];
+	return game::getseconds() <= states[value];
 }
 
 bool creature::canhear(short unsigned index) const {
@@ -737,7 +729,7 @@ void creature::updateweight() {
 
 void creature::wait(int value) {
 	if(!recoil)
-		recoil = segments;
+		recoil = game::getseconds();
 	recoil += value;
 }
 
@@ -927,32 +919,22 @@ void creature::makemove() {
 		walkaround(creatures);
 }
 
-void creature::setleader(const creature* party, creature* leader) {
-	if(party == leader)
-		return;
-	if(party) {
-		for(auto& e : creature_data) {
-			if(!e)
-				continue;
-			if(e.party == party)
-				e.party = leader;
-		}
-	}
-	if(leader)
-		leader->party = leader;
-}
-
 creature* creature::getplayer() {
 	return current_player;
 }
 
+creature* creature::getplayer(int index) {
+	if(index >= (int)player_data.count)
+		return 0;
+	return player_data.data + index;
+}
+
 void creature::setplayer() {
-	setleader(party, this);
 	current_player = this;
 }
 
 bool creature::isplayer() const {
-	return this == current_player;
+	return player_data.indexof(this)!=-1;
 }
 
 bool creature::isparty(const creature* value) const {
@@ -1522,7 +1504,7 @@ bool creature::use(short unsigned index) {
 
 void creature::remove(state_s value) {
 	if(value <= LastState)
-		states[value] = segments;
+		states[value] = game::getseconds();
 }
 
 void creature::set(state_s value, unsigned segments_count) {
@@ -1615,6 +1597,7 @@ void creature::set(spell_s value, int level) {
 }
 
 void creature::update() {
+	auto tm = game::getseconds();
 	// Remove any links if target is invalid
 	if(horror && (!is(Scared) || !(*horror))) {
 		remove(Scared);
@@ -1625,7 +1608,7 @@ void creature::update() {
 		charmer = 0;
 	}
 	// RULE: Poison affect creature every short time interval.
-	if((segments % poison_update) == 0) {
+	if((tm % poison_update) == 0) {
 		static struct poison_info {
 			damageinfo	damage;
 			state_s		state;
@@ -1643,24 +1626,24 @@ void creature::update() {
 			damage(damage_hits, Poison, true);
 	}
 	// RULE: В среднем восстанавливаем 1 хит за 30 минут
-	if(segments >= restore_hits) {
+	if(tm >= restore_hits) {
 		if(hp < getmaxhits()) {
 			// RULE: cursed ring of regeneration disable hit point natural recovering
 			hp += imax(0, 1 + getbonus(OfRegeneration));
 		}
 		if(!restore_hits)
-			restore_hits = segments;
+			restore_hits = tm;
 		// RULE: ring of regeneration increase regeneration time
 		restore_hits += imax(5, 40 - (get(Constitution) + getbonus(OfRegeneration) * 2))*Minute;
 	}
 	// RULE: В среднем восстанавливаем 1 манну за 10 минут
-	if(segments >= restore_mana) {
+	if(tm >= restore_mana) {
 		if(mp < getmaxmana()) {
 			// RULE: cursed ring of mana disable mana points natural recovering
 			mp += imax(0, 1 + getbonus(OfMana) + get(Concetration) / 50);
 		}
 		if(!restore_mana)
-			restore_mana = segments;
+			restore_mana = tm;
 		restore_mana += imax(5, 50 - get(Intellegence) * 2)*Minute / 3;
 	}
 }
@@ -1935,38 +1918,35 @@ bool creature::aiboost() {
 	return false;
 }
 
+bool serialize_party(bool writemode) {
+	io::file file("maps/party.dat", writemode ? StreamWrite : StreamRead);
+	if(!file)
+		return false;
+	archive a(file, writemode);
+	if(!a.signature("PAR"))
+		return false;
+	if(!a.version(0, 1))
+		return false;
+	a.set(player_data);
+	return true;
+}
+
 void creature::play() {
-	bool party_killed = false;
 	while(true) {
 		exit_index = Blocked;
 		if(!playturn())
 			return;
-		segments++;
-		// Speed up time if wait too match
-		if(current_player->recoil > segments && (current_player->recoil - segments) >= poison_update * 2) {
-			unsigned new_segment = ((segments + poison_update - 1) / poison_update) * poison_update;
-			while(segments < new_segment) {
-				if(!playturn())
-					return;
-				segments++;
-			}
-			new_segment = (current_player->recoil / poison_update) * poison_update;
-			while(segments < new_segment) {
-				if(!playturn())
-					return;
-				segments += poison_update;
-			}
-		}
+		addseconds(1);
 		if(exit_index != Blocked) {
-			serializep(statistic.positions[0], true);
+			serialize_party(true);
 			serialize(true);
 			auto object = getobject(exit_index);
 			if(object == StairsDown) {
 				game::create(AreaDungeon, statistic.index, statistic.level + 1);
-				serializep(statistic.positions[1], false);
+				serialize_party(false);
 			} else {
 				game::create(AreaDungeon, statistic.index, statistic.level - 1);
-				serializep(statistic.positions[0], false);
+				serialize_party(false);
 			}
 		}
 	}
@@ -2049,45 +2029,4 @@ archive::dataset creature_dataset() {
 
 void creature_serialize(archive& e) {
 	e.set(creature_data);
-}
-
-bool game::serializep(short unsigned index, bool writemode) {
-	io::file file("maps/party.dat", writemode ? StreamWrite : StreamRead);
-	if(!file)
-		return false;
-	archive a(file, writemode);
-	if(!a.signature("PAR"))
-		return false;
-	if(!a.version(0, 1))
-		return false;
-	adat<creature, 16> party;
-	adat<creature*, 16> party_reference;
-	if(writemode) {
-		auto p = creature::getplayer();
-		if(!p)
-			return false;
-		for(auto& e : creature_data) {
-			if(!e.ishenchman(p))
-				continue;
-			party_reference.add(&e);
-		}
-		for(auto p : party_reference) {
-			p->remove(party);
-			p->clear();
-		}
-		a.set(party);
-	} else {
-		a.set(party);
-		for(auto& e : party) {
-			auto p = new creature();
-			*p = e;
-			party_reference.add(p);
-		}
-		for(auto p : party_reference)
-			p->join(party_reference[0]);
-		party_reference[0]->setplayer();
-		for(auto p : party_reference)
-			p->setposition(getfree(index));
-	}
-	return true;
 }

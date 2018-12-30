@@ -1,12 +1,18 @@
 #include "archive.h"
 #include "main.h"
 
+using namespace game;
+
 // ABOUT TIME
 // Each minute has 12 segments, and each segment if 6 seconds duration.
 // Attack duration is 12 segments - speed of weapon - dexterity speed bonus but minimum of 3 segments
 
-static unsigned			start_year;
-unsigned				segments = 7 * Hour;
+static struct game_info {
+	coordinate			overland;
+	short unsigned		index;
+	unsigned			year;
+	unsigned			segments;
+} gm;
 
 areainfo				game::statistic;
 adat<grounditem, 2048>	grounditems;
@@ -71,16 +77,24 @@ direction_s game::getdirection(point s, point d) {
 	return orientations_5b5[(ay + (osize / 2))*osize + ax + (osize / 2)];
 }
 
-static unsigned getminute() {
-	return (segments / Minute) % 60;
+void game::addseconds(unsigned count) {
+	gm.segments += count;
 }
 
-static unsigned gethour() {
-	return (segments / Hour) % 24;
+unsigned game::getseconds() {
+	return gm.segments;
 }
 
-static unsigned getday() {
-	return (segments / Day) % 30;
+static unsigned game::getminute() {
+	return (gm.segments / Minute) % 60;
+}
+
+static unsigned game::gethour() {
+	return (gm.segments / Hour) % 24;
+}
+
+static unsigned game::getday() {
+	return (gm.segments / Day) % 30;
 }
 
 static char* zadd(char* result, const char* result_maximum, const char* format, ...) {
@@ -104,7 +118,7 @@ int	game::getnight() {
 	const unsigned lenght = 2 * Hour;
 	// Dawn begin with 5 to 7
 	// Evening was in 20 to 22
-	unsigned k = segments % Day;
+	unsigned k = getseconds() % Day;
 	if(k >= dawn_hour + lenght && k < dusk_hour)
 		return 0;
 	if(k >= dawn_hour && k < (dawn_hour + lenght))
@@ -595,7 +609,7 @@ void game::initialize(short unsigned index, int level, tile_s tile) {
 	statistic.level = level;
 }
 
-bool game::serialize(bool writemode) {
+static bool serialize_area(bool writemode) {
 	char temp[260];
 	zcpy(temp, "maps/D");
 	sznum(zend(temp), statistic.level, 2, "XX");
@@ -621,7 +635,7 @@ bool game::serialize(bool writemode) {
 	return true;
 }
 
-bool game::serializew(bool writemode) {
+static bool serialize_world(bool writemode) {
 	io::file file("maps/worldmap.dat", writemode ? StreamWrite : StreamRead);
 	if(!file)
 		return false;
@@ -635,4 +649,8 @@ bool game::serializew(bool writemode) {
 	a.setr(mpobj);
 	a.setr(mprnd);
 	return true;
+}
+
+bool game::serialize(bool writemode) {
+	return serialize_area(writemode);
 }
