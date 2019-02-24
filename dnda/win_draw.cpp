@@ -185,25 +185,25 @@ void draw::create(int x, int y, int width, int height, unsigned flags, int bpp) 
 		dwStyle |= WS_MAXIMIZE;
 	RECT MinimumRect = {0, 0, width, height};
 	AdjustWindowRectEx(&MinimumRect, dwStyle, 0, 0);
-	minimum.x = (short)(MinimumRect.right - MinimumRect.left);
-	minimum.y = (short)(MinimumRect.bottom - MinimumRect.top);
+	minimum.x = 800;
+	if(minimum.x > width)
+		minimum.x = width;
+	minimum.y = 600;
+	if(minimum.y > height)
+		minimum.y = height;
 	if(x == -1)
 		x = (GetSystemMetrics(SM_CXFULLSCREEN) - minimum.x) / 2;
 	if(y == -1)
 		y = (GetSystemMetrics(SM_CYFULLSCREEN) - minimum.y) / 2;
-	rect position;
-	position.x1 = x;
-	position.y1 = y;
-	position.x2 = position.x1 + minimum.x;
-	position.y2 = position.y1 + minimum.y;
 	// Update current surface
 	if(draw::canvas)
 		draw::canvas->resize(width, height, bpp, true);
 	setclip();
 	// Create The Window
 	hwnd = CreateWindowExA(0, register_class("CFaceWindow"), 0, dwStyle,
-		position.x1, position.y1,
-		position.width(), position.height(),
+		x, y,
+		MinimumRect.right - MinimumRect.left,
+		MinimumRect.bottom - MinimumRect.top,
 		0, 0, GetModuleHandleA(0), 0);
 	if(!hwnd)
 		return;

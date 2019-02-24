@@ -607,6 +607,7 @@ void game::initialize(short unsigned index, int level, tile_s tile) {
 	statistic = areainfo();
 	statistic.index = index;
 	statistic.level = level;
+	gm.segments = 12 * Hour;
 }
 
 static bool serialize_area(bool writemode) {

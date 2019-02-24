@@ -39,7 +39,6 @@ struct adat {
 	T*						begin() { return data; }
 	const T*				begin() const { return data; }
 	void					clear() { count = 0; }
-	T*						end() { return data + count; }
 	T*						endof() { return data + count_max; }
 	const T*				end() const { return data + count; }
 	template<class Z> T*	find(Z id) { auto e1 = data + count; for(T* e = data; e < e1; e++) { if(e->id == id) return e; } return 0; }
