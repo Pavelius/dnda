@@ -593,6 +593,7 @@ template<> void archive::set<site>(site& e) {
 }
 
 archive::dataset creature_dataset();
+archive::dataset player_dataset();
 void creature_serialize(archive& e);
 
 void game::initialize(short unsigned index, int level, tile_s tile) {
@@ -619,7 +620,7 @@ static bool serialize_area(bool writemode) {
 	io::file file(temp, writemode ? StreamWrite : StreamRead);
 	if(!file)
 		return false;
-	archive::dataset pointers[] = {creature_dataset(), sites};
+	archive::dataset pointers[] = {creature_dataset(), player_dataset(), sites};
 	archive a(file, writemode, pointers);
 	if(!a.signature("SAV"))
 		return false;

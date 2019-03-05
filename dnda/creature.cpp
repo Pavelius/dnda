@@ -222,28 +222,40 @@ void* creature::operator new(unsigned size) {
 	return creature_data.add();
 }
 
-void creature::turnbegin() {
+static void turnbegin() {
 	// Set fog of war
 	auto max_count = max_map_x * max_map_y;
 	for(auto i = 0; i < max_count; i++)
 		game::set(i, Visible, false);
-	for(auto& e : creature_data) {
+	for(auto& e : player_data) {
 		if(!e)
 			continue;
-		// Remove fog of war from party
-		if(e.isparty(current_player))
-			e.setlos();
+		e.setlos();
 	}
+}
+
+creature* creature::addplayer() {
+	return player_data.add();
 }
 
 bool creature::playturn() {
 	turnbegin();
 	auto tm = game::getseconds();
+	for(auto& e : player_data) {
+		if(!e)
+			continue;
+		e.update();
+		if(e.recoil > tm)
+			continue;
+		e.makemove();
+		if(e.recoil <= tm)
+			e.recoil = tm + 1;
+	}
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;
 		e.update();
-		if(e.recoil > game::getseconds())
+		if(e.recoil > tm)
 			continue;
 		e.makemove();
 		if(e.recoil <= tm)
@@ -255,6 +267,16 @@ bool creature::playturn() {
 }
 
 void creature::select(creature** result, rect rc) {
+	for(auto& e : player_data) {
+		if(!e)
+			continue;
+		auto i = mget(rc.x1, rc.y1, game::getx(e.position), game::gety(e.position));
+		if(i == -1)
+			continue;
+		if(!game::is(e.position, Visible))
+			continue;
+		result[i] = &e;
+	}
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;
@@ -436,10 +458,6 @@ void creature::create(race_s race, gender_s gender, class_s type) {
 	// Èìÿ
 	name = game::genname(race, gender);
 	updateweight();
-}
-
-void creature::join(creature* value) {
-	party = value;
 }
 
 void creature::release() const {
@@ -909,7 +927,7 @@ void creature::makemove() {
 			moveto(enemy->position);
 	} else if(guard != Blocked)
 		moveto(guard);
-	else if(!isleader() && getleader()) {
+	else if(getleader()) {
 		auto target = getleader();
 		if(distance(target->position, position) <= 2)
 			walkaround(creatures);
@@ -934,7 +952,7 @@ void creature::setplayer() {
 }
 
 bool creature::isplayer() const {
-	return player_data.indexof(this)!=-1;
+	return player_data.indexof(this)<=4;
 }
 
 bool creature::isparty(const creature* value) const {
@@ -1206,7 +1224,7 @@ void creature::damage(int value, attack_s type, bool interactive) {
 					continue;
 				if(e.isnatural())
 					continue;
-				if(party == current_player
+				if(isplayer()
 					|| (&e >= &wears[FirstBackpack])
 					|| (d100() < chance_loot)) {
 					e.loot();
@@ -1350,7 +1368,12 @@ int	creature::getlos() const {
 creature* creature::getleader() const {
 	if(charmer)
 		return charmer;
-	return party;
+	if(isplayer()) {
+		if(current_player == this)
+			return 0;
+		return current_player;
+	}
+	return 0;
 }
 
 const creature& creature::getai() const {
@@ -1952,24 +1975,6 @@ void creature::play() {
 	}
 }
 
-void creature::remove(adat<creature, 16>& source) const {
-	auto p = source.add();
-	if(!p)
-		return;
-	for(auto& e : creature_data) {
-		if(!e)
-			continue;
-		if(e.party == this)
-			e.party = 0;
-		if(e.horror == this)
-			e.horror = 0;
-		if(e.charmer == this)
-			e.charmer = 0;
-	}
-	*p = *this;
-	p->current_site = 0;
-}
-
 speech thank_you[];
 speech dont_need_this[];
 
@@ -2018,7 +2023,6 @@ template<> void archive::set<creature>(creature& e) {
 	set(e.spells);
 	set(e.states);
 	set(e.recoil);
-	set(e.party);
 	set(e.current_site);
 	set(e.encumbrance);
 }
@@ -2027,6 +2031,11 @@ archive::dataset creature_dataset() {
 	return creature_data;
 };
 
+archive::dataset player_dataset() {
+	return player_data;
+};
+
 void creature_serialize(archive& e) {
 	e.set(creature_data);
+	e.set(player_data);
 }

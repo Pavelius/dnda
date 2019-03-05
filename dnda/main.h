@@ -431,7 +431,7 @@ struct creature {
 	creature(role_s value);
 	creature(race_s race, gender_s gender, class_s type) { create(race, gender, type); }
 	explicit operator bool() const { return hp > 0; }
-	void* operator new(unsigned size);
+	static void* operator new(unsigned size);
 	//
 	void				act(const char* format, ...) const { actv(format, xva_start(format)); }
 	void				actv(const char* format, const char* param) const;
@@ -443,6 +443,7 @@ struct creature {
 	static creature*	add(short unsigned index, race_s race, gender_s gender, class_s type);
 	void				addexp(int count);
 	static void			addexp(int value, short unsigned position, int range, const creature* exclude, const creature* enemies);
+	static creature*	addplayer();
 	bool				aiboost();
 	skill_s				aiskill();
 	skill_s				aiskill(aref<creature*> creatures);
@@ -533,12 +534,9 @@ struct creature {
 	bool				isenemy(const creature* target) const;
 	bool				isfriend(const creature* target) const;
 	bool				isguard() const { return guard != 0xFFFF; }
-	bool				ishenchman(const creature* target) const { return target == party; }
-	bool				isleader() const { return party == this; }
 	bool				isparty(const creature* target) const;
 	bool				isplayer() const;
 	bool				isranged(bool interactive) const;
-	void				join(creature* party);
 	void				levelup(bool interactive);
 	void				lookfloor();
 	void				makemove();
@@ -555,7 +553,6 @@ struct creature {
 	void				readbook(item& it);
 	void				release() const;
 	void				remove(state_s value);
-	void				remove(adat<creature, 16>& source) const;
 	bool				roll(skill_s skill, int bonus = 0);
 	void				say(const char* format, ...);
 	bool				sayv(const char* format, const char* param, creature* opponent);
@@ -577,7 +574,6 @@ struct creature {
 	void				setlos();
 	void				setmoney(int value) { money = value; }
 	void				trapeffect();
-	static void			turnbegin();
 	bool				unequip(item& it);
 	void				update();
 	void				use(skill_s value);
@@ -596,7 +592,6 @@ private:
 	unsigned char		spells[LastSpell + 1];
 	unsigned			states[LastState + 1];
 	unsigned			recoil;
-	creature*			party;
 	creature*			charmer;
 	creature*			horror;
 	site*				current_site;

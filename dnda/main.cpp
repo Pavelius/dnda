@@ -53,39 +53,40 @@ static void test_overland() {
 	logs::worldedit();
 }
 
-static creature* create_character(bool interactive) {
-	if(!interactive)
-		return new creature(
-		(race_s)xrand(Human, Halfling),
+static creature* create_character(short unsigned index, bool interactive) {
+	creature* p;
+	if(!interactive) {
+		p = creature::addplayer();
+		p->create((race_s)xrand(Human, Halfling),
 			(gender_s)xrand(Male, Female),
 			(class_s)xrand(Cleric, Theif));
-	logs::add(" то вы?");
-	logs::add(Male, getstr(Male));
-	logs::add(Female, getstr(Female));
-	auto gender = (gender_s)logs::input();
-	logs::add("»з каких вы краев?");
-	for(auto i = Human; i <= Halfling; i = (race_s)(i + 1))
-		logs::add(i, getstr(i));
-	auto race = (race_s)logs::input();
-	logs::add("„ем вы занимаетесь?");
-	for(auto i = Cleric; i <= Theif; i = (class_s)(i + 1))
-		logs::add(i, getstr(i));
-	auto type = (class_s)logs::input();
-	return new creature(race, gender, type);
+	} else {
+		logs::add(" то вы?");
+		logs::add(Male, getstr(Male));
+		logs::add(Female, getstr(Female));
+		auto gender = (gender_s)logs::input();
+		logs::add("»з каких вы краев?");
+		for(auto i = Human; i <= Halfling; i = (race_s)(i + 1))
+			logs::add(i, getstr(i));
+		auto race = (race_s)logs::input();
+		logs::add("„ем вы занимаетесь?");
+		for(auto i = Cleric; i <= Theif; i = (class_s)(i + 1))
+			logs::add(i, getstr(i));
+		auto type = (class_s)logs::input();
+		p = new creature(race, gender, type);
+	}
+	index = getfree(index);
+	if(index == Blocked)
+		return 0;
+	p->move(index);
+	return p;
 }
 
 static void create_party(bool interactive) {
 	auto start_index = game::statistic.positions[0];
-	//auto start_index = get(10, 10);
-	//auto p1 = creature::add(start_index, Human, Female, Mage);
-	//auto p2 = creature::add(start_index, Dwarf, Male, Fighter);
-	//auto p3 = creature::add(start_index, Elf, Male, Theif);
-	auto p1 = create_character(interactive);
-	auto p2 = create_character(interactive);
-	auto p3 = create_character(interactive);
-	p1->join(p1);
-	p2->join(p1);
-	p3->join(p1);
+	auto p1 = create_character(start_index, interactive);
+	auto p2 = create_character(start_index, interactive);
+	auto p3 = create_character(start_index, interactive);
 	p1->setplayer();
 #ifdef _DEBUG
 	p1->equip(item(Book1, 4, 20, 20, 40));
