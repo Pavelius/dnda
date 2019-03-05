@@ -290,6 +290,11 @@ void creature::select(creature** result, rect rc) {
 }
 
 void creature::setblocks(short unsigned* movements, short unsigned value) {
+	for(auto& e : player_data) {
+		if(!e)
+			continue;
+		movements[e.position] = value;
+	}
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;
@@ -300,6 +305,12 @@ void creature::setblocks(short unsigned* movements, short unsigned value) {
 creature* creature::getcreature(short unsigned index) {
 	if(index == Blocked)
 		return 0;
+	for(auto& e : player_data) {
+		if(!e)
+			continue;
+		if(e.position == index)
+			return &e;
+	}
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;
@@ -331,6 +342,23 @@ aref<creature*> creature::getcreatures(aref<creature*> result, short unsigned st
 	auto pe = result.data + result.count;
 	auto x = game::getx(start);
 	auto y = game::gety(start);
+	for(auto& e : player_data) {
+		if(!e)
+			continue;
+		if(exclude && exclude == &e)
+			continue;
+		auto dx = x - game::getx(e.position);
+		auto dy = y - game::gety(e.position);
+		auto d = isqrt(dx*dx + dy * dy);
+		if(d > range)
+			continue;
+		if(!linelos(x, y, game::getx(e.position), game::gety(e.position)))
+			continue;
+		if(pb < pe)
+			*pb++ = &e;
+		else
+			break;
+	}
 	for(auto& e : creature_data) {
 		if(!e)
 			continue;
