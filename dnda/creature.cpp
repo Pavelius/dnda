@@ -1978,6 +1978,7 @@ bool serialize_party(bool writemode) {
 		return false;
 	if(!a.version(0, 1))
 		return false;
+	a.set(current_player);
 	a.set(player_data);
 	return true;
 }
@@ -2065,5 +2066,4 @@ archive::dataset player_dataset() {
 
 void creature_serialize(archive& e) {
 	e.set(creature_data);
-	e.set(player_data);
 }

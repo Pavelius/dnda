@@ -25,13 +25,11 @@ struct fxeffect : point {
 	short unsigned	flags;
 	unsigned char	alpha;
 	point			end;
-
 	fxeffect() : res(0), frame(0), flags(0), alpha(0xFF) {
 		x = 0;
 		y = 0;
 		end = *this;
 	}
-
 	void direction() {
 		int dx = iabs(x - end.x);
 		int dy = iabs(y - end.y);
@@ -44,13 +42,11 @@ struct fxeffect : point {
 		if(end.y > y)
 			flags |= ImageMirrorV;
 	}
-
 	void paint(point camera) {
 		int x1 = x - camera.x;
 		int y1 = y - camera.y;
 		draw::image(x1, y1, res, frame, flags);
 	}
-
 };
 
 static int			current_key_index;

@@ -594,6 +594,7 @@ template<> void archive::set<site>(site& e) {
 
 archive::dataset creature_dataset();
 archive::dataset player_dataset();
+void players_serialize(archive& e);
 void creature_serialize(archive& e);
 
 void game::initialize(short unsigned index, int level, tile_s tile) {
