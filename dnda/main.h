@@ -215,6 +215,9 @@ enum speech_s : unsigned char {
 enum manual_s : unsigned char {
 	Element, Header
 };
+enum range_s : unsigned char {
+	Self, Close, Near,
+};
 struct attackinfo;
 struct creature;
 struct dialog;
@@ -228,8 +231,9 @@ struct skillvalue {
 };
 struct targetdesc {
 	target_s			target;
-	unsigned char		range;
+	range_s				range;
 	unsigned char		area;
+	unsigned char		getrange() const;
 	bool				isallow(const creature& player, aref<creature*> creatures) const;
 	bool				iscreature() const;
 	bool				isposition() const;

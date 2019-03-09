@@ -1,5 +1,16 @@
 #include "main.h"
 
+struct range_info {
+	const char*		id;
+	const char*		name;
+	unsigned char	distance;
+};
+range_info range_data[] = {{"Self", "Персональная"},
+{"Close", "Близко"},
+{"Near", "Недалеко"},
+};
+assert_enum(range, Near);
+
 static bool you(const creature& player, const creature* opponent) {
 	return opponent == &player;
 }
@@ -152,6 +163,10 @@ bool targetdesc::iscreature() const {
 
 bool targetdesc::isposition() const {
 	return target_data[target].proc.ind != 0;
+}
+
+unsigned char targetdesc::getrange() const {
+	return range_data[range].distance;
 }
 
 bool targetdesc::isallow(const creature& player, aref<creature*> creatures) const {
@@ -353,7 +368,7 @@ int effectparam::apply(const char* format, const char* format_param) {
 		}
 		creature* source_data[256];
 		auto source = player.select(source_data, creatures,
-			type.target, type.range, player.getposition(),
+			type.target, type.getrange(), player.getposition(),
 			ti.include_self ? 0 : &player);
 		if(ti.target_all_match) {
 			for(auto p : source) {
