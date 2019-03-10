@@ -205,7 +205,7 @@ enum encumbrance_s : unsigned char {
 };
 enum variant_s : unsigned char {
 	NoVariant,
-	Ability, Enchantment, God, Item, ItemObject, Skill, Spell, State,
+	Ability, Enchantment, God, Items, ItemObject, Skill, Spell, State,
 	String
 };
 enum speech_s : unsigned char {
@@ -216,7 +216,14 @@ enum manual_s : unsigned char {
 	Element, Header
 };
 enum range_s : unsigned char {
-	Self, Close, Near,
+	You, Close, Reach, Near,
+};
+enum select_s : unsigned {
+	RangeMask = 0x0F,
+	//
+	Hostile = 0x10, Friendly = 0x20,
+	All = 0x100, Splash = 0x200, Nearest = 0x400,
+	Damaged = 0x1000, Drained = 0x2000,
 };
 struct attackinfo;
 struct creature;
@@ -294,8 +301,7 @@ struct effectparam : effectinfo {
 		effectinfo(effect_param), player(player), interactive(interactive),
 		cre(0), itm(0), pos(Blocked),
 		param(0), level(1), creatures(p_creatures),
-		skill_roll(0), skill_value(0), skill_bonus(0) {
-	}
+		skill_roll(0), skill_value(0), skill_bonus(0) {}
 	int					apply(const char* format, const char* format_param);
 	bool				applyfull();
 };
@@ -399,7 +405,7 @@ struct variant {
 	constexpr variant(diety_s v) : type(God), god(v) {}
 	constexpr variant(enchantment_s v) : type(Enchantment), enchantment(v) {}
 	constexpr variant(item v) : type(ItemObject), itemobject(v) {}
-	constexpr variant(item_s v) : type(Item), itemtype(v) {}
+	constexpr variant(item_s v) : type(Items), itemtype(v) {}
 	constexpr variant(skill_s v) : type(Skill), skill(v) {}
 	constexpr variant(spell_s v) : type(Spell), spell(v) {}
 	constexpr variant(state_s v) : type(State), state(v) {}
@@ -622,8 +628,7 @@ struct site : rect {
 	unsigned char		found;
 	creature*			owner;
 	constexpr site() : rect({0, 0, 0, 0}), type(EmpthyRoom), diety(NoGod), name(), owner(),
-		found(0), recoil(0) {
-	}
+		found(0), recoil(0) {}
 	operator bool() const { return x1 != x2; }
 	void				entering(creature& player);
 	int					getfoundchance() const;
@@ -676,8 +681,7 @@ struct areainfo : coordinate {
 	short unsigned		positions[8]; // Several positions
 	constexpr areainfo() : rooms(0), isdungeon(false),
 		artifacts(0), habbitants(),
-		positions{Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked} {
-	}
+		positions{Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked, Blocked} {}
 };
 enum dungeon_area_s : unsigned char {
 	AreaMaze, AreaDungeon,
@@ -710,6 +714,54 @@ struct menu {
 	const menu*			next;
 	void(*proc)();
 	explicit operator bool() const { return text != 0; }
+};
+struct sceneparam;
+typedef bool(*cre_proc)(sceneparam& e, creature& subject, bool run);
+typedef bool(*itm_proc)(sceneparam& e, item& subject, bool run);
+typedef bool(*obj_proc)(sceneparam& e, short unsigned index, bool run);
+struct sceneeffect {
+	struct callback {
+		cre_proc		cre;
+		obj_proc		obj;
+		itm_proc		itm;
+		const callback(cre_proc p) : cre(p), obj(0), itm(0) {}
+		const callback(obj_proc p) : cre(0), obj(p), itm(0) {}
+		const callback(itm_proc p) : cre(0), obj(0), itm(p) {}
+	};
+	struct textinfo {
+		const char*		action;
+		const char*		success;
+		const char*		fail;
+	};
+	callback			proc;
+	unsigned			flags;
+	damageinfo			damage;
+	state_s				state;
+	unsigned			duration;
+	unsigned			experience;
+	textinfo			messages;
+};
+struct skillroll {
+	int					result;
+	int					value;
+	int					bonus;
+};
+struct sceneparam : sceneeffect {
+	creature&			player;
+	bool				interactive;
+	int					level;
+	skillroll			roll;
+	constexpr sceneparam(const sceneeffect& effect_param, creature& player, bool interactive) :
+		sceneeffect(effect_param), player(player), interactive(interactive),
+		level(1), roll() {}
+};
+struct scene {
+	scene(creature* player);
+	bool				apply(const sceneeffect& e, bool run);
+private:
+	adat<creature*, 32>			creatures;
+	adat<short unsigned, 32>	indecies;
+	creature*			player;
 };
 namespace game {
 site*					add(site_s type, rect rc);

@@ -189,6 +189,9 @@
     <ClCompile Include="package.cpp">
       <Filter>support</Filter>
     </ClCompile>
+    <ClCompile Include="scene.cpp">
+      <Filter>logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="collections">

@@ -1818,9 +1818,9 @@ void creature::apply(aref<variant> features) {
 	item it;
 	for(auto i : features) {
 		switch(i.type) {
-		case Item:
+		case Items:
 		case ItemObject:
-			if(i.type == Item)
+			if(i.type == Items)
 				it = item(i.itemtype, 0, 15, 10, 35);
 			else
 				it = i.itemobject;
@@ -1967,6 +1967,27 @@ bool creature::aiboost() {
 		}
 	}
 	return false;
+}
+
+scene::scene(creature* player) : player(player) {
+	auto los = player->getlos();
+	auto index = player->getposition();
+	// Соберем игроков
+	for(auto& e : player_data) {
+		if(!e)
+			continue;
+		if(distance(e.getposition(), index) > los)
+			continue;
+		creatures.add(&e);
+	}
+	// Соберем существ
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		if(distance(e.getposition(), index) > los)
+			continue;
+		creatures.add(&e);
+	}
 }
 
 bool serialize_party(bool writemode) {

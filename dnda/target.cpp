@@ -5,8 +5,9 @@ struct range_info {
 	const char*		name;
 	unsigned char	distance;
 };
-range_info range_data[] = {{"Self", "Персональная"},
+range_info range_data[] = {{"You", "Вы"},
 {"Close", "Близко"},
+{"Reach", "Рядом"},
 {"Near", "Недалеко"},
 };
 assert_enum(range, Near);

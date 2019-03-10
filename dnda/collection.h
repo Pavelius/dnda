@@ -56,7 +56,7 @@ template<class T> struct aref {
 	constexpr aref() = default;
 	constexpr aref(T* data, unsigned count) : data(data), count(count) {}
 	template<unsigned N> constexpr aref(T(&data)[N]) : data(data), count(N) {}
-	template<unsigned N> constexpr aref(adat<T, N>& source) : data(source.data), count(source.count) {}
+	template<unsigned N> constexpr aref(const adat<T, N>& source) : data(const_cast<T*>(source.data)), count(source.count) {}
 	constexpr T& operator[](int index) { return data[index]; }
 	constexpr const T& operator[](int index) const { return data[index]; }
 	explicit operator bool() const { return count != 0; }
