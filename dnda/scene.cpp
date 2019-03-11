@@ -9,7 +9,7 @@ bool cre_damage(sceneparam& e, creature& opponent, bool run) {
 	return true;
 }
 
-static unsigned select(aref<creature*> result, aref<creature*> source, sceneparam& sp, short unsigned index, int range) {
+static unsigned source_select(aref<creature*> result, aref<creature*> source, sceneparam& sp, short unsigned index, int range) {
 	auto ps = result.data;
 	auto pe = result.data + result.count;
 	auto flags = sp.flags;
@@ -30,7 +30,8 @@ static unsigned select(aref<creature*> result, aref<creature*> source, scenepara
 	return ps - result.data;
 }
 
-static unsigned exclude(aref<creature*> result, const creature* player) {
+template<class T>
+static unsigned exclude(aref<T*> result, const T* player) {
 	auto ps = result.data;
 	for(auto p : result) {
 		if(p == player)
@@ -40,12 +41,22 @@ static unsigned exclude(aref<creature*> result, const creature* player) {
 	return ps - result.data;
 }
 
-static unsigned select(aref<item*> result, sceneparam& sp) {
+static unsigned source_select(aref<item*> result, sceneparam& sp) {
 	auto ps = result.data;
 	auto pe = result.data + result.count;
 	auto flags = sp.flags;
 	for(auto& e : sp.player.wears) {
 		if(!e)
+			continue;
+		if((flags&Damaged) != 0 && !e.isdamaged())
+			continue;
+		if((flags&Conceal) != 0 && e.isidentified())
+			continue;
+		if((flags&Hostile) != 0 && e.getmagic() != Cursed)
+			continue;
+		if((flags&Friendly) != 0 && e.getmagic() < BlessedItem)
+			continue;
+		if(!sp.proc.itm(sp, e, false))
 			continue;
 		if(ps < pe)
 			*ps++ = &e;
@@ -53,18 +64,25 @@ static unsigned select(aref<item*> result, sceneparam& sp) {
 	return ps - result.data;
 }
 
-bool scene::apply(const sceneeffect& eff, bool run) {
-	sceneparam sp(eff, *player, true);
+static unsigned source_select(aref<short unsigned> result, sceneparam& sp) {
+	auto ps = result.data;
+	auto pe = result.data + result.count;
+	auto flags = sp.flags;
+	return ps - result.data;
+}
+
+bool creature::apply(const sceneeffect& eff, aref<creature*> creatures, aref<short unsigned> indecies, bool run) {
+	sceneparam sp(eff, *this, true);
 	auto los = 0;
 	switch(eff.flags&RangeMask) {
 	case You: los = 0; break;
 	case Close: los = 1; break;
 	case Reach: los = 2; break;
-	default: los = player->getlos(); break;
+	default: los = getlos(); break;
 	}
 	if(eff.proc.cre) {
 		creature* source_data[32]; aref<creature*> source(source_data);
-		source.count = select(source, creatures, sp, sp.player.getposition(), los);
+		source.count = source_select(source, creatures, sp, sp.player.getposition(), los);
 		if(run) {
 			if((eff.flags&All) != 0) {
 				for(auto& e : source)
@@ -74,13 +92,13 @@ bool scene::apply(const sceneeffect& eff, bool run) {
 				if(eff.flags&Nearest)
 					opponent = source.random();
 				else
-					opponent = player->choose(source, sp.interactive);
+					opponent = choose(source, sp.interactive);
 				if(!opponent)
 					return false;
 				eff.proc.cre(sp, *opponent, true);
 				if(eff.flags&Splash) {
 					source.count = exclude(source, opponent);
-					source.count = select(source, source, sp, opponent->getposition(), 1);
+					source.count = source_select(source, source, sp, opponent->getposition(), 1);
 					for(auto& e : source)
 						eff.proc.cre(sp, *e, true);
 					return true;
@@ -90,9 +108,43 @@ bool scene::apply(const sceneeffect& eff, bool run) {
 		return source.count != 0;
 	} else if(eff.proc.itm) {
 		item* source_data[64]; aref<item*> source(source_data);
-		source.count = select(source, sp);
+		source.count = source_select(source, sp);
+		if(run) {
+			if((eff.flags&All) != 0) {
+				for(auto& e : source)
+					eff.proc.itm(sp, *e, true);
+			} else {
+				item* value = 0;
+				if(eff.flags&Nearest)
+					value = source.random();
+				else
+					value = choose(source, sp.interactive);
+				if(!value)
+					return false;
+				eff.proc.itm(sp, *value, true);
+				if(eff.flags&Splash) {
+					source.count = exclude(source, value);
+					if(source.count > 2)
+						source.count = 2;
+					for(auto& e : source)
+						eff.proc.itm(sp, *e, true);
+					return true;
+				}
+			}
+		}
+		return source.count != 0;
 	} else if(eff.proc.obj) {
+		short unsigned source_data[256]; aref<short unsigned> source(source_data);
+		source.count = source_select(source, sp);
+		if(run) {
+			if((eff.flags&All) != 0) {
+				for(auto index : source)
+					eff.proc.obj(sp, index, true);
+			} else {
 
+			}
+		}
+		return source.count != 0;
 	}
 	return false;
 }

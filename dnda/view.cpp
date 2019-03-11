@@ -269,7 +269,10 @@ static int fielp(int x, int y, int w, const char* name, int p1, int p2) {
 static int fielr(int x, int y, int w, const char* name, int p1, int p2) {
 	char temp[128];
 	draw::text(x, y, szprints(temp, zendof(temp), "%1:", name));
-	draw::text(x + w, y, szprints(temp, zendof(temp), (p2 < 0) ? "%+1i%% è [-%+2i]" : "%+1i%% è %2i", p1, p2));
+	szprints(temp, zendof(temp), "%1i%%", p1);
+	if(p2)
+		szprints(zend(temp), zendof(temp), " è %1i", p2);
+	draw::text(x + w, y, temp);
 	return draw::texth();
 }
 

@@ -268,14 +268,14 @@ static item_s random(aref<slot_s> source) {
 	return random(item::getitems(result, source));
 }
 
-static void create_item(short unsigned index, item_s type, int level, bool forsale, identify_s identify = Unknown, char chance_curse = 20) {
+static void create_item(short unsigned index, item_s type, int level, bool forsale, bool identify = false, char chance_curse = 20) {
 	if(type == NoItem)
 		return;
 	auto chance_artifact = imax(0, level / 4);
 	auto chance_quality = imax(0, 40 + level);
 	auto chance_magic = imax(0, 5 + level);
 	auto it = item(type, chance_artifact, chance_magic, chance_curse, chance_quality);
-	it.set(identify);
+	it.setidentify(identify);
 	if(type == Coin) {
 		auto count = xrand(1, 5) * level;
 		if(count > 64)

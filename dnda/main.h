@@ -187,7 +187,7 @@ enum duration_s : unsigned {
 	Permanent = 100 * Year
 };
 enum identify_s : unsigned char {
-	Unknown, KnowQuality, KnowColor, KnowEffect
+	Unknown, KnowEffect
 };
 enum item_type_s : unsigned char {
 	Mundane, Cursed, BlessedItem, Artifact,
@@ -235,6 +235,11 @@ class item;
 struct skillvalue {
 	skill_s				id;
 	char				value;
+};
+struct skillroll {
+	int					result;
+	int					value;
+	int					bonus;
 };
 struct targetdesc {
 	target_s			target;
@@ -315,7 +320,7 @@ class item {
 	//
 	item_type_s			magic : 2;
 	unsigned char		quality : 2;
-	identify_s			identify : 2;
+	bool				identify : 1;
 	unsigned char		forsale : 1;
 public:
 	constexpr item() : type(NoItem), effect(NoEffect), count(0), magic(Mundane), quality(0), identify(Unknown), forsale(0), damaged(0) {}
@@ -340,7 +345,6 @@ public:
 	char				getenchantcost() const;
 	skill_s				getfocus() const;
 	const foodinfo&		getfood() const;
-	identify_s			getidentify() const { return identify; }
 	static aref<item_s>	getitems(aref<item_s> result, aref<slot_s> source);
 	gender_s			getgender() const;
 	item_type_s			getmagic() const { return magic; }
@@ -368,6 +372,7 @@ public:
 	bool				isdrinkable() const;
 	bool				isedible() const;
 	bool				isforsale() const { return forsale != 0; }
+	bool				isidentified() const { return identify; }
 	bool				isnatural() const;
 	bool				ismagical() const { return magic != Mundane; }
 	bool				isreadable() const;
@@ -378,12 +383,12 @@ public:
 	bool				isunbreakable() const;
 	void				loot();
 	void				repair(int level);
-	item&				set(identify_s value);
 	item&				set(item_type_s value) { magic = value; return *this; }
 	item&				set(enchantment_s value) { effect = value; return *this; }
 	item&				setcharges(int count);
 	item&				setcount(int count);
 	item&				setforsale() { forsale = 1; return *this; }
+	item&				setidentify(bool v) { identify = v; return *this; }
 	item&				setsold() { forsale = 0;  return *this; }
 	item&				setquality(unsigned char value) { quality = value; return *this; }
 };
@@ -434,6 +439,41 @@ struct attackinfo {
 	enchantment_s		effect;
 	char				quality;
 };
+struct sceneparam;
+typedef bool(*cre_proc)(sceneparam& e, creature& subject, bool run);
+typedef bool(*itm_proc)(sceneparam& e, item& subject, bool run);
+typedef bool(*obj_proc)(sceneparam& e, short unsigned index, bool run);
+struct sceneeffect {
+	struct callback {
+		cre_proc		cre;
+		obj_proc		obj;
+		itm_proc		itm;
+		const callback(cre_proc p) : cre(p), obj(0), itm(0) {}
+		const callback(obj_proc p) : cre(0), obj(p), itm(0) {}
+		const callback(itm_proc p) : cre(0), obj(0), itm(p) {}
+	};
+	struct textinfo {
+		const char*		action;
+		const char*		success;
+		const char*		fail;
+	};
+	callback			proc;
+	unsigned			flags;
+	damageinfo			damage;
+	state_s				state;
+	unsigned			duration;
+	unsigned			experience;
+	textinfo			messages;
+};
+struct sceneparam : sceneeffect {
+	creature&			player;
+	bool				interactive;
+	int					level;
+	skillroll			roll;
+	constexpr sceneparam(const sceneeffect& effect_param, creature& player, bool interactive) :
+		sceneeffect(effect_param), player(player), interactive(interactive),
+		level(1), roll() {}
+};
 struct creature {
 	item				wears[LastBackpack + 1];
 	//
@@ -463,6 +503,7 @@ struct creature {
 	void				apply(aref<variant> features);
 	void				apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
 	bool				apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value, void(*fail_proc)(effectparam& e) = 0);
+	bool				apply(const sceneeffect& e, aref<creature*> creatures, aref<short unsigned> indecies, bool run);
 	bool				askyn(creature* opponent, const char* format, ...);
 	void				athletics(bool interactive);
 	void				attack(creature* defender, slot_s slot, int bonus = 0, int multiplier = 0);
@@ -714,54 +755,6 @@ struct menu {
 	const menu*			next;
 	void(*proc)();
 	explicit operator bool() const { return text != 0; }
-};
-struct sceneparam;
-typedef bool(*cre_proc)(sceneparam& e, creature& subject, bool run);
-typedef bool(*itm_proc)(sceneparam& e, item& subject, bool run);
-typedef bool(*obj_proc)(sceneparam& e, short unsigned index, bool run);
-struct sceneeffect {
-	struct callback {
-		cre_proc		cre;
-		obj_proc		obj;
-		itm_proc		itm;
-		const callback(cre_proc p) : cre(p), obj(0), itm(0) {}
-		const callback(obj_proc p) : cre(0), obj(p), itm(0) {}
-		const callback(itm_proc p) : cre(0), obj(0), itm(p) {}
-	};
-	struct textinfo {
-		const char*		action;
-		const char*		success;
-		const char*		fail;
-	};
-	callback			proc;
-	unsigned			flags;
-	damageinfo			damage;
-	state_s				state;
-	unsigned			duration;
-	unsigned			experience;
-	textinfo			messages;
-};
-struct skillroll {
-	int					result;
-	int					value;
-	int					bonus;
-};
-struct sceneparam : sceneeffect {
-	creature&			player;
-	bool				interactive;
-	int					level;
-	skillroll			roll;
-	constexpr sceneparam(const sceneeffect& effect_param, creature& player, bool interactive) :
-		sceneeffect(effect_param), player(player), interactive(interactive),
-		level(1), roll() {}
-};
-struct scene {
-	scene(creature* player);
-	bool				apply(const sceneeffect& e, bool run);
-private:
-	adat<creature*, 32>			creatures;
-	adat<short unsigned, 32>	indecies;
-	creature*			player;
 };
 namespace game {
 site*					add(site_s type, rect rc);

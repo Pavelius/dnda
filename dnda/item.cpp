@@ -284,12 +284,6 @@ void item::clear() {
 	*((int*)this) = 0;
 }
 
-item& item::set(identify_s level) {
-	if(identify < level)
-		identify = level;
-	return *this;
-}
-
 void item::loot() {
 	identify = Unknown;
 	forsale = 0;
@@ -493,7 +487,7 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 	auto state = getstate();
 	auto skill = getskill();
 	result[0] = 0;
-	if(identify >= KnowColor) {
+	if(isidentified()) {
 		switch(magic) {
 		case Artifact:
 			sc.prints(zend(result), result_maximum, "[");
@@ -507,19 +501,21 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 		}
 	}
 	sc.prints(zend(result), result_maximum, item_data[type].name);
-	if(effect && identify >= KnowEffect) {
-		sc.prints(zend(result), result_maximum, " %1%", iscursed() ? enchantment_data[effect].name_cursed : enchantment_data[effect].name);
-		if(forsale)
-			sc.prints(zend(result), result_maximum, "%+1i", bonus);
-	} else if(spell && identify >= KnowQuality)
-		sc.prints(zend(result), result_maximum, " %1", getname(spell));
-	else if(state && identify >= KnowQuality)
-		sc.prints(zend(result), result_maximum, " %1", getname(state));
-	else if(skill && identify >= KnowQuality)
-		sc.prints(zend(result), result_maximum, " %1", creature::getname(skill));
+	if(isidentified()) {
+		if(effect) {
+			sc.prints(zend(result), result_maximum, " %1%", iscursed() ? enchantment_data[effect].name_cursed : enchantment_data[effect].name);
+			if(forsale)
+				sc.prints(zend(result), result_maximum, "%+1i", bonus);
+		} else if(spell)
+			sc.prints(zend(result), result_maximum, " %1", getname(spell));
+		else if(state)
+			sc.prints(zend(result), result_maximum, " %1", getname(state));
+		else if(skill)
+			sc.prints(zend(result), result_maximum, " %1", creature::getname(skill));
+	}
 	if(show_info) {
 		auto p = zend(result);
-		if(identify >= KnowQuality) {
+		if(isidentified()) {
 			if(is(Melee) || is(Ranged)) {
 				attackinfo e = {0}; get(e);
 				szblock(sc, p, result_maximum, "урон %2i-%3i", e.bonus, e.damage.min, e.damage.max);
@@ -536,7 +532,7 @@ char* item::getname(char* result, const char* result_maximum, bool show_info) co
 	}
 	if(getcount() > 2)
 		sc.prints(zend(result), result_maximum, " %1i шт", getcount());
-	if(identify >= KnowColor) {
+	if(isidentified()) {
 		if(magic!=Mundane)
 			sc.prints(zend(result), result_maximum, "]");
 	}

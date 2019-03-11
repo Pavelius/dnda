@@ -61,9 +61,9 @@ static void detect_evil(effectparam& e) {
 	char temp[260];
 	if(e.param >= e.level)
 		return;
-	if(e.itm->getidentify() < KnowEffect && e.itm->iscursed()) {
+	if(!e.itm->isidentified() && e.itm->iscursed()) {
 		e.player.act("%1 осветился красным светом.", e.itm->getname(temp, zendof(temp)));
-		e.itm->set(KnowEffect);
+		e.itm->setidentify(true);
 		e.param++;
 	}
 }
@@ -73,7 +73,7 @@ static void detect_magic(effectparam& e) {
 	char temp[260];
 	if(e.param >= e.level)
 		return;
-	if(e.itm->getidentify() < KnowEffect && e.itm->ismagical()) {
+	if(!e.itm->isidentified() && e.itm->ismagical()) {
 		e.player.act("%1 осветился голубым светом.", e.itm->getname(temp, zendof(temp)));
 		e.param++;
 	}
@@ -86,7 +86,7 @@ static void identify(effectparam& e) {
 	auto chance = 30 - e.level * 2;
 	if(d100() < chance && e.itm->getmagic() != Artifact)
 		e.itm->set(Cursed);
-	e.itm->set(KnowEffect);
+	e.itm->setidentify(true);
 }
 
 static struct spell_info {

@@ -49,11 +49,11 @@ static bool readable(const creature& player, const item& it) {
 }
 
 static bool mundane_item(const creature& player, const item& it) {
-	return it.getmagic()==Mundane && it.getidentify() != Unknown;
+	return it.getmagic()==Mundane && it.isidentified();
 }
 
 static bool undefined_item(const creature& player, const item& it) {
-	return it.getidentify() < KnowEffect;
+	return !it.isidentified();
 }
 
 static bool damaged_item(const creature& player, const item& it) {

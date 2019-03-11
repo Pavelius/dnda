@@ -86,7 +86,7 @@ void creature::readbook(item& it) {
 			auto chance = maptbl(chance_learn_spell, level);
 			if(d100() < chance) {
 				level++;
-				it.set(KnowQuality);
+				it.setidentify(true);
 				if(level == 1)
 					hint("Вы изучили заклинание '%1'.", getstr(spell));
 				else
@@ -95,7 +95,7 @@ void creature::readbook(item& it) {
 			} else
 				spell_tome_fail->applyrnd(*this, it);
 		} else if(skill) {
-			it.set(KnowQuality);
+			it.setidentify(true);
 			raise(skill);
 		}
 	} else

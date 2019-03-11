@@ -718,8 +718,6 @@ void creature::dropdown(item& value) {
 
 void creature::equip(slot_s slot, item value) {
 	wears[slot] = value;
-	if(slot < FirstBackpack)
-		wears[slot].set(KnowQuality);
 	updateweight();
 }
 
@@ -739,7 +737,6 @@ bool creature::equip(item value) {
 
 bool creature::equip(item_s value) {
 	item it(value, 0, 0, 0, 0);
-	it.set(KnowEffect);
 	return equip(it);
 }
 
@@ -1824,10 +1821,9 @@ void creature::apply(aref<variant> features) {
 				it = item(i.itemtype, 0, 15, 10, 35);
 			else
 				it = i.itemobject;
-			it.set(KnowEffect);
 			equip(it);
 			if(it.getammo())
-				equip(item(it.getammo(), 0, 15, 10, 35).set(KnowEffect));
+				equip(item(it.getammo(), 0, 15, 10, 35));
 			break;
 		case Skill:
 			raise(i.skill);
@@ -1873,7 +1869,6 @@ void creature::use(item& it) {
 		drink(it, true);
 	else if(it.ischargeable()) {
 		char temp[260]; it.getname(temp, zendof(temp), false);
-		it.set(KnowEffect);
 		auto spell = it.getspell();
 		if(!spell)
 			hint("%1 не работает.", temp);
@@ -1893,7 +1888,7 @@ void creature::use(item& it) {
 		if(it.istome())
 			readbook(it);
 		else {
-			it.set(KnowEffect);
+			it.setidentify(true);
 			auto spell = it.getspell();
 			if(spell) {
 				use(spell, 1 + it.getquality(), "%герой прочитал%а свиток.");
@@ -1912,7 +1907,7 @@ bool creature::unequip(item& it) {
 			"Мое сокровище! Моя прелесть!",
 		};
 		say(maprnd(text));
-		it.set(KnowEffect);
+		it.setidentify(true);
 		return false;
 	} else if(it.isnatural()) {
 		static const char* text[] = {
@@ -1949,7 +1944,7 @@ bool creature::aiboost() {
 	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
 		if(!wears[slot])
 			continue;
-		if(wears[slot].getidentify() < KnowEffect)
+		if(!wears[slot].isidentified())
 			continue;
 		switch(wears[slot].getstate()) {
 		case RestoreHits:
@@ -1967,27 +1962,6 @@ bool creature::aiboost() {
 		}
 	}
 	return false;
-}
-
-scene::scene(creature* player) : player(player) {
-	auto los = player->getlos();
-	auto index = player->getposition();
-	// Соберем игроков
-	for(auto& e : player_data) {
-		if(!e)
-			continue;
-		if(distance(e.getposition(), index) > los)
-			continue;
-		creatures.add(&e);
-	}
-	// Соберем существ
-	for(auto& e : creature_data) {
-		if(!e)
-			continue;
-		if(distance(e.getposition(), index) > los)
-			continue;
-		creatures.add(&e);
-	}
 }
 
 bool serialize_party(bool writemode) {
