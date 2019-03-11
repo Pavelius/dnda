@@ -223,7 +223,7 @@ enum select_s : unsigned {
 	//
 	Hostile = 0x10, Friendly = 0x20,
 	All = 0x100, Splash = 0x200, Nearest = 0x400,
-	Damaged = 0x1000, Drained = 0x2000,
+	Damaged = 0x1000, Drained = 0x2000, Conceal = 0x4000,
 };
 struct attackinfo;
 struct creature;
