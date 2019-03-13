@@ -756,6 +756,11 @@ struct menu {
 	void(*proc)();
 	explicit operator bool() const { return text != 0; }
 };
+struct scene {
+	adat<creature*, 64>	creatures;
+	adat<short unsigned, 124> indecies;
+	scene(int los, short unsigned position);
+};
 namespace game {
 site*					add(site_s type, rect rc);
 void					addseconds(unsigned count);

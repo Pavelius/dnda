@@ -9,6 +9,17 @@ bool cre_damage(sceneparam& e, creature& opponent, bool run) {
 	return true;
 }
 
+template<class T>
+static unsigned exclude(aref<T> result, const T player) {
+	auto ps = result.data;
+	for(auto p : result) {
+		if(p == player)
+			continue;
+		*ps++ = p;
+	}
+	return ps - result.data;
+}
+
 static unsigned source_select(aref<creature*> result, aref<creature*> source, sceneparam& sp, short unsigned index, int range) {
 	auto ps = result.data;
 	auto pe = result.data + result.count;
@@ -26,17 +37,6 @@ static unsigned source_select(aref<creature*> result, aref<creature*> source, sc
 			continue;
 		if(ps < pe)
 			*ps++ = p;
-	}
-	return ps - result.data;
-}
-
-template<class T>
-static unsigned exclude(aref<T*> result, const T* player) {
-	auto ps = result.data;
-	for(auto p : result) {
-		if(p == player)
-			continue;
-		*ps++ = p;
 	}
 	return ps - result.data;
 }
@@ -64,10 +64,18 @@ static unsigned source_select(aref<item*> result, sceneparam& sp) {
 	return ps - result.data;
 }
 
-static unsigned source_select(aref<short unsigned> result, sceneparam& sp) {
+static unsigned source_select(aref<short unsigned> result, aref<short unsigned> source, sceneparam& sp) {
 	auto ps = result.data;
 	auto pe = result.data + result.count;
 	auto flags = sp.flags;
+	for(auto index : source) {
+		if((flags&Conceal) != 0 && !game::is(index, Hidden))
+			continue;
+		if(!sp.proc.obj(sp, index, false))
+			continue;
+		if(ps < pe)
+			*ps++ = index;
+	}
 	return ps - result.data;
 }
 
@@ -135,13 +143,24 @@ bool creature::apply(const sceneeffect& eff, aref<creature*> creatures, aref<sho
 		return source.count != 0;
 	} else if(eff.proc.obj) {
 		short unsigned source_data[256]; aref<short unsigned> source(source_data);
-		source.count = source_select(source, sp);
+		source.count = source_select(source, indecies, sp);
 		if(run) {
 			if((eff.flags&All) != 0) {
 				for(auto index : source)
 					eff.proc.obj(sp, index, true);
 			} else {
-
+				short unsigned value = Blocked;
+				if(eff.flags&Nearest)
+					value = source.random();
+				else
+					value = choose(source, sp.interactive);
+				if(value==Blocked)
+					return false;
+				eff.proc.obj(sp, value, true);
+				if(eff.flags&Splash) {
+					source.count = exclude(source, value);
+					return true;
+				}
 			}
 		}
 		return source.count != 0;

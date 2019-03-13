@@ -1999,6 +1999,51 @@ void creature::play() {
 	}
 }
 
+static unsigned source_select(aref<short unsigned> result, short unsigned index, int los) {
+	auto ps = result.data;
+	auto pe = result.data + result.count;
+	auto x0 = game::getx(index);
+	auto x2 = x0 + los;
+	auto y0 = game::gety(index);
+	auto y2 = y0 + los;
+	for(auto y = y0 - los; y < y2; y++) {
+		if(y < 0 || y >= max_map_y)
+			continue;
+		for(auto x = x0 - los; x < x2; x++) {
+			if(x < 0 || x >= max_map_x)
+				continue;
+			auto index = game::get(x, y);
+			auto obj = game::getobject(index);
+			if(!obj)
+				continue;
+			if(ps < pe)
+				*ps++ = index;
+		}
+	}
+	return ps - result.data;
+}
+
+scene::scene(int los, short unsigned index) {
+	// Соберем игроков
+	for(auto& e : player_data) {
+		if(!e)
+			continue;
+		if(distance(e.getposition(), index) > los)
+			continue;
+		creatures.add(&e);
+	}
+	// Соберем существ
+	for(auto& e : creature_data) {
+		if(!e)
+			continue;
+		if(distance(e.getposition(), index) > los)
+			continue;
+		creatures.add(&e);
+	}
+	// Соберем индексы всякого интересного
+	source_select(indecies, index, los);
+}
+
 speech thank_you[];
 speech dont_need_this[];
 
