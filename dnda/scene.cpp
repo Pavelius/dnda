@@ -64,12 +64,14 @@ static unsigned source_select(aref<item*> result, sceneparam& sp) {
 	return ps - result.data;
 }
 
-static unsigned source_select(aref<short unsigned> result, aref<short unsigned> source, sceneparam& sp) {
+static unsigned source_select(aref<short unsigned> result, aref<short unsigned> source, sceneparam& sp, short unsigned start_index, int range) {
 	auto ps = result.data;
 	auto pe = result.data + result.count;
 	auto flags = sp.flags;
 	for(auto index : source) {
 		if((flags&Conceal) != 0 && !game::is(index, Hidden))
+			continue;
+		if(range>0 && game::distance(start_index, index) > range)
 			continue;
 		if(!sp.proc.obj(sp, index, false))
 			continue;
@@ -143,7 +145,7 @@ bool creature::apply(const sceneeffect& eff, aref<creature*> creatures, aref<sho
 		return source.count != 0;
 	} else if(eff.proc.obj) {
 		short unsigned source_data[256]; aref<short unsigned> source(source_data);
-		source.count = source_select(source, indecies, sp);
+		source.count = source_select(source, indecies, sp, 0, 0);
 		if(run) {
 			if((eff.flags&All) != 0) {
 				for(auto index : source)
@@ -159,6 +161,9 @@ bool creature::apply(const sceneeffect& eff, aref<creature*> creatures, aref<sho
 				eff.proc.obj(sp, value, true);
 				if(eff.flags&Splash) {
 					source.count = exclude(source, value);
+					source.count = source_select(source, source, sp, value, 1);
+					for(auto index : source)
+						eff.proc.obj(sp, index, true);
 					return true;
 				}
 			}
