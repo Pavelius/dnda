@@ -1923,6 +1923,15 @@ bool creature::unequip(item& it) {
 	return true;
 }
 
+int creature::getlos(unsigned flags) const {
+	switch(flags&RangeMask) {
+	case You: return 0;
+	case Close: return 1;
+	case Reach: return 2;
+	default: return getlos();
+	}
+}
+
 bool creature::saving(bool interactive, skill_s save, int bonus) const {
 	if(save == NoSkill)
 		return false;

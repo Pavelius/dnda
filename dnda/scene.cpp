@@ -71,7 +71,7 @@ static unsigned source_select(aref<short unsigned> result, aref<short unsigned> 
 	for(auto index : source) {
 		if((flags&Conceal) != 0 && !game::is(index, Hidden))
 			continue;
-		if(range>0 && game::distance(start_index, index) > range)
+		if(range > 0 && game::distance(start_index, index) > range)
 			continue;
 		if(!sp.proc.obj(sp, index, false))
 			continue;
@@ -81,18 +81,82 @@ static unsigned source_select(aref<short unsigned> result, aref<short unsigned> 
 	return ps - result.data;
 }
 
-bool creature::apply(const sceneeffect& eff, aref<creature*> creatures, aref<short unsigned> indecies, bool run) {
+void creature::apply(const sceneeffect& eff, scene& sc, const targetinfo& ti) {
 	sceneparam sp(eff, *this, true);
-	auto los = 0;
-	switch(eff.flags&RangeMask) {
-	case You: los = 0; break;
-	case Close: los = 1; break;
-	case Reach: los = 2; break;
-	default: los = getlos(); break;
-	}
+	auto los = getlos(eff.flags);
 	if(eff.proc.cre) {
 		creature* source_data[32]; aref<creature*> source(source_data);
-		source.count = source_select(source, creatures, sp, sp.player.getposition(), los);
+		source.count = source_select(source, sc.creatures, sp, sp.player.getposition(), los);
+		if((eff.flags&All) != 0) {
+			for(auto& e : source)
+				eff.proc.cre(sp, *e, true);
+		} else {
+			eff.proc.cre(sp, *ti.cre, true);
+			if(eff.flags&Splash) {
+				source.count = source_select(source_data, sc.creatures, sp, ti.cre->getposition(), 1);
+				source.count = exclude(source, ti.cre);
+				for(auto& e : source)
+					eff.proc.cre(sp, *e, true);
+			}
+		}
+	} else if(eff.proc.itm) {
+	}
+}
+
+bool creature::choose(const sceneeffect& eff, scene& sc, targetinfo& ti) const {
+	sceneparam sp(eff, const_cast<creature&>(*this), true);
+	auto los = getlos(eff.flags);
+	ti.clear();
+	if(eff.proc.cre) {
+		creature* source_data[32]; aref<creature*> source(source_data);
+		source.count = source_select(source, sc.creatures, sp, sp.player.getposition(), los);
+		if(source.count <= 0)
+			return false;
+		if((eff.flags&All) != 0) {
+			return true;
+			if(eff.flags&Nearest)
+				ti.cre = source.random();
+			else
+				ti.cre = choose(source, sp.interactive);
+			if(!ti.cre)
+				return false;
+		}
+		return true;
+	} else if(eff.proc.itm) {
+		item* source_data[64]; aref<item*> source(source_data);
+		source.count = source_select(source, sp);
+		if((eff.flags&All) != 0)
+			return true;
+		if(eff.flags&Nearest)
+			ti.itm = source.random();
+		else
+			ti.itm = choose(source, sp.interactive);
+		if(!ti.itm)
+			return false;
+		return true;
+	} else if(eff.proc.obj) {
+		short unsigned source_data[256]; aref<short unsigned> source(source_data);
+		source.count = source_select(source, sc.indecies, sp, 0, 0);
+		if((eff.flags&All) != 0)
+			return true;
+		ti = Blocked;
+		if(eff.flags&Nearest)
+			ti = source.random();
+		else
+			ti = choose(source, sp.interactive);
+		if(ti.obj == Blocked)
+			return false;
+		return true;
+	}
+	return false;
+}
+
+bool creature::apply(const sceneeffect& eff, scene& sc, bool run) {
+	sceneparam sp(eff, *this, true);
+	auto los = getlos(eff.flags);
+	if(eff.proc.cre) {
+		creature* source_data[32]; aref<creature*> source(source_data);
+		source.count = source_select(source, sc.creatures, sp, sp.player.getposition(), los);
 		if(run) {
 			if((eff.flags&All) != 0) {
 				for(auto& e : source)
@@ -107,8 +171,8 @@ bool creature::apply(const sceneeffect& eff, aref<creature*> creatures, aref<sho
 					return false;
 				eff.proc.cre(sp, *opponent, true);
 				if(eff.flags&Splash) {
+					source.count = source_select(source_data, sc.creatures, sp, opponent->getposition(), 1);
 					source.count = exclude(source, opponent);
-					source.count = source_select(source, source, sp, opponent->getposition(), 1);
 					for(auto& e : source)
 						eff.proc.cre(sp, *e, true);
 					return true;
@@ -145,7 +209,7 @@ bool creature::apply(const sceneeffect& eff, aref<creature*> creatures, aref<sho
 		return source.count != 0;
 	} else if(eff.proc.obj) {
 		short unsigned source_data[256]; aref<short unsigned> source(source_data);
-		source.count = source_select(source, indecies, sp, 0, 0);
+		source.count = source_select(source, sc.indecies, sp, 0, 0);
 		if(run) {
 			if((eff.flags&All) != 0) {
 				for(auto index : source)
@@ -156,12 +220,12 @@ bool creature::apply(const sceneeffect& eff, aref<creature*> creatures, aref<sho
 					value = source.random();
 				else
 					value = choose(source, sp.interactive);
-				if(value==Blocked)
+				if(value == Blocked)
 					return false;
 				eff.proc.obj(sp, value, true);
 				if(eff.flags&Splash) {
+					source.count = source_select(source_data, sc.indecies, sp, value, 1);
 					source.count = exclude(source, value);
-					source.count = source_select(source, source, sp, value, 1);
 					for(auto index : source)
 						eff.proc.obj(sp, index, true);
 					return true;

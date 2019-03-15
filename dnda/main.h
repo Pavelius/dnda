@@ -225,6 +225,10 @@ enum select_s : unsigned {
 	All = 0x100, Splash = 0x200, Nearest = 0x400,
 	Damaged = 0x1000, Drained = 0x2000, Conceal = 0x4000,
 };
+enum variant_ptr_s : unsigned char {
+	NoVariantPtr,
+	Creature, Object, ItemPtr,
+};
 struct attackinfo;
 struct creature;
 struct dialog;
@@ -271,6 +275,18 @@ struct specialinfo {
 	char				chance_broke;
 	char				bonus;
 	char				chance_side;
+};
+struct targetinfo {
+	variant_ptr_s		type;
+	union {
+		creature*		cre;
+		short unsigned	obj;
+		item*			itm;
+	};
+	constexpr targetinfo(creature* v) : type(Creature), cre(v) {}
+	constexpr targetinfo(short unsigned v) : type(Object), obj(v) {}
+	constexpr targetinfo(item* v) : type(ItemPtr), itm(v) {}
+	void				clear() { type = NoVariantPtr; cre = 0; }
 };
 struct effectinfo {
 	struct callback {
@@ -474,6 +490,11 @@ struct sceneparam : sceneeffect {
 		sceneeffect(effect_param), player(player), interactive(interactive),
 		level(1), roll() {}
 };
+struct scene {
+	adat<creature*, 64>	creatures;
+	adat<short unsigned, 124> indecies;
+	scene(int los, short unsigned position);
+};
 struct creature {
 	item				wears[LastBackpack + 1];
 	//
@@ -503,7 +524,8 @@ struct creature {
 	void				apply(aref<variant> features);
 	void				apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
 	bool				apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value, void(*fail_proc)(effectparam& e) = 0);
-	bool				apply(const sceneeffect& e, aref<creature*> creatures, aref<short unsigned> indecies, bool run);
+	bool				apply(const sceneeffect& e, scene& sc, bool run);
+	void				apply(const sceneeffect& e, scene& sc, const targetinfo& ti);
 	bool				askyn(creature* opponent, const char* format, ...);
 	void				athletics(bool interactive);
 	void				attack(creature* defender, slot_s slot, int bonus = 0, int multiplier = 0);
@@ -512,6 +534,7 @@ struct creature {
 	item*				choose(aref<item*> source, bool interactive, const char* title = "Âûבטנאיעו ןנוהלוע") const;
 	creature*			choose(aref<creature*> source, bool interactive) const;
 	short unsigned		choose(aref<short unsigned> source, bool interactive) const;
+	bool				choose(const sceneeffect& eff, scene& sc, targetinfo& ti) const;
 	void				create(race_s race, gender_s gender, class_s type);
 	void				applyability();
 	void				clear();
@@ -552,6 +575,7 @@ struct creature {
 	creature*			gethorror() const { return horror; }
 	creature*			getleader() const;
 	int					getlos() const;
+	int					getlos(unsigned flags) const;
 	int					getmana() const { return mp; }
 	int					getmaxhits() const;
 	int					getmaxmana() const;
@@ -755,11 +779,6 @@ struct menu {
 	const menu*			next;
 	void(*proc)();
 	explicit operator bool() const { return text != 0; }
-};
-struct scene {
-	adat<creature*, 64>	creatures;
-	adat<short unsigned, 124> indecies;
-	scene(int los, short unsigned position);
 };
 namespace game {
 site*					add(site_s type, rect rc);
