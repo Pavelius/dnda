@@ -5,150 +5,164 @@ static const char* talk_object[] = {"сокровище", "волшебное кольцо", "проклятый 
 static const char* talk_location[] = {"библиотеку", "ратушу", "магазин", "таверну", "храм"};
 static const char* talk_games[] = {"кубики", "карты", "наперстки"};
 
-void setstate(effectparam& e);
-int compare_skills(const void* p1, const void* p2);
+bool	setstate(sceneparam& e, creature& v, bool run);
+int		compare_skills(const void* p1, const void* p2);
 
-static void healdamage(effectparam& e) {
-	auto damage = e.damage.max + e.skill_value / 10;
-	e.cre->heal(e.damage.roll(), true);
-}
-
-static void removetrap(effectparam& e) {
-	game::set(e.pos, NoTileObject);
-}
-
-static bool testbash(effectparam& e) {
-	e.skill_bonus = -20;
-	return true;
-}
-
-static void bashdoor(effectparam& e) {
-	game::set(e.pos, NoTileObject);
-}
-
-static void removelock(effectparam& e) {
-	game::set(e.pos, Sealed, false);
-}
-
-static bool isundead(effectparam& e) {
-	return e.cre->getrace()==Undead;
-}
-
-static bool test_dance(effectparam& e) {
-	return e.cre->getsite() != 0;
-}
-
-static bool test_pickpockets(effectparam& e) {
-	static const char* talk[] = {
-		"Слушай смешной анекдот. Так ... как же он начинается? ... Забыл. Ладно, давай в другой раз расскажу.",
-		"О - смотри кто это?",
-		"Вы не знаете как пройти в %3? О, спасибо, я сам вспомнил дорогу.",
-		"Слышал эту историю про %1 и %2? Нет? Я тоже..."
-	};
-	e.player.say(maprnd(talk), maprnd(talk_subjects), maprnd(talk_object), maprnd(talk_location));
-	return true;
-}
-
-static void pickpockets(effectparam& e) {
-	auto count = xrand(3, 18);
-	if(count > e.cre->getmoney())
-		count = e.cre->getmoney();
-	e.cre->setmoney(e.cre->getmoney() - count);
-	e.player.setmoney(e.player.getmoney() + count);
-	if(e.player.isplayer())
-		e.player.act("%герой украл%а [%1i] монет.", count);
-}
-
-static bool inbuilding(effectparam& e) {
-	if(!e.player.getsite()) {
-		e.player.hint("Этот навык можно применять только в здании.");
-		return false;
+static bool heal(sceneparam& e, creature& v, bool run) {
+	if(run) {
+		auto damage = e.damage.max + e.roll.value / 10;
+		v.heal(e.damage.roll(), true);
 	}
 	return true;
 }
 
-static void dance(effectparam& e) {}
-
-static void literacy(effectparam& e) {
-	if(e.itm)
-		e.player.use(*e.itm);
-}
-
-static bool test_gamble(effectparam& e) {
-	if(!inbuilding(e))
+static bool removetrap(sceneparam& e, short unsigned index, bool run) {
+	auto t = game::getobject(index);
+	if(t != Trap)
 		return false;
-	e.param = 20 * (1 + e.player.get(Gambling) / 20);
-	if(e.player.getmoney() < e.param) {
-		e.player.hint("У тебя нет достаточного количества денег.");
-		return false;
-	}
-	e.player.say("Давай сыграем в %1?", maprnd(talk_games));
-	if(e.cre->getmoney() < e.param) {
-		e.cre->say("Нет. Я на мели. В другой раз.");
-		return false;
-	}
-	e.skill_bonus = -e.cre->get(Gambling) / 2;
+	if(run)
+		game::set(index, NoTileObject);
 	return true;
 }
 
-static void gamble(effectparam& e) {
-	e.player.setmoney(e.player.getmoney() + e.param);
-	e.cre->setmoney(e.cre->getmoney() - e.param);
-	e.cre->act("%герой проиграл%а [%1i] монет.", e.param);
+static bool bash(sceneparam& e, short unsigned index, bool run) {
+	auto t = game::getobject(index);
+	if(t != Door)
+		return false;
+	if(run)
+		game::set(index, NoTileObject);
+	return true;
 }
 
-static void failskill(effectparam& e) {
-	if(d100() < 40) {
-		e.player.hint("Вы очень долго пытались выполнить все как надо, но в итоге попытка не удалась.");
-		e.player.wait(Minute * xrand(2, 5));
-	} else
-		e.player.hint("Попытка не удалась.");
+static bool openlock(sceneparam& e, short unsigned index, bool run) {
+	if(run)
+		game::set(index, Sealed, false);
+	return true;
 }
 
-static void failgamble(effectparam& e) {
-	e.player.setmoney(e.player.getmoney() - e.param);
-	e.cre->setmoney(e.cre->getmoney() + e.param);
-	e.player.act("%герой проиграл%а [%1i] монет.", e.param);
+//static bool test_pickpockets(effectparam& e) {
+//	static const char* talk[] = {
+//		"Слушай смешной анекдот. Так ... как же он начинается? ... Забыл. Ладно, давай в другой раз расскажу.",
+//		"О - смотри кто это?",
+//		"Вы не знаете как пройти в %3? О, спасибо, я сам вспомнил дорогу.",
+//		"Слышал эту историю про %1 и %2? Нет? Я тоже..."
+//	};
+//	e.player.say(maprnd(talk), maprnd(talk_subjects), maprnd(talk_object), maprnd(talk_location));
+//	return true;
+//}
+
+static bool pickpockets(sceneparam& e, creature& v, bool run) {
+	if(run) {
+		auto count = xrand(3, 18);
+		if(count > v.getmoney())
+			count = v.getmoney();
+		v.setmoney(v.getmoney() - count);
+		e.player.setmoney(e.player.getmoney() + count);
+		if(e.player.isplayer())
+			e.player.act("%герой украл%а [%1i] монет.", count);
+	}
+	return true;
 }
 
-static void killing(effectparam& e) {
-	auto total = e.skill_value + e.skill_bonus;
-	e.player.meleeattack(e.cre, total / 2, total / 30);
+//static bool inbuilding(effectparam& e) {
+//	if(!e.player.getsite()) {
+//		e.player.hint("Этот навык можно применять только в здании.");
+//		return false;
+//	}
+//	return true;
+//}
+
+static bool literacy(sceneparam& e, item& v, bool run) {
+	if(run)
+		e.player.use(v);
+	return true;
 }
 
-static void killing_fail(effectparam& e) {
-	e.player.meleeattack(e.cre);
+static bool dance(sceneparam& e, creature& v, bool run) {
+	return true;
 }
+
+//static bool test_gamble(effectparam& e) {
+//	if(!inbuilding(e))
+//		return false;
+//	e.param = 20 * (1 + e.player.get(Gambling) / 20);
+//	if(e.player.getmoney() < e.param) {
+//		e.player.hint("У тебя нет достаточного количества денег.");
+//		return false;
+//	}
+//	e.player.say("Давай сыграем в %1?", maprnd(talk_games));
+//	if(e.cre->getmoney() < e.param) {
+//		e.cre->say("Нет. Я на мели. В другой раз.");
+//		return false;
+//	}
+//	e.skill_bonus = -e.cre->get(Gambling) / 2;
+//	return true;
+//}
+
+static bool gamble(sceneparam& e, creature& v, bool run) {
+	if(run) {
+		e.player.setmoney(e.player.getmoney() + e.param);
+		v.setmoney(v.getmoney() - e.param);
+		v.act("%герой проиграл%а [%1i] монет.", e.param);
+	}
+	return true;
+}
+
+//static void failskill(effectparam& e) {
+//	if(d100() < 40) {
+//		e.player.hint("Вы очень долго пытались выполнить все как надо, но в итоге попытка не удалась.");
+//		e.player.wait(Minute * xrand(2, 5));
+//	} else
+//		e.player.hint("Попытка не удалась.");
+//}
+//
+//static void failgamble(effectparam& e) {
+//	e.player.setmoney(e.player.getmoney() - e.param);
+//	e.cre->setmoney(e.cre->getmoney() + e.param);
+//	e.player.act("%герой проиграл%а [%1i] монет.", e.param);
+//}
+
+static bool killing(sceneparam& e, creature& v, bool run) {
+	if(run) {
+		auto total = e.roll.value;
+		e.player.meleeattack(&v, total / 2, total / 30);
+	}
+	return true;
+}
+
+//static void killing_fail(effectparam& e) {
+//	e.player.meleeattack(e.cre);
+//}
 
 static struct skill_info {
 	const char*		name;
 	const char*		nameof;
 	ability_s		ability[2];
-	effectinfo		effect;
+	sceneeffect		effect;
 	enchantment_s	enchant;
 	bool			deny_ability;
 } skill_data[] = {{"Нет навыка"},
 {"Торговля", "торговли", {Charisma, Intellegence}},
 {"Блеф", "обмана", {Charisma, Dexterity}},
-{"Дипломатия", "дипломатии", {Charisma, Wisdow}, {{TargetFriendly, Close}, {setstate}, {Goodwill, Turn / 2}, "%герой одобрил%а предложение."}},
+{"Дипломатия", "дипломатии", {Charisma, Wisdow}, {setstate, Friendly | Close, {}, {Goodwill, Turn / 2}, 0, {0, "%герой одобрил%а предложение."}}},
 //
 {"Акробатика", "акробатики", {Dexterity, Dexterity}},
 {"Внимательность", "внимательности", {Wisdow, Dexterity}},
-{"Атлетика", "атлетики", {Strenght, Dexterity}, {{TargetDoor, Close}, {bashdoor, 0, testbash}, {}, "%герой разнес%ла двери в щепки.", {}, 20}},
-{"Убийство", "убийства", {Dexterity, Dexterity}, {{TargetNeutral, Close}, {killing, killing_fail}, {}, "%герой нанес%ла подлый удар.", {}, 50}},
+{"Атлетика", "атлетики", {Strenght, Dexterity}, {bash, Close, {}, {}, 20, {"%герой разнес%ла двери в щепки."}}},
+{"Убийство", "убийства", {Dexterity, Dexterity}, {killing, Close, {}, {}, 50, {"%герой нанес%ла подлый удар."}}},
 {"Концентрация", "концетрации", {Wisdow, Wisdow}},
-{"Обезвредить ловушки", "ловушек", {Dexterity, Intellegence}, {{TargetTrap, Close}, {removetrap}, {}, "%герой обезвредил%а ловушку.", {}, 30}},
+{"Обезвредить ловушки", "ловушек", {Dexterity, Intellegence}, {removetrap, Close | Identified, {}, {}, 30, {"%герой обезвредил%а ловушку."}}},
 {"Слышать звуки", "слуха", {Wisdow, Intellegence}},
-{"Прятаться в тени", "скрытности", {Dexterity, Dexterity}, {{TargetSelf}, {setstate}, {Hiding, Turn / 2}, "%герой внезапно изчез%ла из поля зрения."}},
-{"Открыть замок", "взлома", {Dexterity, Intellegence}, {{TargetDoorSealed, Close}, {removelock}, {}, "%герой вскрыл%а замок.", {}, 50}},
-{"Очистить карманы", "воровства", {Dexterity, Charisma}, {{TargetFriendly, Close}, {pickpockets, 0, test_pickpockets}, {}, 0, {}, 25}},
+{"Прятаться в тени", "скрытности", {Dexterity, Dexterity}, {setstate, You, {}, {Hiding, Turn / 2}, 0, {0, "%герой внезапно изчез%ла из поля зрения."}}},
+{"Открыть замок", "взлома", {Dexterity, Intellegence}, {openlock, Close, {}, {}, 50, {0, "%герой вскрыл%а замок."}}},
+{"Очистить карманы", "воровства", {Dexterity, Charisma}, {pickpockets, Close, {}, {}, 25}},
 {"Алхимия", "алхимии", {Intellegence, Intellegence}},
-{"Танцы", "танцев", {Dexterity, Charisma}, {{TargetSelf}, {dance, 0, test_dance}, {}, "%герой станевал%а отличный танец.", {}, 10}},
+{"Танцы", "танцев", {Dexterity, Charisma}, {dance, All | Near, {}, {}, 10, {0, "%герой станевал%а отличный танец."}}},
 {"Инженерное дело", "инженерии", {Intellegence, Intellegence}},
-{"Азартные игры", "азартных игр", {Charisma, Dexterity}, {{TargetFriendly, Close}, {gamble, failgamble, test_gamble}, {}, 0, {}, 25}},
+{"Азартные игры", "азартных игр", {Charisma, Dexterity}, {gamble, Close, {}, {}, 25}},
 {"История", "истории", {Intellegence, Intellegence}},
-{"Лечение", "лечения", {Wisdow, Intellegence}, {{TargetFriendlyWounded, Close}, {healdamage}, {}, "%герой перевязал%а раны.", {1, 3}, 5}},
-{"Грамотность", "письма и чтения", {Intellegence, Intellegence}, {{TargetItemReadable}, {literacy, literacy}, {}, 0, {}, 25}},
+{"Лечение", "лечения", {Wisdow, Intellegence}, {heal, Close | Friendly | Damaged, {1, 3}, {}, 5, {"%герой перевязал%а раны."}}},
+{"Грамотность", "письма и чтения", {Intellegence, Intellegence}, {literacy, 0, {}, {}, 25}},
 {"Шахтерское дело", "шахтерского дела", {Strenght, Intellegence}},
 {"Кузнечное дело", "кузнечного дела", {Strenght, Intellegence}},
 {"Выживание", "выживания", {Wisdow, Constitution}},
@@ -210,15 +224,11 @@ void creature::use(skill_s value) {
 		return;
 	}
 	auto& e = skill_data[value];
-	if(e.effect.type.target == NoTarget) {
+	if(!e.effect) {
 		hint("Навык %1 не используется подобным образом", getstr(value));
 		return;
 	}
-	if(e.effect.proc.validate) {
-		if(!e.effect.proc.validate(*this))
-			return;
-	}
-	apply(e.effect, 0, isplayer(), 0, 0, d100(), get(value), failskill);
+	//apply(e.effect, 0, isplayer(), 0, 0, d100(), get(value), failskill);
 	// Use skill is one minute
 	wait(Minute);
 }
@@ -226,37 +236,37 @@ void creature::use(skill_s value) {
 skill_s creature::aiskill(aref<creature*> creatures) {
 	if(is(Anger))
 		return NoSkill;
-	adat<skill_s, LastSkill + 1> recomended;
-	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
-		if(!skills[i])
-			continue;
-		if(!skill_data[i].effect.type.iscreature())
-			continue;
-		if(!skill_data[i].effect.type.isallow(*this, creatures))
-			continue;
-		recomended.add(i);
-	}
-	if(recomended.count > 0)
-		return recomended.data[rand() % recomended.count];
+	//adat<skill_s, LastSkill + 1> recomended;
+	//for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
+	//	if(!skills[i])
+	//		continue;
+	//	if(!skill_data[i].effect.type.iscreature())
+	//		continue;
+	//	if(!skill_data[i].effect.type.isallow(*this, creatures))
+	//		continue;
+	//	recomended.add(i);
+	//}
+	//if(recomended.count > 0)
+	//	return recomended.data[rand() % recomended.count];
 	return NoSkill;
 }
 
 skill_s creature::aiskill() {
 	if(is(Anger))
 		return NoSkill;
-	aref<creature*> source = {};
-	adat<skill_s, LastSkill + 1> recomended;
-	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
-		if(!skills[i])
-			continue;
-		if(!skill_data[i].effect.type.isposition())
-			continue;
-		if(!skill_data[i].effect.type.isallow(*this, source))
-			continue;
-		recomended.add(i);
-	}
-	if(recomended.count > 0)
-		return recomended.data[rand() % recomended.count];
+	//aref<creature*> source = {};
+	//adat<skill_s, LastSkill + 1> recomended;
+	//for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
+	//	if(!skills[i])
+	//		continue;
+	//	if(!skill_data[i].effect.type.isposition())
+	//		continue;
+	//	if(!skill_data[i].effect.type.isallow(*this, source))
+	//		continue;
+	//	recomended.add(i);
+	//}
+	//if(recomended.count > 0)
+	//	return recomended.data[rand() % recomended.count];
 	return NoSkill;
 }
 

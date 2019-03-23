@@ -15,7 +15,7 @@ template<class T> static const T* findkey(const T* source, int key) {
 struct hotkey {
 	unsigned		key;
 	const char*		command;
-	void(*proc)(creature& e);
+	void(*proc)(creature& e, scene& sc);
 	explicit operator bool() const { return key != 0; }
 };
 
@@ -1063,7 +1063,7 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 	return 0;
 }
 
-static void character_pickup(creature& e) {
+static void character_pickup(creature& e, scene& sc) {
 	char temp[260]; szprints(temp, zendof(temp), "Поднять предметы");
 	item* source[48];
 	auto index = e.getposition();
@@ -1085,7 +1085,7 @@ static void character_pickup(creature& e) {
 	e.pickup(*result);
 }
 
-static void character_dropdown(creature& e) {
+static void character_dropdown(creature& e, scene& sc) {
 	char temp[260]; szprints(temp, zendof(temp), "Положить предметы");
 	item* source[LastBackpack + 1];
 	auto p = source;
@@ -1100,7 +1100,7 @@ static void character_dropdown(creature& e) {
 	e.dropdown(*result);
 }
 
-static void character_stuff(creature& e) {
+static void character_stuff(creature& e, scene& sc) {
 	item* source[48];
 	auto p = source;
 	for(auto slot = FirstBackpack; slot <= LastBackpack; slot = (slot_s)(slot + 1)) {
@@ -1123,7 +1123,7 @@ static item* choose_item(creature& e, point camera, slot_s slot) {
 	return logs::choose(e, source, p - source, temp);
 }
 
-static void character_invertory(creature& e) {
+static void character_invertory(creature& e, scene& sc) {
 	const int width = 500;
 	const int height = 360;
 	const int dy = 20;
@@ -1404,43 +1404,43 @@ static void setplayer(creature& e, int index) {
 		p->setplayer();
 }
 
-static void character_setplayer1(creature& e) {
+static void character_setplayer1(creature& e, scene& sc) {
 	setplayer(e, 0);
 }
 
-static void character_setplayer2(creature& e) {
+static void character_setplayer2(creature& e, scene& sc) {
 	setplayer(e, 1);
 }
 
-static void character_setplayer3(creature& e) {
+static void character_setplayer3(creature& e, scene& sc) {
 	setplayer(e, 2);
 }
 
-static void character_setplayer4(creature& e) {
+static void character_setplayer4(creature& e, scene& sc) {
 	setplayer(e, 3);
 }
 
-static void character_skill(creature& e) {
+static void character_skill(creature& e, scene& sc) {
 	skill_s result;
 	if(!logs::choose(e, result))
 		return;
 	e.use(result);
 }
 
-static void character_spell(creature& e) {
+static void character_spell(creature& e, scene& sc) {
 	spell_s result;
 	if(!logs::choose(e, result))
 		return;
 	e.use(result);
 }
 
-static void character_time(creature& e) {
+static void character_time(creature& e, scene& sc) {
 	char temp[260];
 	game::getdate(temp, zendof(temp), game::getseconds(), true);
 	logs::add("Прошло %1.", temp);
 }
 
-static void dungeon_lookaround(creature& e) {
+static void dungeon_lookaround(creature& e, scene& sc) {
 	fxeffect ef[2];
 	ef[0].res = gres(ResUI);
 	ef[0].frame = 1;
@@ -1491,23 +1491,23 @@ void logs::minimap(short unsigned position) {
 	}
 }
 
-static void character_chat(creature& e) {
+static void character_chat(creature& e, scene& sc) {
 	creature* creature_data[256];
 	auto creatures = e.getcreatures(creature_data, e.getposition(), 1);
-	auto source = e.select(creature_data, creatures, TargetFriendly, 1, e.getposition(), &e);
+	auto source = e.getcreatures(creature_data, e.getposition(), 1);
 	auto opponent = e.choose(source, true);
 	if(opponent)
 		e.chat(opponent);
 }
 
-static void character_use(creature& e) {
-	short unsigned source_data[3 * 3 + 1];
-	auto source = e.select(source_data, TargetObject, 1, e.getposition());
-	if(!source) {
-		logs::add("Вокруг вас нету ничего, что можно было бы использовать.");
-		return;
-	}
-	e.manipulate(logs::choose(e, source.data, source.count));
+static void character_use(creature& e, scene& sc) {
+	//short unsigned source_data[3 * 3 + 1];
+	//auto source = e.select(source_data, TargetObject, 1, e.getposition());
+	//if(!source) {
+	//	logs::add("Вокруг вас нету ничего, что можно было бы использовать.");
+	//	return;
+	//}
+	//e.manipulate(logs::choose(e, source.data, source.count));
 }
 
 void logs::focusing(short unsigned index) {
@@ -1596,52 +1596,51 @@ int logs::input() {
 	return 0;
 }
 
-void testweapon(creature& e);
-static void character_help(creature& e);
+void testweapon(creature& e, scene& sc);
 
-static void character_passturn(creature& e) {
+static void character_help(creature& e, scene& sc);
+
+static void character_passturn(creature& e, scene& sc) {
 	e.wait(Turn * 3);
 }
 
-static void ui_show_hide_panel(creature& e) {
+static void ui_show_hide_panel(creature& e, scene& sc) {
 	show_gui_panel = !show_gui_panel;
 }
 
-static void character_ranged_attack(creature& e) {
-	creature* creature_data[256];
-	auto creatures = e.getcreatures(creature_data, e.getposition(), e.getlos());
-	auto enemy = e.getenemy(creatures);
+static void character_ranged_attack(creature& e, scene& sc) {
+	auto enemy = e.getenemy(sc.creatures);
 	if(!enemy)
 		e.hint("Вокруг нет подходящей цели");
 	else
 		e.rangeattack(enemy);
 }
 
-static void character_use(creature& e, targetdesc ti, const char* title) {
-	item* source_data[256];
-	auto source = e.select(source_data, ti.target);
-	if(!source) {
-		e.hint("У вас нет подходящео предмета.");
-		return;
-	}
-	auto result = logs::choose(e, source.data, source.count, "Выбирайте предмет");
-	if(result)
-		e.use(*result);
+static void character_use(creature& e, scene& sc, const char* title) {
+	//item* source_data[256];
+	//auto source = e.getcreatures(source_data, ti.target);
+	//if(!source) {
+	//	e.hint("У вас нет подходящео предмета.");
+	//	return;
+	//}
+	//auto result = logs::choose(e, source.data, source.count, "Выбирайте предмет");
+	//if(result)
+	//	e.use(*result);
 }
 
-static void character_wand(creature& e) {
-	character_use(e, {TargetItemChargeable}, "С какого предмета?");
+static void character_wand(creature& e, scene& sc) {
+	//character_use(e, {TargetItemChargeable}, "С какого предмета?");
 }
 
-static void character_drink(creature& e) {
-	character_use(e, {TargetItemDrinkable}, "Что хотите выпить?");
+static void character_drink(creature& e, scene& sc) {
+	//character_use(e, {TargetItemDrinkable}, "Что хотите выпить?");
 }
 
-static void character_eat(creature& e) {
-	character_use(e, {TargetItemEdible}, "Что хотите съесть?");
+static void character_eat(creature& e, scene& sc) {
+	//character_use(e, {TargetItemEdible}, "Что хотите съесть?");
 }
 
-static void character_read(creature& e) {
+static void character_read(creature& e, scene& sc) {
 	e.use(Literacy);
 }
 
@@ -1712,29 +1711,29 @@ static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 	}
 }
 
-static void character_give(creature& e) {
-	creature* source[128];
-	auto result = e.getcreatures(source, e.getposition(), 1, &e);
-	auto pc = e.choose(result, true);
-	if(!pc)
-		return;
-	item* source_item[128];
-	auto result_item = e.select(source_item, TargetItemWeapon);
-	auto pi = e.choose(result_item, true, "Передать предмет");
-	if(!pi)
-		return;
-	e.give(*pc, *pi, true);
+static void character_give(creature& e, scene& sc) {
+	//creature* source[128];
+	//auto result = e.getcreatures(source, e.getposition(), 1, &e);
+	//auto pc = e.choose(result, true);
+	//if(!pc)
+	//	return;
+	//item* source_item[128];
+	//auto result_item = e.select(source_item, TargetItemWeapon);
+	//auto pi = e.choose(result_item, true, "Передать предмет");
+	//if(!pi)
+	//	return;
+	//e.give(*pc, *pi, true);
 }
 
 extern manual manual_main;
 
-static void character_manual(creature& e) {
+static void character_manual(creature& e, scene& sc) {
 	char temp[2048];
-	stringbuffer sc(temp);
-	view_manual(e, sc, manual_main);
+	stringbuffer sb(temp);
+	view_manual(e, sb, manual_main);
 }
 
-static void character_logs(creature& e) {
+static void character_logs(creature& e, scene& sc) {
 	const int width = 520;
 	const int height = 464;
 	const int dy = 20;
@@ -1765,11 +1764,11 @@ static void character_logs(creature& e) {
 	}
 }
 
-static void character_minimap(creature& e) {
+static void character_minimap(creature& e, scene& sc) {
 	logs::minimap(e.getposition());
 }
 
-static void character_debug(creature& e) {
+static void character_debug(creature& e, scene& sc) {
 	creature* creature_data[256];
 	auto creatures = e.getcreatures(creature_data, e.getposition(), e.getlos());
 	auto opponent = e.choose(creatures, true);
@@ -1945,7 +1944,7 @@ void logs::initialize() {
 	draw::fore = colors::text;
 }
 
-static void character_help(creature& e) {
+static void character_help(creature& e, scene& sc) {
 	const int width = 700;
 	const int height = 460;
 	const int dy = 20;
@@ -1999,7 +1998,7 @@ void logs::choose(const menu* p) {
 	}
 }
 
-void logs::turn(creature& e) {
+void logs::turn(creature& e, scene& sc) {
 	while(ismodal()) {
 		point camera = getcamera(game::getx(e.getposition()), game::gety(e.getposition()));
 		view_zone(&e, camera);
@@ -2020,7 +2019,7 @@ void logs::turn(creature& e) {
 			break;
 		}
 		if(phk->proc)
-			phk->proc(e);
+			phk->proc(e, sc);
 		// Подождем минимальное вермя 2 сегмента.
 		// Действия могут устанавливать дополнительное время ожидания
 		e.wait(2);

@@ -337,15 +337,13 @@ static int isqrt(int num) {
 	return res;
 }
 
-aref<creature*> creature::getcreatures(aref<creature*> result, short unsigned start, int range, creature* exclude) {
+aref<creature*> creature::getcreatures(aref<creature*> result, short unsigned start, int range) {
 	auto pb = result.data;
 	auto pe = result.data + result.count;
 	auto x = game::getx(start);
 	auto y = game::gety(start);
 	for(auto& e : player_data) {
 		if(!e)
-			continue;
-		if(exclude && exclude == &e)
 			continue;
 		auto dx = x - game::getx(e.position);
 		auto dy = y - game::gety(e.position);
@@ -361,8 +359,6 @@ aref<creature*> creature::getcreatures(aref<creature*> result, short unsigned st
 	}
 	for(auto& e : creature_data) {
 		if(!e)
-			continue;
-		if(exclude && exclude == &e)
 			continue;
 		auto dx = x - game::getx(e.position);
 		auto dy = y - game::gety(e.position);
@@ -776,38 +772,31 @@ void creature::wait(int value) {
 	recoil += value;
 }
 
-creature* creature::getnearest(aref<creature*> source, targetdesc ti) const {
-	if(!source)
-		return 0;
-	creature* creature_result[260];
-	auto result = select(creature_result, source, ti.target, ti.range, position, this);
-	return game::getnearest(result, position);
-}
-
-bool creature::walkaround(aref<creature*> creatures) {
+bool creature::walkaround(scene& sc) {
 	if(d100() < 40) {
-		wait(xrand(1, Minute / 2));
+		// Do nothing
+		wait(xrand(Minute/2, Minute));
 		return false;
 	}
 	// When we try to stand and think
 	if(d100() < 40) {
-		auto skill = aiskill(creatures);
-		if(skill && d100() < 60) {
-			use(skill);
-			return false;
-		}
-		auto spell = aispell(creatures);
-		if(spell && d100() < 60) {
-			use(spell);
-			return false;
-		}
+		//auto skill = aiskill(sc.creatures);
+		//if(skill && d100() < 60) {
+		//	use(skill);
+		//	return false;
+		//}
+		//auto spell = aispell(sc.creatures);
+		//if(spell && d100() < 60) {
+		//	use(spell);
+		//	return false;
+		//}
 	}
 	// When we try move
-	auto skill = aiskill();
-	if(skill) {
-		use(skill);
-		return false;
-	}
+	//auto skill = aiskill();
+	//if(skill) {
+	//	use(skill);
+	//	return false;
+	//}
 	auto d = (direction_s)xrand(Left, RightDown);
 	return move(to(position, d));
 }
@@ -917,16 +906,22 @@ bool creature::moveaway(short unsigned index) {
 }
 
 creature* creature::getenemy(aref<creature*> source) const {
-	return getnearest(source, {TargetHostile});
+	for(auto p : source) {
+		if(isenemy(p))
+			return p;
+	}
+	return 0;
 }
 
 void creature::makemove() {
 	// RULE: sleeped or paralized creature don't move
 	if(is(Sleeped) || is(Paralized))
 		return;
+	// Test any enemy
+	scene sc(getlos(), getposition());
 	// Player turn
 	if(getplayer() == this) {
-		logs::turn(*this);
+		logs::turn(*this, sc);
 		return;
 	}
 	// Make move depends on conditions
@@ -934,32 +929,28 @@ void creature::makemove() {
 		moveaway(horror->position);
 		return;
 	}
-	// Test any enemy
-	creature* creature_data[256];
-	auto creatures = getcreatures(creature_data, position, getlos());
-	auto enemy = getenemy(creatures);
-	if(enemy) {
-		if(aiboost())
-			return;
-		if(aiusewand(creatures, TargetHostile))
-			return;
-		auto spell = aispell({&enemy, 1}, TargetHostile);
-		if(spell)
-			use(spell);
-		else if(isranged(false))
-			rangeattack(enemy);
-		else
-			moveto(enemy->position);
+	if(sc.isenemy(*this)) {
+	//	if(aiboost())
+	//		return;
+	//	if(aiusewand(creatures, TargetHostile))
+	//		return;
+	//	auto spell = aispell({&enemy, 1}, TargetHostile);
+	//	if(spell)
+	//		use(spell);
+	//	else if(isranged(false))
+	//		rangeattack(enemy);
+	//	else
+	//		moveto(enemy->position);
 	} else if(guard != Blocked)
 		moveto(guard);
 	else if(getleader()) {
-		auto target = getleader();
-		if(distance(target->position, position) <= 2)
-			walkaround(creatures);
-		else
-			moveto(target->position);
+	//	auto target = getleader();
+	//	if(distance(target->position, position) <= 2)
+	//		walkaround(creatures);
+	//	else
+	//		moveto(target->position);
 	} else
-		walkaround(creatures);
+		walkaround(sc);
 }
 
 creature* creature::getplayer() {
@@ -1520,7 +1511,7 @@ int creature::getattacktime(slot_s slot) const {
 	return tm;
 }
 
-void testweapon(creature& e) {
+void testweapon(creature& e, scene& sc) {
 	e.act("%герой поробывал%а свое оружие.");
 	if(e.wears[Melee] && e.wears[OffHand].is(Melee)) {
 		e.act("Одновременно ");
@@ -1765,25 +1756,25 @@ void creature::consume(int value, bool interactive) {
 }
 
 bool creature::alertness() {
-	if(getplayer() != getleader())
+	//if(getplayer() != getleader())
 		return false;
 	// RULE: for party only alertness check secrect doors and traps
-	short unsigned source_data[5 * 5];
-	auto result = select(source_data, TargetHiddenObject, 2, position);
-	auto found = false;
-	for(auto index : result) {
-		if(roll(Alertness)) {
-			found = true;
-			game::set(index, Hidden, false);
-			auto object = game::getobject(index);
-			if(isplayer()) {
-				act("Вы обнаружили %1.", getstr(object));
-				logs::next();
-			}
-			addexp(25);
-		}
-	}
-	return found;
+	//short unsigned source_data[5 * 5];
+	//auto result = select(source_data, TargetHiddenObject, 2, position);
+	//auto found = false;
+	//for(auto index : result) {
+	//	if(roll(Alertness)) {
+	//		found = true;
+	//		game::set(index, Hidden, false);
+	//		auto object = game::getobject(index);
+	//		if(isplayer()) {
+	//			act("Вы обнаружили %1.", getstr(object));
+	//			logs::next();
+	//		}
+	//		addexp(25);
+	//	}
+	//}
+	//return found;
 }
 
 static state_s get_ability_state(ability_s id) {
@@ -1795,20 +1786,6 @@ static state_s get_ability_state(ability_s id) {
 	case Charisma: return Charismatic;
 	default: return Strenghted;
 	}
-}
-
-bool creature::apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value, void(*fail_proc)(effectparam& e)) {
-	creature* source_data[256];
-	auto creatures = getcreatures(source_data, position, getlos());
-	effectparam ep(effect, *this, creatures, isplayer());
-	ep.level = level;
-	ep.skill_roll = skill_roll;
-	ep.skill_value = skill_value;
-	if(fail_proc) {
-		if(!ep.proc.fail)
-			ep.proc.fail = fail_proc;
-	}
-	return ep.apply(format, format_param);
 }
 
 void creature::apply(aref<variant> features) {
@@ -2115,4 +2092,43 @@ archive::dataset player_dataset() {
 
 void creature_serialize(archive& e) {
 	e.set(creature_data);
+}
+
+item* creature::choose(aref<item*> source, bool interactive, const char* name) const {
+	if(!source) {
+		hint("У вас нет подходящео предмета.");
+		return 0;
+	}
+	if(interactive)
+		return logs::choose(*this, source.data, source.count, name);
+	return source.data[rand() % source.count];
+}
+
+short unsigned creature::choose(aref<short unsigned> source, bool interactive) const {
+	if(!source) {
+		hint("Вокруг нет подходящей цели.");
+		return Blocked;
+	}
+	if(interactive)
+		return logs::choose(*this, source.data, source.count);
+	return source.data[rand() % source.count];
+}
+
+creature* creature::choose(aref<creature*> source, bool interactive) const {
+	if(!source) {
+		hint("Вокруг никого нет.");
+		return 0;
+	}
+	if(interactive) {
+		short unsigned index_data[256];
+		for(unsigned i = 0; i < source.count; i++)
+			index_data[i] = source.data[i]->position;
+		auto pn = logs::choose(*this, index_data, source.count);
+		for(unsigned i = 0; i < source.count; i++) {
+			if(index_data[i] == pn) {
+				return source.data[i];
+			}
+		}
+	}
+	return source.data[rand() % source.count];
 }

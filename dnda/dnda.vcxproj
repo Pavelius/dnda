@@ -176,7 +176,9 @@
     <ClCompile Include="state.cpp" />
     <ClCompile Include="stringcreator.cpp" />
     <ClCompile Include="szdup.cpp" />
-    <ClCompile Include="target.cpp" />
+    <ClCompile Include="target.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="tile.cpp" />
     <ClCompile Include="traps.cpp" />
     <ClCompile Include="variant.cpp" />

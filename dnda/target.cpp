@@ -190,47 +190,24 @@ bool targetdesc::isallow(const creature& player, aref<creature*> creatures) cons
 	return false;
 }
 
-aref<creature*> creature::select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const {
-	auto& ti = target_data[target];
-	auto pb = result.data;
-	auto pe = result.data + result.count;
-	auto x = game::getx(start);
-	auto y = game::gety(start);
-	if(ti.proc.cre) {
-		for(auto p : creatures) {
-			if(p == exclude)
-				continue;
-			if(!ti.proc.cre(*this, p))
-				continue;
-			if(range && game::distance(start, p->position) > range)
-				continue;
-			if(pb < pe)
-				*pb++ = p;
-			else
-				break;
-		}
-	}
-	return aref<creature*>(result.data, pb - result.data);
-}
-
-aref<item*> creature::select(aref<item*> result, target_s target) const {
-	auto& ti = target_data[target];
-	auto pb = result.data;
-	auto pe = result.data + result.count;
-	if(ti.proc.itm) {
-		for(auto& it : wears) {
-			if(!it)
-				continue;
-			if(!ti.proc.itm(*this, it))
-				continue;
-			if(pb < pe)
-				*pb++ = (item*)&it;
-			else
-				break;
-		}
-	}
-	return aref<item*>(result.data, pb - result.data);
-}
+//aref<item*> creature::select(aref<item*> result, target_s target) const {
+//	auto& ti = target_data[target];
+//	auto pb = result.data;
+//	auto pe = result.data + result.count;
+//	if(ti.proc.itm) {
+//		for(auto& it : wears) {
+//			if(!it)
+//				continue;
+//			if(!ti.proc.itm(*this, it))
+//				continue;
+//			if(pb < pe)
+//				*pb++ = (item*)&it;
+//			else
+//				break;
+//		}
+//	}
+//	return aref<item*>(result.data, pb - result.data);
+//}
 
 static bool linelossv(int x0, int y0, int x1, int y1) {
 	int dx = iabs(x1 - x0), sx = x0 < x1 ? 1 : -1;
@@ -283,45 +260,6 @@ aref<short unsigned> creature::select(aref<short unsigned> result, target_s targ
 		}
 	}
 	return aref<short unsigned>(result.data, pb - result.data);
-}
-
-item* creature::choose(aref<item*> source, bool interactive, const char* name) const {
-	if(!source) {
-		hint("У вас нет подходящео предмета.");
-		return 0;
-	}
-	if(interactive)
-		return logs::choose(*this, source.data, source.count, name);
-	return source.data[rand() % source.count];
-}
-
-short unsigned creature::choose(aref<short unsigned> source, bool interactive) const {
-	if(!source) {
-		hint("Вокруг нет подходящей цели.");
-		return Blocked;
-	}
-	if(interactive)
-		return logs::choose(*this, source.data, source.count);
-	return source.data[rand() % source.count];
-}
-
-creature* creature::choose(aref<creature*> source, bool interactive) const {
-	if(!source) {
-		hint("Вокруг никого нет.");
-		return 0;
-	}
-	if(interactive) {
-		short unsigned index_data[256];
-		for(unsigned i = 0; i < source.count; i++)
-			index_data[i] = source.data[i]->position;
-		auto pn = logs::choose(*this, index_data, source.count);
-		for(unsigned i = 0; i < source.count; i++) {
-			if(index_data[i] == pn) {
-				return source.data[i];
-			}
-		}
-	}
-	return source.data[rand() % source.count];
 }
 
 bool effectparam::applyfull() {

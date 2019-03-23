@@ -1,14 +1,5 @@
 #include "main.h"
 
-bool cre_damage(sceneparam& e, creature& opponent, bool run) {
-	if(run) {
-		opponent.damage(e.damage.roll(), e.damage.type, e.interactive);
-		if(e.duration)
-			opponent.set(e.state, e.duration);
-	}
-	return true;
-}
-
 template<class T>
 static unsigned exclude(aref<T> result, const T player) {
 	auto ps = result.data;
@@ -52,6 +43,8 @@ static unsigned source_select(aref<item*> result, sceneparam& sp) {
 			continue;
 		if((flags&Conceal) != 0 && e.isidentified())
 			continue;
+		if((flags&Identified) != 0 && !e.isidentified())
+			continue;
 		if((flags&Hostile) != 0 && e.getmagic() != Cursed)
 			continue;
 		if((flags&Friendly) != 0 && e.getmagic() < BlessedItem)
@@ -81,25 +74,96 @@ static unsigned source_select(aref<short unsigned> result, aref<short unsigned> 
 	return ps - result.data;
 }
 
-void creature::apply(const sceneeffect& eff, scene& sc, const targetinfo& ti) {
+static bool	cre_all(sceneparam& e, creature& subject, bool run) {
+	return true;
+}
+
+creature* creature::getnearest(aref<creature*> source, unsigned flags) const {
+	sceneeffect se = {cre_all, flags};
+	sceneparam sp(se, const_cast<creature&>(*this), true);
+	creature* creature_result[260];
+	auto ps = creature_result;
+	auto pe = creature_result + sizeof(creature_result)/sizeof(creature_result[0]);
+	for(auto p : source) {
+		if((flags&Damaged) != 0 && p->gethits() >= p->getmaxhits())
+			continue;
+		if((flags&Hostile) != 0 && !p->isenemy(this))
+			continue;
+		if((flags&Friendly) != 0 && !p->isfriend(this))
+			continue;
+		if(ps < pe)
+			*ps++ = p;
+	}
+	aref<creature*> result;
+	result.data = creature_result;
+	result.count = ps - creature_result;
+	return game::getnearest(result, position);
+}
+
+unsigned sceneparam::getduration() const {
+	return state.duration * level;
+}
+
+void creature::apply(const sceneeffect& eff, scene& sc, const targetinfo& ti, int level, const char* format, const char* format_param) {
 	sceneparam sp(eff, *this, true);
+	sp.level = level;
 	auto los = getlos(eff.flags);
+	if(format)
+		actv(format, format_param);
+	if(eff.messages.action)
+		act(eff.messages.action);
 	if(eff.proc.cre) {
 		creature* source_data[32]; aref<creature*> source(source_data);
 		source.count = source_select(source, sc.creatures, sp, sp.player.getposition(), los);
 		if((eff.flags&All) != 0) {
-			for(auto& e : source)
+			for(auto& e : source) {
+				if(eff.messages.success)
+					e->act(eff.messages.success);
 				eff.proc.cre(sp, *e, true);
+			}
 		} else {
 			eff.proc.cre(sp, *ti.cre, true);
 			if(eff.flags&Splash) {
 				source.count = source_select(source_data, sc.creatures, sp, ti.cre->getposition(), 1);
 				source.count = exclude(source, ti.cre);
-				for(auto& e : source)
+				for(auto& e : source) {
+					if(eff.messages.success)
+						e->act(eff.messages.success);
 					eff.proc.cre(sp, *e, true);
+				}
 			}
 		}
 	} else if(eff.proc.itm) {
+		item* source_data[64]; aref<item*> source(source_data);
+		source.count = source_select(source, sp);
+		if((eff.flags&All) != 0) {
+			for(auto& e : source)
+				eff.proc.itm(sp, *e, true);
+		} else {
+			eff.proc.itm(sp, *ti.itm, true);
+			if(eff.flags&Splash) {
+				source.count = exclude(source, ti.itm);
+				if(source.count > 2)
+					source.count = 2;
+				for(auto& e : source)
+					eff.proc.itm(sp, *e, true);
+			}
+		}
+	} else if(eff.proc.obj) {
+		short unsigned source_data[256]; aref<short unsigned> source(source_data);
+		source.count = source_select(source, sc.indecies, sp, 0, 0);
+		if((eff.flags&All) != 0) {
+			for(auto index : source)
+				eff.proc.obj(sp, index, true);
+		} else {
+			eff.proc.obj(sp, ti.obj, true);
+			if(eff.flags&Splash) {
+				source.count = source_select(source_data, sc.indecies, sp, ti.obj, 1);
+				source.count = exclude(source, ti.obj);
+				for(auto index : source)
+					eff.proc.obj(sp, index, true);
+			}
+		}
 	}
 }
 
@@ -115,9 +179,9 @@ bool creature::choose(const sceneeffect& eff, scene& sc, targetinfo& ti) const {
 		if((eff.flags&All) != 0) {
 			return true;
 			if(eff.flags&Nearest)
-				ti.cre = source.random();
+				ti = source.random();
 			else
-				ti.cre = choose(source, sp.interactive);
+				ti = choose(source, sp.interactive);
 			if(!ti.cre)
 				return false;
 		}
@@ -128,9 +192,9 @@ bool creature::choose(const sceneeffect& eff, scene& sc, targetinfo& ti) const {
 		if((eff.flags&All) != 0)
 			return true;
 		if(eff.flags&Nearest)
-			ti.itm = source.random();
+			ti = source.random();
 		else
-			ti.itm = choose(source, sp.interactive);
+			ti = choose(source, sp.interactive);
 		if(!ti.itm)
 			return false;
 		return true;
@@ -151,88 +215,10 @@ bool creature::choose(const sceneeffect& eff, scene& sc, targetinfo& ti) const {
 	return false;
 }
 
-bool creature::apply(const sceneeffect& eff, scene& sc, bool run) {
-	sceneparam sp(eff, *this, true);
-	auto los = getlos(eff.flags);
-	if(eff.proc.cre) {
-		creature* source_data[32]; aref<creature*> source(source_data);
-		source.count = source_select(source, sc.creatures, sp, sp.player.getposition(), los);
-		if(run) {
-			if((eff.flags&All) != 0) {
-				for(auto& e : source)
-					eff.proc.cre(sp, *e, true);
-			} else {
-				creature* opponent = 0;
-				if(eff.flags&Nearest)
-					opponent = source.random();
-				else
-					opponent = choose(source, sp.interactive);
-				if(!opponent)
-					return false;
-				eff.proc.cre(sp, *opponent, true);
-				if(eff.flags&Splash) {
-					source.count = source_select(source_data, sc.creatures, sp, opponent->getposition(), 1);
-					source.count = exclude(source, opponent);
-					for(auto& e : source)
-						eff.proc.cre(sp, *e, true);
-					return true;
-				}
-			}
-		}
-		return source.count != 0;
-	} else if(eff.proc.itm) {
-		item* source_data[64]; aref<item*> source(source_data);
-		source.count = source_select(source, sp);
-		if(run) {
-			if((eff.flags&All) != 0) {
-				for(auto& e : source)
-					eff.proc.itm(sp, *e, true);
-			} else {
-				item* value = 0;
-				if(eff.flags&Nearest)
-					value = source.random();
-				else
-					value = choose(source, sp.interactive);
-				if(!value)
-					return false;
-				eff.proc.itm(sp, *value, true);
-				if(eff.flags&Splash) {
-					source.count = exclude(source, value);
-					if(source.count > 2)
-						source.count = 2;
-					for(auto& e : source)
-						eff.proc.itm(sp, *e, true);
-					return true;
-				}
-			}
-		}
-		return source.count != 0;
-	} else if(eff.proc.obj) {
-		short unsigned source_data[256]; aref<short unsigned> source(source_data);
-		source.count = source_select(source, sc.indecies, sp, 0, 0);
-		if(run) {
-			if((eff.flags&All) != 0) {
-				for(auto index : source)
-					eff.proc.obj(sp, index, true);
-			} else {
-				short unsigned value = Blocked;
-				if(eff.flags&Nearest)
-					value = source.random();
-				else
-					value = choose(source, sp.interactive);
-				if(value == Blocked)
-					return false;
-				eff.proc.obj(sp, value, true);
-				if(eff.flags&Splash) {
-					source.count = source_select(source_data, sc.indecies, sp, value, 1);
-					source.count = exclude(source, value);
-					for(auto index : source)
-						eff.proc.obj(sp, index, true);
-					return true;
-				}
-			}
-		}
-		return source.count != 0;
+bool scene::isenemy(const creature& player) const {
+	for(auto pe : creatures) {
+		if(player.isenemy(pe))
+			return true;
 	}
 	return false;
 }

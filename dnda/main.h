@@ -160,14 +160,6 @@ enum img_s : unsigned char {
 	ResUI,
 	ResPCmar, ResPCmbd, ResPCmac
 };
-enum target_s : unsigned char {
-	NoTarget,
-	TargetSelf, TargetFriendly, TargetFriendlyWounded, TargetNeutral, TargetHostile,
-	TargetItemAny, TargetItemMundane, TargetItemUnidentified, TargetItemDamaged, TargetItemEdible, TargetItemDrinkable, TargetItemReadable, TargetItemWeapon, TargetItemChargeable, TargetInvertory,
-	TargetObject,
-	TargetDoor, TargetDoorSealed, TargetHiddenObject,
-	TargetTrap,
-};
 enum spell_s : unsigned char {
 	NoSpell,
 	Armor, Bless, BlessItem, CharmPerson, DetectEvil, DetectMagic, Fear, HealingSpell,
@@ -223,19 +215,19 @@ enum select_s : unsigned {
 	//
 	Hostile = 0x10, Friendly = 0x20,
 	All = 0x100, Splash = 0x200, Nearest = 0x400,
-	Damaged = 0x1000, Drained = 0x2000, Conceal = 0x4000,
+	Damaged = 0x1000, Drained = 0x2000, Conceal = 0x4000, Identified = 0x8000,
 };
 enum variant_ptr_s : unsigned char {
 	NoVariantPtr,
 	Creature, Object, ItemPtr,
 };
+class item;
 struct attackinfo;
 struct creature;
 struct dialog;
 struct effectparam;
 struct site;
 struct targetdesc;
-class item;
 struct skillvalue {
 	skill_s				id;
 	char				value;
@@ -244,15 +236,6 @@ struct skillroll {
 	int					result;
 	int					value;
 	int					bonus;
-};
-struct targetdesc {
-	target_s			target;
-	range_s				range;
-	unsigned char		area;
-	unsigned char		getrange() const;
-	bool				isallow(const creature& player, aref<creature*> creatures) const;
-	bool				iscreature() const;
-	bool				isposition() const;
 };
 struct damageinfo {
 	char				min;
@@ -280,51 +263,14 @@ struct targetinfo {
 	variant_ptr_s		type;
 	union {
 		creature*		cre;
-		short unsigned	obj;
 		item*			itm;
+		short unsigned	obj;
 	};
+	constexpr targetinfo() : type(NoVariantPtr), cre(0) {}
 	constexpr targetinfo(creature* v) : type(Creature), cre(v) {}
 	constexpr targetinfo(short unsigned v) : type(Object), obj(v) {}
 	constexpr targetinfo(item* v) : type(ItemPtr), itm(v) {}
 	void				clear() { type = NoVariantPtr; cre = 0; }
-};
-struct effectinfo {
-	struct callback {
-		void(*success)(effectparam& e);
-		void(*fail)(effectparam& e);
-		bool(*test)(effectparam& e);
-		bool(*validate)(const creature& e);
-	};
-	struct stateinfo {
-		state_s			type;
-		unsigned		duration;
-	};
-	targetdesc			type;
-	callback			proc;
-	stateinfo			state;
-	const char*			text;
-	damageinfo			damage;
-	unsigned			experience;
-};
-struct effectparam : effectinfo {
-	creature&			player;
-	bool				interactive;
-	creature*			cre;
-	item*				itm;
-	short unsigned		pos;
-	int					param;
-	int					level;
-	int					skill_roll;
-	int					skill_value;
-	int					skill_bonus;
-	aref<creature*>	creatures;
-	constexpr effectparam(const effectinfo& effect_param, creature& player, aref<creature*>	p_creatures, bool interactive) :
-		effectinfo(effect_param), player(player), interactive(interactive),
-		cre(0), itm(0), pos(Blocked),
-		param(0), level(1), creatures(p_creatures),
-		skill_roll(0), skill_value(0), skill_bonus(0) {}
-	int					apply(const char* format, const char* format_param);
-	bool				applyfull();
 };
 class item {
 	item_s				type;
@@ -464,6 +410,7 @@ struct sceneeffect {
 		cre_proc		cre;
 		obj_proc		obj;
 		itm_proc		itm;
+		const callback() : cre(0), obj(0), itm(0) {}
 		const callback(cre_proc p) : cre(p), obj(0), itm(0) {}
 		const callback(obj_proc p) : cre(0), obj(p), itm(0) {}
 		const callback(itm_proc p) : cre(0), obj(0), itm(p) {}
@@ -473,27 +420,33 @@ struct sceneeffect {
 		const char*		success;
 		const char*		fail;
 	};
+	struct stateinfo {
+		state_s			type;
+		unsigned		duration;
+	};
+	constexpr explicit operator bool() const { return proc.cre || proc.itm || proc.obj; }
 	callback			proc;
 	unsigned			flags;
 	damageinfo			damage;
-	state_s				state;
-	unsigned			duration;
+	stateinfo			state;
 	unsigned			experience;
 	textinfo			messages;
 };
 struct sceneparam : sceneeffect {
 	creature&			player;
 	bool				interactive;
-	int					level;
+	int					level, param;
 	skillroll			roll;
+	unsigned			getduration() const;
 	constexpr sceneparam(const sceneeffect& effect_param, creature& player, bool interactive) :
 		sceneeffect(effect_param), player(player), interactive(interactive),
-		level(1), roll() {}
+		level(1), param(0), roll() {}
 };
 struct scene {
 	adat<creature*, 64>	creatures;
 	adat<short unsigned, 124> indecies;
 	scene(int los, short unsigned position);
+	bool				isenemy(const creature& e) const;
 };
 struct creature {
 	item				wears[LastBackpack + 1];
@@ -518,14 +471,10 @@ struct creature {
 	bool				aiboost();
 	skill_s				aiskill();
 	skill_s				aiskill(aref<creature*> creatures);
-	spell_s				aispell(aref<creature*> creatures, target_s target = NoTarget);
-	bool				aiusewand(aref<creature*> creatures, target_s target = NoTarget);
 	bool				alertness();
 	void				apply(aref<variant> features);
 	void				apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
-	bool				apply(const effectinfo& effect, int level, bool interactive, const char* format, const char* format_param, int skill_roll, int skill_value, void(*fail_proc)(effectparam& e) = 0);
-	bool				apply(const sceneeffect& e, scene& sc, bool run);
-	void				apply(const sceneeffect& e, scene& sc, const targetinfo& ti);
+	void				apply(const sceneeffect& e, scene& sc, const targetinfo& ti, int level, const char* format, const char* format_param);
 	bool				askyn(creature* opponent, const char* format, ...);
 	void				athletics(bool interactive);
 	void				attack(creature* defender, slot_s slot, int bonus = 0, int multiplier = 0);
@@ -561,7 +510,7 @@ struct creature {
 	int					getcost(spell_s value) const;
 	unsigned			getcostexp() const;
 	static creature*	getcreature(short unsigned index);
-	static aref<creature*> getcreatures(aref<creature*> result, short unsigned start, int range, creature* exclude = 0);
+	static aref<creature*> getcreatures(aref<creature*> result, short unsigned start, int range);
 	int					getdefence() const;
 	int					getdiscount(creature* customer) const;
 	direction_s			getdirection() const { return direction; }
@@ -586,7 +535,7 @@ struct creature {
 	static const char*	getname(tile_s id);
 	static const char*	getname(state_s id, bool cursed);
 	static const char*	getname(skill_s id);
-	creature*			getnearest(aref<creature*> source, targetdesc ti) const;
+	creature*			getnearest(aref<creature*> source, unsigned flags) const;
 	static creature*	getplayer();
 	static creature*	getplayer(int index);
 	short unsigned		getposition() const { return position; }
@@ -604,7 +553,6 @@ struct creature {
 	bool				is(state_s value) const;
 	bool				is(encumbrance_s value) const { return encumbrance == value; }
 	bool				isagressive() const;
-	bool				isallow(spell_s id) const;
 	bool				ischaracter() const { return role == Character; }
 	bool				isenemy(const creature* target) const;
 	bool				isfriend(const creature* target) const;
@@ -634,10 +582,7 @@ struct creature {
 	void				sayvs(creature& opponent, const char* format, ...);
 	bool				saving(bool interactive, skill_s save, int bonus) const;
 	static void			select(creature** result, rect rc);
-	aref<item*>			select(aref<item*> result, target_s target) const;
-	aref<creature*>		select(aref<creature*> result, aref<creature*> creatures, target_s target, char range, short unsigned start, const creature* exclude) const;
 	static aref<role_s>	select(aref<role_s> result, int min_level, int max_level, alignment_s alignment, const race_s races[4]);
-	aref<short unsigned> select(aref<short unsigned> result, target_s target, char range, short unsigned start, bool los = true) const;
 	void				set(state_s value, unsigned segments);
 	void				set(spell_s value, int level);
 	void				setcharmer(creature* value) { charmer = value; }
@@ -684,7 +629,7 @@ private:
 	//
 	static bool			playturn();
 	void				updateweight();
-	bool				walkaround(aref<creature*> creatures);
+	bool				walkaround(scene& sc);
 };
 struct site : rect {
 	site_s				type;
@@ -864,7 +809,7 @@ int						input();
 void					minimap(short unsigned position);
 void					next();
 void					raise(creature& e, int left);
-void					turn(creature& e);
+void					turn(creature& e, scene& sc);
 void					worldedit();
 }
 extern adat<grounditem, 2048> grounditems;
