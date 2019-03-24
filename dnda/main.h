@@ -216,6 +216,7 @@ enum select_s : unsigned {
 	Hostile = 0x10, Friendly = 0x20,
 	All = 0x100, Splash = 0x200, Nearest = 0x400,
 	Damaged = 0x1000, Drained = 0x2000, Conceal = 0x4000, Identified = 0x8000,
+	Special = 0x80000000,
 };
 enum variant_ptr_s : unsigned char {
 	NoVariantPtr,
@@ -226,16 +227,11 @@ struct attackinfo;
 struct creature;
 struct dialog;
 struct effectparam;
+struct scene;
 struct site;
-struct targetdesc;
 struct skillvalue {
 	skill_s				id;
 	char				value;
-};
-struct skillroll {
-	int					result;
-	int					value;
-	int					bonus;
 };
 struct damageinfo {
 	char				min;
@@ -259,17 +255,17 @@ struct specialinfo {
 	char				bonus;
 	char				chance_side;
 };
-struct targetinfo {
+struct target_info {
 	variant_ptr_s		type;
 	union {
 		creature*		cre;
 		item*			itm;
 		short unsigned	obj;
 	};
-	constexpr targetinfo() : type(NoVariantPtr), cre(0) {}
-	constexpr targetinfo(creature* v) : type(Creature), cre(v) {}
-	constexpr targetinfo(short unsigned v) : type(Object), obj(v) {}
-	constexpr targetinfo(item* v) : type(ItemPtr), itm(v) {}
+	constexpr target_info() : type(NoVariantPtr), cre(0) {}
+	constexpr target_info(creature* v) : type(Creature), cre(v) {}
+	constexpr target_info(short unsigned v) : type(Object), obj(v) {}
+	constexpr target_info(item* v) : type(ItemPtr), itm(v) {}
 	void				clear() { type = NoVariantPtr; cre = 0; }
 };
 class item {
@@ -405,7 +401,7 @@ struct sceneparam;
 typedef bool(*cre_proc)(sceneparam& e, creature& subject, bool run);
 typedef bool(*itm_proc)(sceneparam& e, item& subject, bool run);
 typedef bool(*obj_proc)(sceneparam& e, short unsigned index, bool run);
-struct sceneeffect {
+struct effect_info {
 	struct callback {
 		cre_proc		cre;
 		obj_proc		obj;
@@ -432,15 +428,15 @@ struct sceneeffect {
 	unsigned			experience;
 	textinfo			messages;
 };
-struct sceneparam : sceneeffect {
+struct sceneparam : effect_info {
 	creature&			player;
 	bool				interactive;
 	int					level, param;
-	skillroll			roll;
 	unsigned			getduration() const;
-	constexpr sceneparam(const sceneeffect& effect_param, creature& player, bool interactive) :
-		sceneeffect(effect_param), player(player), interactive(interactive),
-		level(1), param(0), roll() {}
+	constexpr sceneparam(const effect_info& effect_param, creature& player, bool interactive) :
+		effect_info(effect_param), player(player), interactive(interactive),
+		level(1), param(0) {}
+	void				apply(scene& sc, const target_info& ti, const char* format = 0, const char* format_param = 0);
 };
 struct scene {
 	adat<creature*, 64>	creatures;
@@ -474,7 +470,6 @@ struct creature {
 	bool				alertness();
 	void				apply(aref<variant> features);
 	void				apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
-	void				apply(const sceneeffect& e, scene& sc, const targetinfo& ti, int level, const char* format, const char* format_param);
 	bool				askyn(creature* opponent, const char* format, ...);
 	void				athletics(bool interactive);
 	void				attack(creature* defender, slot_s slot, int bonus = 0, int multiplier = 0);
@@ -483,7 +478,7 @@ struct creature {
 	item*				choose(aref<item*> source, bool interactive, const char* title = "Âûבטנאיעו ןנוהלוע") const;
 	creature*			choose(aref<creature*> source, bool interactive) const;
 	short unsigned		choose(aref<short unsigned> source, bool interactive) const;
-	bool				choose(const sceneeffect& eff, scene& sc, targetinfo& ti) const;
+	bool				choose(const effect_info& eff, scene& sc, target_info& ti, bool interactive) const;
 	void				create(race_s race, gender_s gender, class_s type);
 	void				applyability();
 	void				clear();
@@ -535,7 +530,6 @@ struct creature {
 	static const char*	getname(tile_s id);
 	static const char*	getname(state_s id, bool cursed);
 	static const char*	getname(skill_s id);
-	creature*			getnearest(aref<creature*> source, unsigned flags) const;
 	static creature*	getplayer();
 	static creature*	getplayer(int index);
 	short unsigned		getposition() const { return position; }
@@ -596,7 +590,7 @@ struct creature {
 	void				trapeffect();
 	bool				unequip(item& it);
 	void				update();
-	void				use(skill_s value);
+	void				use(scene& sc, skill_s value);
 	bool				use(spell_s value);
 	bool				use(spell_s value, int level, const char* format, ...);
 	void				use(item& it);

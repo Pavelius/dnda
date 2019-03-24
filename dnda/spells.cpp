@@ -83,7 +83,7 @@ static struct spell_info {
 	const char*			name;
 	const char*			nameof;
 	short unsigned		cost;
-	sceneeffect			effect;
+	effect_info			effect;
 } spell_data[] = {{"", ""},
 {"Броня", "брони", 10, {setstate, You, {}, {Armored, 4 * Hour}, 0, {0, "%герой озарил%ась синим светом."}}},
 {"Благословение", "благословения", 8, {setstate, Close, {}, {Blessed, Turn}, 0, {0, "%герой озарил%ась желтым светом."}}},

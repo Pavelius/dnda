@@ -10,7 +10,7 @@ int		compare_skills(const void* p1, const void* p2);
 
 static bool heal(sceneparam& e, creature& v, bool run) {
 	if(run) {
-		auto damage = e.damage.max + e.roll.value / 10;
+		auto damage = e.damage.max + e.param / 10;
 		v.heal(e.damage.roll(), true);
 	}
 	return true;
@@ -73,6 +73,8 @@ static bool pickpockets(sceneparam& e, creature& v, bool run) {
 //}
 
 static bool literacy(sceneparam& e, item& v, bool run) {
+	if(!v.isreadable())
+		return false;
 	if(run)
 		e.player.use(v);
 	return true;
@@ -82,28 +84,22 @@ static bool dance(sceneparam& e, creature& v, bool run) {
 	return true;
 }
 
-//static bool test_gamble(effectparam& e) {
-//	if(!inbuilding(e))
-//		return false;
-//	e.param = 20 * (1 + e.player.get(Gambling) / 20);
-//	if(e.player.getmoney() < e.param) {
-//		e.player.hint("У тебя нет достаточного количества денег.");
-//		return false;
-//	}
-//	e.player.say("Давай сыграем в %1?", maprnd(talk_games));
-//	if(e.cre->getmoney() < e.param) {
-//		e.cre->say("Нет. Я на мели. В другой раз.");
-//		return false;
-//	}
-//	e.skill_bonus = -e.cre->get(Gambling) / 2;
-//	return true;
-//}
-
 static bool gamble(sceneparam& e, creature& v, bool run) {
+	auto stack = 20 * (1 + e.player.get(Gambling) / 20);
 	if(run) {
-		e.player.setmoney(e.player.getmoney() + e.param);
-		v.setmoney(v.getmoney() - e.param);
-		v.act("%герой проиграл%а [%1i] монет.", e.param);
+		if(e.player.getmoney() < stack) {
+			e.player.say("Дай [%2i] монет, сыграть в %1.", maprnd(talk_games));
+			return false;
+		}
+		e.player.say("Давай сыграем в %1?", maprnd(talk_games));
+		if(v.getmoney() < stack) {
+			v.say("Нет. Я на мели. В другой раз.");
+			return false;
+		}
+		v.say("Идея неплохая. Я только за.");
+		//e.player.setmoney(e.player.getmoney() + e.param);
+		//v.setmoney(v.getmoney() - e.param);
+		//v.act("%герой проиграл%а [%1i] монет.", e.param);
 	}
 	return true;
 }
@@ -122,23 +118,21 @@ static bool gamble(sceneparam& e, creature& v, bool run) {
 //	e.player.act("%герой проиграл%а [%1i] монет.", e.param);
 //}
 
-static bool killing(sceneparam& e, creature& v, bool run) {
+static bool backstabbing(sceneparam& e, creature& v, bool run) {
 	if(run) {
-		auto total = e.roll.value;
+		auto total = 0;
+		if(e.player.roll(Backstabbing))
+			total = e.player.get(Backstabbing);
 		e.player.meleeattack(&v, total / 2, total / 30);
 	}
 	return true;
 }
 
-//static void killing_fail(effectparam& e) {
-//	e.player.meleeattack(e.cre);
-//}
-
 static struct skill_info {
 	const char*		name;
 	const char*		nameof;
 	ability_s		ability[2];
-	sceneeffect		effect;
+	effect_info		effect;
 	enchantment_s	enchant;
 	bool			deny_ability;
 } skill_data[] = {{"Нет навыка"},
@@ -149,7 +143,7 @@ static struct skill_info {
 {"Акробатика", "акробатики", {Dexterity, Dexterity}},
 {"Внимательность", "внимательности", {Wisdow, Dexterity}},
 {"Атлетика", "атлетики", {Strenght, Dexterity}, {bash, Close, {}, {}, 20, {"%герой разнес%ла двери в щепки."}}},
-{"Убийство", "убийства", {Dexterity, Dexterity}, {killing, Close, {}, {}, 50, {"%герой нанес%ла подлый удар."}}},
+{"Убийство", "убийства", {Dexterity, Dexterity}, {backstabbing, Special | Close | Friendly, {}, {}, 50, {"%герой нанес%ла подлый удар."}}},
 {"Концентрация", "концетрации", {Wisdow, Wisdow}},
 {"Обезвредить ловушки", "ловушек", {Dexterity, Intellegence}, {removetrap, Close | Identified, {}, {}, 30, {"%герой обезвредил%а ловушку."}}},
 {"Слышать звуки", "слуха", {Wisdow, Intellegence}},
@@ -193,7 +187,7 @@ damageinfo creature::getraise(skill_s id) const {
 	auto value = skills[id];
 	if(value < 20)
 		return {3, 12};
-	else if(value < 40)
+	else if(value < 50)
 		return {3, 9};
 	else
 		return {2, 6};
@@ -218,7 +212,24 @@ int creature::get(skill_s value) const {
 	return result;
 }
 
-void creature::use(skill_s value) {
+static void message(creature& player, const target_info& ti, const char* format) {
+	if(!format)
+		return;
+	char temp[260];
+	switch(ti.type) {
+	case Creature:
+		ti.cre->act(format, player.getname());
+		break;
+	case ItemPtr:
+		player.act(format, ti.itm->getname(temp, zendof(temp)));
+		break;
+	default:
+		player.act(format);
+		break;
+	}
+}
+
+void creature::use(scene& sc, skill_s value) {
 	if(is(Anger)) {
 		hint("Вам надо немного прийти в себя и успокоится.");
 		return;
@@ -228,7 +239,28 @@ void creature::use(skill_s value) {
 		hint("Навык %1 не используется подобным образом", getstr(value));
 		return;
 	}
-	//apply(e.effect, 0, isplayer(), 0, 0, d100(), get(value), failskill);
+	target_info ti;
+	if(!choose(e.effect, sc, ti, true)) {
+		hint("Для навыка %1 нет подходящей цели", getstr(value));
+		return;
+	}
+	sceneparam sp(e.effect, *this, true);
+	sp.param = get(value);
+	if(sp.flags&Special)
+		sp.apply(sc, ti);
+	else {
+		auto result = d100();
+		if(result < sp.param) {
+			sp.apply(sc, ti);
+			message(*this, ti, sp.messages.success);
+			addexp(sp.experience);
+		} else {
+			if(sp.messages.action)
+				act(sp.messages.action);
+			message(*this, ti, sp.messages.fail);
+			set(Anger, Minute*xrand(2, 5));
+		}
+	}
 	// Use skill is one minute
 	wait(Minute);
 }

@@ -2027,7 +2027,7 @@ scene::scene(int los, short unsigned index) {
 		creatures.add(&e);
 	}
 	// Соберем индексы всякого интересного
-	source_select(indecies, index, los);
+	indecies.count = source_select(indecies, index, los);
 }
 
 speech thank_you[];

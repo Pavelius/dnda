@@ -1424,7 +1424,7 @@ static void character_skill(creature& e, scene& sc) {
 	skill_s result;
 	if(!logs::choose(e, result))
 		return;
-	e.use(result);
+	e.use(sc, result);
 }
 
 static void character_spell(creature& e, scene& sc) {
@@ -1641,7 +1641,7 @@ static void character_eat(creature& e, scene& sc) {
 }
 
 static void character_read(creature& e, scene& sc) {
-	e.use(Literacy);
+	e.use(sc, Literacy);
 }
 
 int compare_manual(const void* p1, const void* p2) {
