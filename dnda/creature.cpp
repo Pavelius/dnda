@@ -772,6 +772,33 @@ void creature::wait(int value) {
 	recoil += value;
 }
 
+static bool use_skills(creature& player, scene& sc) {
+	adat<skill_s, LastSkill + 1> recomended;
+	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
+		if(!player.getbasic(i))
+			continue;
+		recomended.add(i);
+	}
+	zshuffle(recomended.data, recomended.count);
+	for(auto e : recomended) {
+		if(player.use(sc, e))
+			return true;
+	}
+	return false;
+}
+
+static bool move_skills(creature& player, scene& sc) {
+	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
+		if(!player.getbasic(i))
+			continue;
+		if(!creature::geteffect(i).proc.obj)
+			continue;
+		if(player.use(sc, i))
+			return true;
+	}
+	return false;
+}
+
 void creature::walkaround(scene& sc) {
 	if(d100() < 40) {
 		// Do nothing
@@ -780,15 +807,13 @@ void creature::walkaround(scene& sc) {
 	}
 	// When we try to stand and think
 	if(d100() < 40) {
-		if(aiskills(sc))
+		if(use_skills(*this, sc))
 			return;
+		wait(Minute / 3);
 	}
-	// When we try move
-	//auto skill = aiskill();
-	//if(skill) {
-	//	use(skill);
-	//	return false;
-	//}
+	// When we move and traps or close door just before our step
+	if(move_skills(*this, sc))
+		return;
 	auto d = (direction_s)xrand(Left, RightDown);
 	move(to(position, d));
 }

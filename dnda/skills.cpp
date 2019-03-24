@@ -304,19 +304,8 @@ bool creature::use(scene& sc, skill_s value) {
 	return true;
 }
 
-bool creature::aiskills(scene& sc) {
-	adat<skill_s, LastSkill + 1> recomended;
-	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
-		if(!skills[i])
-			continue;
-		recomended.add(i);
-	}
-	zshuffle(recomended.data, recomended.count);
-	for(auto e : recomended) {
-		if(use(sc, e))
-			return true;
-	}
-	return false;
+const effect_info& creature::geteffect(skill_s v) {
+	return skill_data[v].effect;
 }
 
 void manual_ability_skills(stringbuffer& sc, manual& e) {

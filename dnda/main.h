@@ -508,6 +508,7 @@ struct creature {
 	int					getdefence() const;
 	int					getdiscount(creature* customer) const;
 	direction_s			getdirection() const { return direction; }
+	static const effect_info& geteffect(skill_s v);
 	creature*			getenemy(aref<creature*> source) const;
 	encumbrance_s		getencumbrance() const { return encumbrance; }
 	int					getexperience() const { return experience; }
