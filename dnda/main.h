@@ -431,11 +431,11 @@ struct effect_info {
 struct sceneparam : effect_info {
 	creature&			player;
 	bool				interactive;
-	int					level, param;
+	int					level, param, roll;
 	unsigned			getduration() const;
 	constexpr sceneparam(const effect_info& effect_param, creature& player, bool interactive) :
 		effect_info(effect_param), player(player), interactive(interactive),
-		level(1), param(0) {}
+		level(1), param(0), roll(0) {}
 	void				apply(scene& sc, const target_info& ti, const char* format = 0, const char* format_param = 0);
 };
 struct scene {
@@ -465,8 +465,7 @@ struct creature {
 	static void			addexp(int value, short unsigned position, int range, const creature* exclude, const creature* enemies);
 	static creature*	addplayer();
 	bool				aiboost();
-	skill_s				aiskill();
-	skill_s				aiskill(aref<creature*> creatures);
+	bool				aiskills(scene& sc);
 	bool				alertness();
 	void				apply(aref<variant> features);
 	void				apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
@@ -551,6 +550,7 @@ struct creature {
 	bool				isenemy(const creature* target) const;
 	bool				isfriend(const creature* target) const;
 	bool				isguard() const { return guard != 0xFFFF; }
+	bool				isinteractive() const;
 	bool				isparty(const creature* target) const;
 	bool				isplayer() const;
 	bool				isranged(bool interactive) const;
@@ -570,7 +570,8 @@ struct creature {
 	void				readbook(item& it);
 	void				release() const;
 	void				remove(state_s value);
-	bool				roll(skill_s skill, int bonus = 0);
+	bool				roll(skill_s skill, int bonus = 0) const;
+	int					roll(skill_s skill, int bonus, const creature& opponent, skill_s opponent_skill, int opponent_bonus) const;
 	void				say(const char* format, ...);
 	bool				sayv(const char* format, const char* param, creature* opponent);
 	void				sayvs(creature& opponent, const char* format, ...);
@@ -590,7 +591,7 @@ struct creature {
 	void				trapeffect();
 	bool				unequip(item& it);
 	void				update();
-	void				use(scene& sc, skill_s value);
+	bool				use(scene& sc, skill_s value);
 	bool				use(spell_s value);
 	bool				use(spell_s value, int level, const char* format, ...);
 	void				use(item& it);
@@ -623,7 +624,7 @@ private:
 	//
 	static bool			playturn();
 	void				updateweight();
-	bool				walkaround(scene& sc);
+	void				walkaround(scene& sc);
 };
 struct site : rect {
 	site_s				type;

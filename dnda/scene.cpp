@@ -27,7 +27,7 @@ static unsigned exclude(aref<T> result, const T player) {
 	return ps - result.data;
 }
 
-static unsigned source_select(aref<creature*> result, aref<creature*> source, sceneparam& sp, short unsigned index, int range) {
+static unsigned source_select(aref<creature*> result, aref<creature*> source, sceneparam& sp, short unsigned index, int range, creature* player) {
 	auto ps = result.data;
 	auto pe = result.data + result.count;
 	auto flags = sp.flags;
@@ -39,6 +39,8 @@ static unsigned source_select(aref<creature*> result, aref<creature*> source, sc
 		if((flags&Friendly) != 0 && !p->isfriend(&sp.player))
 			continue;
 		if(range != -1 && game::distance(index, p->getposition()) > range)
+			continue;
+		if(range > 0 && p==player)
 			continue;
 		if(!sp.proc.cre(sp, *p, false))
 			continue;
@@ -128,7 +130,7 @@ bool creature::choose(const effect_info& eff, scene& sc, target_info& ti, bool i
 	ti.clear();
 	if(eff.proc.cre) {
 		creature* source_data[32]; aref<creature*> source(source_data);
-		source.count = source_select(source, sc.creatures, sp, sp.player.getposition(), los);
+		source.count = source_select(source, sc.creatures, sp, sp.player.getposition(), los, &sp.player);
 		if(source.count <= 0)
 			return false;
 		if((eff.flags&All) != 0)
@@ -157,7 +159,7 @@ bool creature::choose(const effect_info& eff, scene& sc, target_info& ti, bool i
 		return true;
 	} else if(eff.proc.obj) {
 		short unsigned source_data[256]; aref<short unsigned> source(source_data);
-		source.count = source_select(source, sc.indecies, sp, 0, 0);
+		source.count = source_select(source, sc.indecies, sp, getposition(), los);
 		if(source.count <= 0)
 			return false;
 		if((eff.flags&All) != 0)
@@ -182,9 +184,10 @@ void sceneparam::apply(scene& sc, const target_info& ti, const char* format, con
 	if(messages.action)
 		player.act(messages.action);
 	if(proc.cre) {
-		creature* source_data[32]; aref<creature*> source(source_data);
-		source.count = source_select(source, sc.creatures, *this, player.getposition(), los);
+		creature* source_data[32];
 		if((flags&All) != 0) {
+			aref<creature*> source(source_data);
+			source.count = source_select(source_data, sc.creatures, *this, player.getposition(), los, &player);
 			for(auto& e : source) {
 				if(messages.success)
 					e->act(messages.success);
@@ -193,8 +196,8 @@ void sceneparam::apply(scene& sc, const target_info& ti, const char* format, con
 		} else {
 			proc.cre(*this, *ti.cre, true);
 			if(flags&Splash) {
-				source.count = source_select(source_data, sc.creatures, *this, ti.cre->getposition(), 1);
-				source.count = exclude(source, ti.cre);
+				aref<creature*> source(source_data);
+				source.count = source_select(source_data, sc.creatures, *this, ti.cre->getposition(), 1, ti.cre);
 				for(auto& e : source) {
 					if(messages.success)
 						e->act(messages.success);

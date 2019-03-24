@@ -398,7 +398,7 @@ creature* creature::add(short unsigned index, race_s race, gender_s gender, clas
 }
 
 void creature::hint(const char* format, ...) const {
-	if(!isplayer())
+	if(!isinteractive())
 		return;
 	logs::driver driver;
 	driver.name = getname();
@@ -772,24 +772,16 @@ void creature::wait(int value) {
 	recoil += value;
 }
 
-bool creature::walkaround(scene& sc) {
+void creature::walkaround(scene& sc) {
 	if(d100() < 40) {
 		// Do nothing
 		wait(xrand(Minute/2, Minute));
-		return false;
+		return;
 	}
 	// When we try to stand and think
 	if(d100() < 40) {
-		//auto skill = aiskill(sc.creatures);
-		//if(skill && d100() < 60) {
-		//	use(skill);
-		//	return false;
-		//}
-		//auto spell = aispell(sc.creatures);
-		//if(spell && d100() < 60) {
-		//	use(spell);
-		//	return false;
-		//}
+		if(aiskills(sc))
+			return;
 	}
 	// When we try move
 	//auto skill = aiskill();
@@ -798,7 +790,7 @@ bool creature::walkaround(scene& sc) {
 	//	return false;
 	//}
 	auto d = (direction_s)xrand(Left, RightDown);
-	return move(to(position, d));
+	move(to(position, d));
 }
 
 void creature::trapeffect() {
@@ -944,11 +936,11 @@ void creature::makemove() {
 	} else if(guard != Blocked)
 		moveto(guard);
 	else if(getleader()) {
-	//	auto target = getleader();
-	//	if(distance(target->position, position) <= 2)
-	//		walkaround(creatures);
-	//	else
-	//		moveto(target->position);
+		auto target = getleader();
+		if(distance(target->position, position) <= 2)
+			walkaround(sc);
+		else
+			moveto(target->position);
 	} else
 		walkaround(sc);
 }
@@ -968,7 +960,11 @@ void creature::setplayer() {
 }
 
 bool creature::isplayer() const {
-	return player_data.indexof(this)<=4;
+	return player_data.indexof(this)!=-1;
+}
+
+bool creature::isinteractive() const {
+	return current_player == this;
 }
 
 bool creature::isparty(const creature* value) const {
@@ -1707,11 +1703,27 @@ void creature::lookfloor() {
 	logs::add(".");
 }
 
-bool creature::roll(skill_s skill, int bonus) {
+bool creature::roll(skill_s skill, int bonus) const {
 	auto result = get(skill) + bonus;
 	if(result <= 0)
 		return false;
 	return d100() < result;
+}
+
+int creature::roll(skill_s skill, int bonus, const creature& opponent, skill_s opponent_skill, int opponent_bonus) const {
+	auto s1 = get(skill) + bonus;
+	auto s2 = opponent.get(opponent_skill) + opponent_bonus;
+	auto d1 = d100();
+	auto d2 = d100();
+	if(d1 > s1 && d2 > s2)
+		return 0;
+	else if(d1 < s1 && d2 < s2) {
+		if(d1 > d2)
+			return 1;
+		return -1;
+	} else if(d1 < s1)
+		return 1;
+	return -1;
 }
 
 void creature::actv(creature& opponent, const char* format, const char* param) const {
@@ -1985,9 +1997,8 @@ void creature::play() {
 	}
 }
 
-static unsigned source_select(aref<short unsigned> result, short unsigned index, int los) {
-	auto ps = result.data;
-	auto pe = result.data + result.count;
+static unsigned source_select(short unsigned* ps, short unsigned* pe, short unsigned index, int los) {
+	auto pb = ps;
 	auto x0 = game::getx(index);
 	auto x2 = x0 + los;
 	auto y0 = game::gety(index);
@@ -2006,7 +2017,7 @@ static unsigned source_select(aref<short unsigned> result, short unsigned index,
 				*ps++ = index;
 		}
 	}
-	return ps - result.data;
+	return ps - pb;
 }
 
 scene::scene(int los, short unsigned index) {
@@ -2027,7 +2038,7 @@ scene::scene(int los, short unsigned index) {
 		creatures.add(&e);
 	}
 	// Соберем индексы всякого интересного
-	indecies.count = source_select(indecies, index, los);
+	indecies.count = source_select(indecies.data, indecies.endof(), index, los);
 }
 
 speech thank_you[];
@@ -2095,30 +2106,22 @@ void creature_serialize(archive& e) {
 }
 
 item* creature::choose(aref<item*> source, bool interactive, const char* name) const {
-	if(!source) {
-		hint("У вас нет подходящео предмета.");
-		return 0;
-	}
 	if(interactive)
 		return logs::choose(*this, source.data, source.count, name);
 	return source.data[rand() % source.count];
 }
 
 short unsigned creature::choose(aref<short unsigned> source, bool interactive) const {
-	if(!source) {
-		hint("Вокруг нет подходящей цели.");
-		return Blocked;
-	}
+	if(source.count == 1)
+		return source.data[0];
 	if(interactive)
 		return logs::choose(*this, source.data, source.count);
 	return source.data[rand() % source.count];
 }
 
 creature* creature::choose(aref<creature*> source, bool interactive) const {
-	if(!source) {
-		hint("Вокруг никого нет.");
-		return 0;
-	}
+	if(source.count == 1)
+		return source.data[0];
 	if(interactive) {
 		short unsigned index_data[256];
 		for(unsigned i = 0; i < source.count; i++)
