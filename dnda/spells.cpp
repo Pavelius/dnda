@@ -1,6 +1,10 @@
 #include "main.h"
 
+void message(creature& player, const target_info& ti, const char* format);
+
 bool setstate(sceneparam& e, creature& opponent, bool run) {
+	if(opponent.is(e.state.type))
+		return false;
 	if(run) {
 		auto duration = e.state.duration * e.level;
 		opponent.set(e.state.type, duration);
@@ -116,22 +120,35 @@ int creature::getcost(spell_s value) const {
 	return spell_data[value].cost;
 }
 
-bool creature::use(spell_s value) {
+bool creature::use(scene& sc, spell_s value) {
 	auto cost = getcost(value);
 	if(getmana() < cost) {
 		hint("Ќе хватает маны.");
 		return false;
 	}
-	auto result = use(value, 1, "%герой прокричал%а мистическую формулу.");
-	if(result)
-		mp -= cost;
+	if(!use(sc, value, 1, "%герой прокричал%а мистическую формулу."))
+		return false;
+	mp -= cost;
 	wait(Minute);
-	return result;
+	return true;
 }
 
-bool creature::use(spell_s value, int level, const char* format, ...) {
+bool creature::use(scene& sc, spell_s value, int level, const char* format, ...) {
 	if(level < 1)
 		level = 1;
+	auto& e = spell_data[value];
+	target_info ti;
+	if(!choose(e.effect, sc, ti, isinteractive())) {
+		hint("Ќет подход€щей цели");
+		return false;
+	}
+	sceneparam sp(e.effect, *this, true);
+	sp.apply(sc, ti, format, xva_start(format));
+	if(ti && e.effect.messages.success) {
+		switch(ti.type) {
+		case Creature: ti.cre->act(e.effect.messages.success); break;
+		}
+	}
 	return true;
 }
 
@@ -152,11 +169,3 @@ bool logs::choose(creature& e, spell_s& result) {
 	qsort(source, count, sizeof(source[0]), compare);
 	return logs::choose(e, result, {source, count});
 }
-
-//spell_s creature::aispell(aref<creature*> creatures, target_s target) {
-//	return NoSpell;
-//}
-//
-//bool creature::aiusewand(aref<creature*> creatures, target_s target) {
-//	return false;
-//}

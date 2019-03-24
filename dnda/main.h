@@ -266,6 +266,7 @@ struct target_info {
 	constexpr target_info(creature* v) : type(Creature), cre(v) {}
 	constexpr target_info(short unsigned v) : type(Object), obj(v) {}
 	constexpr target_info(item* v) : type(ItemPtr), itm(v) {}
+	explicit constexpr operator bool() const { return cre != 0; }
 	void				clear() { type = NoVariantPtr; cre = 0; }
 };
 class item {
@@ -593,9 +594,9 @@ struct creature {
 	bool				unequip(item& it);
 	void				update();
 	bool				use(scene& sc, skill_s value);
-	bool				use(spell_s value);
-	bool				use(spell_s value, int level, const char* format, ...);
-	void				use(item& it);
+	bool				use(scene& sc, spell_s value);
+	bool				use(scene& sc, spell_s value, int level, const char* format, ...);
+	void				use(scene& sc, item& it);
 	bool				use(short unsigned index);
 	void				wait(int segments = 0);
 private:

@@ -1,14 +1,14 @@
 #include "main.h"
 
-static const char* talk_subjects[] = {"гномов", "хоббитов", "эльфов", "рыцарей", "троллей", "дракона", "колдуна"};
-static const char* talk_object[] = {"сокровище", "волшебное кольцо", "проклятый артефакт", "гору", "истинную любовь"};
+static const char* talk_subjects[] = {"гномов", "хоббитов", "эльфов", "рыцарей", "троллей", "дракона", "колдуна", "трех друзей"};
+static const char* talk_object[] = {"сокровище", "волшебное кольцо", "проклятый артефакт", "гору", "истинную любовь", "прекрасную куртизанку"};
 static const char* talk_location[] = {"библиотеку", "ратушу", "магазин", "таверну", "храм"};
-static const char* talk_games[] = {"кубики", "карты", "наперстки"};
+static const char* talk_games[] = {"кубики", "карты", "наперстки", "шарады"};
 
 bool	setstate(sceneparam& e, creature& v, bool run);
 int		compare_skills(const void* p1, const void* p2);
 
-static void message(creature& player, const target_info& ti, const char* format) {
+void message(creature& player, const target_info& ti, const char* format) {
 	if(!format)
 		return;
 	char temp[260];
@@ -65,6 +65,8 @@ static bool bash(sceneparam& e, short unsigned index, bool run) {
 	auto t = game::getobject(index);
 	if(t != Door)
 		return false;
+	if(!game::is(index, Sealed))
+		return false;
 	if(run) {
 		if(e.player.roll(Athletics, -20)) {
 			game::set(index, NoTileObject);
@@ -86,26 +88,29 @@ static bool openlock(sceneparam& e, short unsigned index, bool run) {
 	return true;
 }
 
-//static bool test_pickpockets(effectparam& e) {
-//	static const char* talk[] = {
-//		"Слушай смешной анекдот. Так ... как же он начинается? ... Забыл. Ладно, давай в другой раз расскажу.",
-//		"О - смотри кто это?",
-//		"Вы не знаете как пройти в %3? О, спасибо, я сам вспомнил дорогу.",
-//		"Слышал эту историю про %1 и %2? Нет? Я тоже..."
-//	};
-//	e.player.say(maprnd(talk), maprnd(talk_subjects), maprnd(talk_object), maprnd(talk_location));
-//	return true;
-//}
-
 static bool pickpockets(sceneparam& e, creature& v, bool run) {
+	if(v.isfriend(&e.player))
+		return false;
+	if(!v.getmoney())
+		return false;
 	if(run) {
-		auto count = xrand(3, 18);
-		if(count > v.getmoney())
-			count = v.getmoney();
-		v.setmoney(v.getmoney() - count);
-		e.player.setmoney(e.player.getmoney() + count);
-		if(e.player.isplayer())
-			e.player.act("%герой украл%а [%1i] монет.", count);
+		static const char* talk[] = {
+			"Слушай смешной анекдот. Так ... как же он начинается? ... Забыл. Ладно, давай в другой раз расскажу.",
+			"О - смотри кто это?",
+			"Вы не знаете как пройти в %3? О, спасибо, я сам вспомнил дорогу.",
+			"Слышал эту историю про %1 и %2? Нет? Я тоже..."
+		};
+		e.player.say(maprnd(talk), maprnd(talk_subjects), maprnd(talk_object), maprnd(talk_location));
+		if(e.player.roll(PickPockets)) {
+			auto count = xrand(3, 18);
+			if(count > v.getmoney())
+				count = v.getmoney();
+			v.setmoney(v.getmoney() - count);
+			e.player.setmoney(e.player.getmoney() + count);
+			e.player.hint("%герой украл%а [%1i] монет.", count);
+			e.player.addexp(e.experience);
+		} else
+			skill_fail(e, &v);
 	}
 	return true;
 }
@@ -161,20 +166,6 @@ static bool gamble(sceneparam& e, creature& v, bool run) {
 	return true;
 }
 
-//static void failskill(effectparam& e) {
-//	if(d100() < 40) {
-//		e.player.hint("Вы очень долго пытались выполнить все как надо, но в итоге попытка не удалась.");
-//		e.player.wait(Minute * xrand(2, 5));
-//	} else
-//		e.player.hint("Попытка не удалась.");
-//}
-//
-//static void failgamble(effectparam& e) {
-//	e.player.setmoney(e.player.getmoney() - e.param);
-//	e.cre->setmoney(e.cre->getmoney() + e.param);
-//	e.player.act("%герой проиграл%а [%1i] монет.", e.param);
-//}
-
 static bool backstabbing(sceneparam& e, creature& v, bool run) {
 	if(run) {
 		auto total = 0;
@@ -206,7 +197,7 @@ static struct skill_info {
 {"Слышать звуки", "слуха", {Wisdow, Intellegence}},
 {"Прятаться в тени", "скрытности", {Dexterity, Dexterity}, {setstate, You, {}, {Hiding, Turn / 2}, 0, {0, "%герой внезапно изчез%ла из поля зрения."}}},
 {"Открыть замок", "взлома", {Dexterity, Intellegence}, {openlock, Close, {}, {}, 50, {0, "%герой вскрыл%а замок."}}},
-{"Очистить карманы", "воровства", {Dexterity, Charisma}, {pickpockets, Close, {}, {}, 25}},
+{"Очистить карманы", "воровства", {Dexterity, Charisma}, {pickpockets, Special | Close, {}, {}, 25}},
 {"Алхимия", "алхимии", {Intellegence, Intellegence}},
 {"Танцы", "танцев", {Dexterity, Charisma}, {dance, All | Near, {}, {}, 10, {0, "%герой станевал%а отличный танец."}}},
 {"Инженерное дело", "инженерии", {Intellegence, Intellegence}},

@@ -1431,7 +1431,7 @@ static void character_spell(creature& e, scene& sc) {
 	spell_s result;
 	if(!logs::choose(e, result))
 		return;
-	e.use(result);
+	e.use(sc, result);
 }
 
 static void character_time(creature& e, scene& sc) {

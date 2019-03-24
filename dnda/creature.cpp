@@ -934,7 +934,7 @@ void creature::makemove() {
 	// RULE: sleeped or paralized creature don't move
 	if(is(Sleeped) || is(Paralized))
 		return;
-	// Test any enemy
+	// Make scene
 	scene sc(getlos(), getposition());
 	// Player turn
 	if(getplayer() == this) {
@@ -942,7 +942,7 @@ void creature::makemove() {
 		return;
 	}
 	// Make move depends on conditions
-	if(horror && distance(horror->position, position) <= (getlos() + 1)) {
+	if(horror && distance(horror->position, position) <= getlos() + 1) {
 		moveaway(horror->position);
 		return;
 	}
@@ -957,17 +957,22 @@ void creature::makemove() {
 	//	else if(isranged(false))
 	//		rangeattack(enemy);
 	//	else
-	//		moveto(enemy->position);
-	} else if(guard != Blocked)
+	//	moveto(enemy->position);
+		return;
+	}
+	if(guard != Blocked) {
 		moveto(guard);
-	else if(getleader()) {
+		return;
+	}
+	if(getleader()) {
 		auto target = getleader();
 		if(distance(target->position, position) <= 2)
 			walkaround(sc);
 		else
 			moveto(target->position);
-	} else
-		walkaround(sc);
+		return;
+	}
+	walkaround(sc);
 }
 
 creature* creature::getplayer() {
@@ -1850,7 +1855,7 @@ void creature::apply(aref<variant> features) {
 	}
 }
 
-void creature::use(item& it) {
+void creature::use(scene& sc, item& it) {
 	if(it.isedible()) {
 		char temp[260]; grammar::what(temp, getstr(it.gettype()));
 		act("%герой съел%а %L1.", temp);
@@ -1890,13 +1895,14 @@ void creature::use(item& it) {
 			hint("%1 раряжена, ее нужно зарядить.", temp);
 		else {
 			grammar::what(temp, getstr(it.gettype()));
-			use(spell, 1 + it.getquality(), "%герой выставил%а вперед %L1.", temp);
-			it.setcharges(it.getcharges() - 1);
-			if(it && it.getcharges() == 0) {
-				hint("%1 рассыпалась в прах.", it.getname(temp, zendof(temp), false));
-				it.clear();
+			if(use(sc, spell, 1 + it.getquality(), "%герой выставил%а вперед %L1.", temp)) {
+				it.setcharges(it.getcharges() - 1);
+				if(it && it.getcharges() == 0) {
+					hint("%1 рассыпалась в прах.", it.getname(temp, zendof(temp), false));
+					it.clear();
+				}
+				wait(Minute / 4);
 			}
-			wait(Minute / 4);
 		}
 	} else if(it.isreadable()) {
 		if(it.istome())
@@ -1905,7 +1911,7 @@ void creature::use(item& it) {
 			it.setidentify(true);
 			auto spell = it.getspell();
 			if(spell) {
-				use(spell, 1 + it.getquality(), "%герой прочитал%а свиток.");
+				use(sc, spell, 1 + it.getquality(), "%герой прочитал%а свиток.");
 				it.clear();
 				wait(Minute / 2);
 			}
