@@ -791,7 +791,8 @@ static bool move_skills(creature& player, scene& sc) {
 	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
 		if(!player.getbasic(i))
 			continue;
-		if(!creature::geteffect(i).proc.obj)
+		obj_proc pr = creature::geteffect(i).proc;
+		if(!pr)
 			continue;
 		if(player.use(sc, i))
 			return true;
@@ -802,7 +803,7 @@ static bool move_skills(creature& player, scene& sc) {
 void creature::walkaround(scene& sc) {
 	if(d100() < 40) {
 		// Do nothing
-		wait(xrand(Minute/2, Minute));
+		wait(xrand(Minute / 2, Minute));
 		return;
 	}
 	// When we try to stand and think
@@ -947,17 +948,17 @@ void creature::makemove() {
 		return;
 	}
 	if(sc.isenemy(*this)) {
-	//	if(aiboost())
-	//		return;
-	//	if(aiusewand(creatures, TargetHostile))
-	//		return;
-	//	auto spell = aispell({&enemy, 1}, TargetHostile);
-	//	if(spell)
-	//		use(spell);
-	//	else if(isranged(false))
-	//		rangeattack(enemy);
-	//	else
-	//	moveto(enemy->position);
+		//	if(aiboost())
+		//		return;
+		//	if(aiusewand(creatures, TargetHostile))
+		//		return;
+		//	auto spell = aispell({&enemy, 1}, TargetHostile);
+		//	if(spell)
+		//		use(spell);
+		//	else if(isranged(false))
+		//		rangeattack(enemy);
+		//	else
+		//	moveto(enemy->position);
 		return;
 	}
 	if(guard != Blocked) {
@@ -990,7 +991,7 @@ void creature::setplayer() {
 }
 
 bool creature::isplayer() const {
-	return player_data.indexof(this)!=-1;
+	return player_data.indexof(this) != -1;
 }
 
 bool creature::isinteractive() const {
@@ -1207,7 +1208,7 @@ void creature::attack(creature* defender, slot_s slot, int bonus, int multiplier
 		break;
 	case OfSlowing:
 		// RULE: chance be paralized depends on quality
-		if(!defender->roll(ResistParalize, - ai.quality * 5))
+		if(!defender->roll(ResistParalize, -ai.quality * 5))
 			defender->set(Slowed, Minute);
 		break;
 	case OfWeakness:
@@ -1799,7 +1800,7 @@ void creature::consume(int value, bool interactive) {
 
 bool creature::alertness() {
 	//if(getplayer() != getleader())
-		return false;
+	return false;
 	// RULE: for party only alertness check secrect doors and traps
 	//short unsigned source_data[5 * 5];
 	//auto result = select(source_data, TargetHiddenObject, 2, position);
@@ -1902,18 +1903,6 @@ void creature::use(scene& sc, item& it) {
 					it.clear();
 				}
 				wait(Minute / 4);
-			}
-		}
-	} else if(it.isreadable()) {
-		if(it.istome())
-			readbook(it);
-		else {
-			it.setidentify(true);
-			auto spell = it.getspell();
-			if(spell) {
-				use(sc, spell, 1 + it.getquality(), "%герой прочитал%а свиток.");
-				it.clear();
-				wait(Minute / 2);
 			}
 		}
 	}
@@ -2136,6 +2125,12 @@ void creature_serialize(archive& e) {
 	e.set(creature_data);
 }
 
+static int compare_spells(const void* p1, const void* p2) {
+	auto e1 = *((spell_s*)p1);
+	auto e2 = *((spell_s*)p2);
+	return strcmp(getstr(e1), getstr(e2));
+}
+
 item* creature::choose(aref<item*> source, bool interactive, const char* name) const {
 	if(interactive)
 		return logs::choose(*this, source.data, source.count, name);
@@ -2165,4 +2160,16 @@ creature* creature::choose(aref<creature*> source, bool interactive) const {
 		}
 	}
 	return source.data[rand() % source.count];
+}
+
+bool logs::choose(creature& e, spell_s& result) {
+	unsigned count = 0;
+	spell_s source[LastSpell + 1];
+	for(auto i = FirstSpell; i <= LastSpell; i = (spell_s)(i + 1)) {
+		if(e.get(i) <= 0)
+			continue;
+		source[count++] = i;
+	}
+	qsort(source, count, sizeof(source[0]), compare_spells);
+	return logs::choose(e, result, {source, count});
 }

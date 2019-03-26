@@ -119,6 +119,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="archive.h" />
+    <ClInclude Include="autoptr.h" />
     <ClInclude Include="collection.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="crt.h" />
@@ -140,7 +141,7 @@
     <ClCompile Include="archive.cpp" />
     <ClCompile Include="books.cpp" />
     <ClCompile Include="chating.cpp" />
-    <ClCompile Include="damageinfo.cpp" />
+    <ClCompile Include="damage.cpp" />
     <ClCompile Include="collection.cpp" />
     <ClCompile Include="color.cpp" />
     <ClCompile Include="creature.cpp" />

@@ -126,8 +126,19 @@ static bool pickpockets(sceneparam& e, creature& v, bool run) {
 static bool literacy(sceneparam& e, item& v, bool run) {
 	if(!v.isreadable())
 		return false;
-	if(run)
-		e.player.use(v);
+	if(run) {
+		if(v.istome())
+			e.player.readbook(v);
+		else {
+			v.setidentify(true);
+			auto spell = v.getspell();
+			if(spell) {
+				//e.player.use(sc, spell, 1 + v.getquality(), "%герой прочитал%а свиток.");
+				v.clear();
+				e.player.wait(Minute / 2);
+			}
+		}
+	}
 	return true;
 }
 

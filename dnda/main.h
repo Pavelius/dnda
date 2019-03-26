@@ -1,3 +1,4 @@
+#include "autoptr.h"
 #include "collection.h"
 #include "crt.h"
 #include "grammar.h"
@@ -380,7 +381,7 @@ struct variant {
 struct action {
 	char				chance; // Usually from 1 to 10
 	const char*			text;
-	void(*proc)(creature& player, item& it, const action& e);
+	void				(*proc)(creature& player, item& it, const action& e);
 	damageinfo			damage;
 	variant				value;
 	unsigned			duration;
@@ -403,15 +404,6 @@ typedef bool(*cre_proc)(sceneparam& e, creature& subject, bool run);
 typedef bool(*itm_proc)(sceneparam& e, item& subject, bool run);
 typedef bool(*obj_proc)(sceneparam& e, short unsigned index, bool run);
 struct effect_info {
-	struct callback {
-		cre_proc		cre;
-		obj_proc		obj;
-		itm_proc		itm;
-		const callback() : cre(0), obj(0), itm(0) {}
-		const callback(cre_proc p) : cre(p), obj(0), itm(0) {}
-		const callback(obj_proc p) : cre(0), obj(p), itm(0) {}
-		const callback(itm_proc p) : cre(0), obj(0), itm(p) {}
-	};
 	struct textinfo {
 		const char*		action;
 		const char*		success;
@@ -421,8 +413,8 @@ struct effect_info {
 		state_s			type;
 		unsigned		duration;
 	};
-	constexpr explicit operator bool() const { return proc.cre || proc.itm || proc.obj; }
-	callback			proc;
+	constexpr explicit operator bool() const { return proc; }
+	autoptr				proc;
 	unsigned			flags;
 	damageinfo			damage;
 	stateinfo			state;

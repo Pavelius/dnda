@@ -151,21 +151,3 @@ bool creature::use(scene& sc, spell_s value, int level, const char* format, ...)
 	}
 	return true;
 }
-
-static int compare(const void* p1, const void* p2) {
-	auto e1 = *((spell_s*)p1);
-	auto e2 = *((spell_s*)p2);
-	return strcmp(getstr(e1), getstr(e2));
-}
-
-bool logs::choose(creature& e, spell_s& result) {
-	unsigned count = 0;
-	spell_s source[sizeof(spell_data) / sizeof(spell_data[0])];
-	for(auto i = FirstSpell; i <= LastSpell; i = (spell_s)(i + 1)) {
-		if(e.get(i) <= 0)
-			continue;
-		source[count++] = i;
-	}
-	qsort(source, count, sizeof(source[0]), compare);
-	return logs::choose(e, result, {source, count});
-}

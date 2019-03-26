@@ -31,6 +31,9 @@ static unsigned source_select(aref<creature*> result, aref<creature*> source, sc
 	auto ps = result.data;
 	auto pe = result.data + result.count;
 	auto flags = sp.flags;
+	cre_proc pr = sp.proc;
+	if(!pr)
+		return 0;
 	for(auto p : source) {
 		if((flags&Damaged) != 0 && p->gethits() >= p->getmaxhits())
 			continue;
@@ -42,7 +45,7 @@ static unsigned source_select(aref<creature*> result, aref<creature*> source, sc
 			continue;
 		if(range > 0 && p==player)
 			continue;
-		if(!sp.proc.cre(sp, *p, false))
+		if(!pr(sp, *p, false))
 			continue;
 		if(ps < pe)
 			*ps++ = p;
@@ -54,6 +57,9 @@ static unsigned source_select(aref<item*> result, sceneparam& sp) {
 	auto ps = result.data;
 	auto pe = result.data + result.count;
 	auto flags = sp.flags;
+	itm_proc pr = sp.proc;
+	if(!pr)
+		return 0;
 	for(auto& e : sp.player.wears) {
 		if(!e)
 			continue;
@@ -67,7 +73,7 @@ static unsigned source_select(aref<item*> result, sceneparam& sp) {
 			continue;
 		if((flags&Friendly) != 0 && e.getmagic() < BlessedItem)
 			continue;
-		if(!sp.proc.itm(sp, e, false))
+		if(!pr(sp, e, false))
 			continue;
 		if(ps < pe)
 			*ps++ = &e;
@@ -79,12 +85,15 @@ static unsigned source_select(aref<short unsigned> result, aref<short unsigned> 
 	auto ps = result.data;
 	auto pe = result.data + result.count;
 	auto flags = sp.flags;
+	obj_proc pr = sp.proc;
+	if(!pr)
+		return 0;
 	for(auto index : source) {
 		if((flags&Conceal) != 0 && !game::is(index, Hidden))
 			continue;
 		if(range > 0 && game::distance(start_index, index) > range)
 			continue;
-		if(!sp.proc.obj(sp, index, false))
+		if(!pr(sp, index, false))
 			continue;
 		if(ps < pe)
 			*ps++ = index;
@@ -128,7 +137,9 @@ bool creature::choose(const effect_info& eff, scene& sc, target_info& ti, bool i
 	sceneparam sp(eff, const_cast<creature&>(*this), interactive);
 	auto los = getlos(eff.flags);
 	ti.clear();
-	if(eff.proc.cre) {
+	cre_proc cre_pr = sp.proc;
+	cre_proc itm_pr = sp.proc;
+	if((cre_proc)sp.proc) {
 		creature* source_data[32]; aref<creature*> source(source_data);
 		source.count = source_select(source, sc.creatures, sp, sp.player.getposition(), los, &sp.player);
 		if(source.count <= 0)
@@ -143,7 +154,7 @@ bool creature::choose(const effect_info& eff, scene& sc, target_info& ti, bool i
 		if(!ti.cre)
 			return false;
 		return true;
-	} else if(eff.proc.itm) {
+	} else if((itm_proc)sp.proc) {
 		item* source_data[64]; aref<item*> source(source_data);
 		source.count = source_select(source, sp);
 		if(source.count <= 0)
@@ -157,7 +168,7 @@ bool creature::choose(const effect_info& eff, scene& sc, target_info& ti, bool i
 		if(!ti.itm)
 			return false;
 		return true;
-	} else if(eff.proc.obj) {
+	} else if((obj_proc)sp.proc) {
 		short unsigned source_data[256]; aref<short unsigned> source(source_data);
 		source.count = source_select(source, sc.indecies, sp, getposition(), los);
 		if(source.count <= 0)
@@ -183,7 +194,10 @@ void sceneparam::apply(scene& sc, const target_info& ti, const char* format, con
 		player.actv(format, format_param);
 	if(messages.action)
 		player.act(messages.action);
-	if(proc.cre) {
+	cre_proc crep = proc;
+	itm_proc itmp = proc;
+	obj_proc objp = proc;
+	if(crep) {
 		creature* source_data[32];
 		if((flags&All) != 0) {
 			aref<creature*> source(source_data);
@@ -191,49 +205,49 @@ void sceneparam::apply(scene& sc, const target_info& ti, const char* format, con
 			for(auto& e : source) {
 				if(messages.success)
 					e->act(messages.success);
-				proc.cre(*this, *e, true);
+				crep(*this, *e, true);
 			}
 		} else {
-			proc.cre(*this, *ti.cre, true);
+			crep(*this, *ti.cre, true);
 			if(flags&Splash) {
 				aref<creature*> source(source_data);
 				source.count = source_select(source_data, sc.creatures, *this, ti.cre->getposition(), 1, ti.cre);
 				for(auto& e : source) {
 					if(messages.success)
 						e->act(messages.success);
-					proc.cre(*this, *e, true);
+					crep(*this, *e, true);
 				}
 			}
 		}
-	} else if(proc.itm) {
+	} else if(itmp) {
 		item* source_data[64]; aref<item*> source(source_data);
 		source.count = source_select(source, *this);
 		if((flags&All) != 0) {
 			for(auto& e : source)
-				proc.itm(*this, *e, true);
+				itmp(*this, *e, true);
 		} else {
-			proc.itm(*this, *ti.itm, true);
+			itmp(*this, *ti.itm, true);
 			if(flags&Splash) {
 				source.count = exclude(source, ti.itm);
 				if(source.count > 2)
 					source.count = 2;
 				for(auto& e : source)
-					proc.itm(*this, *e, true);
+					itmp(*this, *e, true);
 			}
 		}
-	} else if(proc.obj) {
+	} else if(objp) {
 		short unsigned source_data[256]; aref<short unsigned> source(source_data);
 		source.count = source_select(source, sc.indecies, *this, 0, 0);
 		if((flags&All) != 0) {
 			for(auto index : source)
-				proc.obj(*this, index, true);
+				objp(*this, index, true);
 		} else {
-			proc.obj(*this, ti.obj, true);
+			objp(*this, ti.obj, true);
 			if(flags&Splash) {
 				source.count = source_select(source_data, sc.indecies, *this, ti.obj, 1);
 				source.count = exclude(source, ti.obj);
 				for(auto index : source)
-					proc.obj(*this, index, true);
+					objp(*this, index, true);
 			}
 		}
 	}
