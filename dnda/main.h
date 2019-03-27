@@ -1,4 +1,4 @@
-#include "autoptr.h"
+#include "anyptr.h"
 #include "collection.h"
 #include "crt.h"
 #include "grammar.h"
@@ -219,15 +219,10 @@ enum select_s : unsigned {
 	Damaged = 0x1000, Drained = 0x2000, Conceal = 0x4000, Identified = 0x8000,
 	Special = 0x80000000,
 };
-enum variant_ptr_s : unsigned char {
-	NoVariantPtr,
-	Creature, Object, ItemPtr,
-};
 class item;
 struct attackinfo;
 struct creature;
 struct dialog;
-struct effectparam;
 struct scene;
 struct sceneparam;
 struct site;
@@ -259,20 +254,6 @@ struct specialinfo {
 	char				chance_broke;
 	char				bonus;
 	char				chance_side;
-};
-struct target_info {
-	variant_ptr_s		type;
-	union {
-		creature*		cre;
-		item*			itm;
-		short unsigned	obj;
-	};
-	constexpr target_info() : type(NoVariantPtr), cre(0) {}
-	constexpr target_info(creature* v) : type(Creature), cre(v) {}
-	constexpr target_info(short unsigned v) : type(Object), obj(v) {}
-	constexpr target_info(item* v) : type(ItemPtr), itm(v) {}
-	explicit constexpr operator bool() const { return cre != 0; }
-	void				clear() { type = NoVariantPtr; cre = 0; }
 };
 class item {
 	item_s				type;
@@ -414,7 +395,7 @@ struct effectinfo {
 		unsigned		duration;
 	};
 	constexpr explicit operator bool() const { return proc; }
-	autoptr				proc;
+	anyptr				proc;
 	unsigned			flags;
 	damageinfo			damage;
 	stateinfo			state;
@@ -429,7 +410,7 @@ struct sceneparam : effectinfo {
 	constexpr sceneparam(const effectinfo& effect_param, creature& player, bool interactive) :
 		effectinfo(effect_param), player(player), interactive(interactive),
 		level(1), param(0), roll(0) {}
-	void				apply(scene& sc, const target_info& ti, const char* format = 0, const char* format_param = 0);
+	void				apply(scene& sc, const anyptr& ti, const char* format = 0, const char* format_param = 0);
 };
 struct scene {
 	adat<creature*, 64>	creatures;
@@ -467,10 +448,10 @@ struct creature {
 	void				attack(creature* defender, slot_s slot, int bonus = 0, int multiplier = 0);
 	bool				canhear(short unsigned index) const;
 	void				chat(creature* opponent);
-	item*				choose(aref<item*> source, bool interactive, const char* title = "Âûבטנאיעו ןנוהלוע") const;
+	item*				choose(aref<item*> source, bool interactive, const char* title = 0) const;
 	creature*			choose(aref<creature*> source, bool interactive) const;
 	short unsigned		choose(aref<short unsigned> source, bool interactive) const;
-	bool				choose(const effectinfo& eff, scene& sc, target_info& ti, bool interactive) const;
+	bool				choose(const effectinfo& eff, scene& sc, anyptr& ti, bool interactive, const char* title = 0) const;
 	void				create(race_s race, gender_s gender, class_s type);
 	void				applyability();
 	void				clear();

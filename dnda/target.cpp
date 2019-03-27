@@ -91,7 +91,7 @@ static bool any_object(const creature& player, short unsigned index) {
 	return value != NoTileObject;
 }
 
-static struct target_info {
+static struct targetinfo {
 	struct callback {
 		bool(*cre)(const creature& player, const creature* opponent);
 		bool(*itm)(const creature& player, const item& it);

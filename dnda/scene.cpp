@@ -1,9 +1,9 @@
 #include "main.h"
 
 struct action_info {
-	variant			type;
-	target_info		target;
-	int				priority;
+	variant		type;
+	anyptr		target;
+	int			priority;
 };
 
 template<class T>
@@ -133,7 +133,7 @@ static int compare(const short unsigned e1, const short unsigned e2) {
 	return 0;
 }
 
-bool creature::choose(const effectinfo& eff, scene& sc, target_info& ti, bool interactive) const {
+bool creature::choose(const effectinfo& eff, scene& sc, anyptr& ti, bool interactive, const char* title) const {
 	sceneparam sp(eff, const_cast<creature&>(*this), interactive);
 	auto los = getlos(eff.flags);
 	ti.clear();
@@ -151,7 +151,7 @@ bool creature::choose(const effectinfo& eff, scene& sc, target_info& ti, bool in
 			ti = get_best(source);
 		} else
 			ti = choose(source, sp.interactive);
-		if(!ti.cre)
+		if(!ti)
 			return false;
 		return true;
 	} else if((itm_proc)sp.proc) {
@@ -164,8 +164,8 @@ bool creature::choose(const effectinfo& eff, scene& sc, target_info& ti, bool in
 		if(eff.flags&Nearest)
 			ti = get_best(source);
 		else if(source.count > 0)
-			ti = choose(source, sp.interactive);
-		if(!ti.itm)
+			ti = choose(source, sp.interactive, title);
+		if(!ti)
 			return false;
 		return true;
 	} else if((obj_proc)sp.proc) {
@@ -181,14 +181,14 @@ bool creature::choose(const effectinfo& eff, scene& sc, target_info& ti, bool in
 			ti = get_best(source);
 		} else
 			ti = choose(source, sp.interactive);
-		if(ti.obj == Blocked)
+		if(((short unsigned)ti) == Blocked)
 			return false;
 		return true;
 	}
 	return false;
 }
 
-void sceneparam::apply(scene& sc, const target_info& ti, const char* format, const char* format_param) {
+void sceneparam::apply(scene& sc, const anyptr& ti, const char* format, const char* format_param) {
 	auto los = player.getlos(flags);
 	if(format)
 		player.actv(format, format_param);
@@ -198,6 +198,7 @@ void sceneparam::apply(scene& sc, const target_info& ti, const char* format, con
 	itm_proc itmp = proc;
 	obj_proc objp = proc;
 	if(crep) {
+		creature* target = ti;
 		creature* source_data[32];
 		if((flags&All) != 0) {
 			aref<creature*> source(source_data);
@@ -207,11 +208,11 @@ void sceneparam::apply(scene& sc, const target_info& ti, const char* format, con
 					e->act(messages.success);
 				crep(sc, *this, *e, true);
 			}
-		} else {
-			crep(sc, *this, *ti.cre, true);
+		} else if(target) {
+			crep(sc, *this, *target, true);
 			if(flags&Splash) {
 				aref<creature*> source(source_data);
-				source.count = source_select(source_data, sc.creatures, sc, *this, ti.cre->getposition(), 1, ti.cre);
+				source.count = source_select(source_data, sc.creatures, sc, *this, target->getposition(), 1, target);
 				for(auto& e : source) {
 					if(messages.success)
 						e->act(messages.success);
@@ -220,15 +221,16 @@ void sceneparam::apply(scene& sc, const target_info& ti, const char* format, con
 			}
 		}
 	} else if(itmp) {
+		item* target = ti;
 		item* source_data[64]; aref<item*> source(source_data);
 		source.count = source_select(source, sc, *this);
 		if((flags&All) != 0) {
 			for(auto& e : source)
 				itmp(sc, *this, *e, true);
-		} else {
-			itmp(sc, *this, *ti.itm, true);
+		} else if(target) {
+			itmp(sc, *this, *target, true);
 			if(flags&Splash) {
-				source.count = exclude(source, ti.itm);
+				source.count = exclude(source, target);
 				if(source.count > 2)
 					source.count = 2;
 				for(auto& e : source)
@@ -236,16 +238,17 @@ void sceneparam::apply(scene& sc, const target_info& ti, const char* format, con
 			}
 		}
 	} else if(objp) {
+		short unsigned target = ti;
 		short unsigned source_data[256]; aref<short unsigned> source(source_data);
 		source.count = source_select(source, sc.indecies, sc, *this, 0, 0);
 		if((flags&All) != 0) {
 			for(auto index : source)
 				objp(sc, *this, index, true);
-		} else {
-			objp(sc, *this, ti.obj, true);
+		} else if(target!=Blocked) {
+			objp(sc, *this, target, true);
 			if(flags&Splash) {
-				source.count = source_select(source_data, sc.indecies, sc, *this, ti.obj, 1);
-				source.count = exclude(source, ti.obj);
+				source.count = source_select(source_data, sc.indecies, sc, *this, target, 1);
+				source.count = exclude(source, target);
 				for(auto index : source)
 					objp(sc, *this, index, true);
 			}

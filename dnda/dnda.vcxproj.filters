@@ -49,7 +49,7 @@
     <ClInclude Include="package.h">
       <Filter>support</Filter>
     </ClInclude>
-    <ClInclude Include="autoptr.h">
+    <ClInclude Include="anyptr.h">
       <Filter>support</Filter>
     </ClInclude>
   </ItemGroup>

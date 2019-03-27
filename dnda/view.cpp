@@ -69,6 +69,18 @@ namespace colors {
 color				fow = color::create(10, 10, 10);
 }
 
+static bool itm_chargeable(scene& sc, sceneparam& e, item& v, bool run) {
+	return v.ischargeable();
+}
+
+static bool itm_drinkable(scene& sc, sceneparam& e, item& v, bool run) {
+	return v.isdrinkable();
+}
+
+static bool itm_edible(scene& sc, sceneparam& e, item& v, bool run) {
+	return v.isedible();
+}
+
 static void clear_state() {
 	state_message[0] = 0;
 	p_message = state_message;
@@ -1034,7 +1046,7 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 	const int height = 360;
 	const int dy = 20;
 	if(!title)
-		title = "Предметы";
+		title = "Выбирайте предмет";
 	while(ismodal()) {
 		int x = (draw::getwidth() - width) / 2;
 		int y = (draw::getheight() - height) / 2;
@@ -1616,28 +1628,28 @@ static void character_ranged_attack(creature& e, scene& sc) {
 		e.rangeattack(enemy);
 }
 
-static void character_use(creature& e, scene& sc, const char* title) {
-	//item* source_data[256];
-	//auto source = e.getcreatures(source_data, ti.target);
-	//if(!source) {
-	//	e.hint("У вас нет подходящео предмета.");
-	//	return;
-	//}
-	//auto result = logs::choose(e, source.data, source.count, "Выбирайте предмет");
-	//if(result)
-	//	e.use(*result);
+static void character_use(creature& e, scene& sc, itm_proc pr, const char* title) {
+	anyptr ti;
+	sceneparam sp = {{pr}, e, true};
+	if(!e.choose(sp, sc, ti, true, title)) {
+		e.hint("У вас нет подходящео предмета.");
+		return;
+	}
+	item* pi = ti;
+	if(pi)
+		e.use(sc, *pi);
 }
 
 static void character_wand(creature& e, scene& sc) {
-	//character_use(e, {TargetItemChargeable}, "С какого предмета?");
+	character_use(e, sc, itm_chargeable, "С какого предмета?");
 }
 
 static void character_drink(creature& e, scene& sc) {
-	//character_use(e, {TargetItemDrinkable}, "Что хотите выпить?");
+	character_use(e, sc, itm_drinkable, "Что хотите выпить?");
 }
 
 static void character_eat(creature& e, scene& sc) {
-	//character_use(e, {TargetItemEdible}, "Что хотите съесть?");
+	character_use(e, sc, itm_edible, "Что хотите съесть?");
 }
 
 static void character_read(creature& e, scene& sc) {
@@ -2020,8 +2032,6 @@ void logs::turn(creature& e, scene& sc) {
 		}
 		if(phk->proc)
 			phk->proc(e, sc);
-		// Подождем минимальное вермя 2 сегмента.
-		// Действия могут устанавливать дополнительное время ожидания
 		e.wait(2);
 		break;
 	}

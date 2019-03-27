@@ -1,6 +1,6 @@
 #include "main.h"
 
-void message(creature& player, const target_info& ti, const char* format);
+void message(creature& player, const anyptr& ti, const char* format);
 
 bool setstate(scene& sc, sceneparam& e, creature& opponent, bool run) {
 	if(opponent.is(e.state.type))
@@ -137,7 +137,7 @@ bool creature::use(scene& sc, spell_s value, int level, const char* format, ...)
 	if(level < 1)
 		level = 1;
 	auto& e = spell_data[value];
-	target_info ti;
+	anyptr ti;
 	if(!choose(e.effect, sc, ti, isinteractive())) {
 		hint("Нет подходящей цели");
 		return false;
@@ -145,9 +145,9 @@ bool creature::use(scene& sc, spell_s value, int level, const char* format, ...)
 	sceneparam sp(e.effect, *this, true);
 	sp.apply(sc, ti, format, xva_start(format));
 	if(ti && e.effect.messages.success) {
-		switch(ti.type) {
-		case Creature: ti.cre->act(e.effect.messages.success); break;
-		}
+		creature* cre = ti;
+		if(cre)
+			cre->act(e.effect.messages.success);
 	}
 	return true;
 }

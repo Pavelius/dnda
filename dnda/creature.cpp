@@ -2132,6 +2132,8 @@ static int compare_spells(const void* p1, const void* p2) {
 }
 
 item* creature::choose(aref<item*> source, bool interactive, const char* name) const {
+	if(!name)
+		name = "Âûבטנאיעו ןנוהלוע";
 	if(interactive)
 		return logs::choose(*this, source.data, source.count, name);
 	return source.data[rand() % source.count];

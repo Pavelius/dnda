@@ -119,7 +119,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="archive.h" />
-    <ClInclude Include="autoptr.h" />
+    <ClInclude Include="anyptr.h" />
     <ClInclude Include="collection.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="crt.h" />

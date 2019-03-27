@@ -8,29 +8,26 @@ static const char* talk_games[] = {"кубики", "карты", "наперстки", "шарады"};
 bool	setstate(scene& sc, sceneparam& e, creature& v, bool run);
 int		compare_skills(const void* p1, const void* p2);
 
-void message(creature& player, const target_info& ti, const char* format) {
+void message(creature& player, const anyptr& ti, const char* format) {
 	if(!format)
 		return;
 	char temp[260];
-	switch(ti.type) {
-	case Creature:
-		ti.cre->act(format, player.getname());
-		break;
-	case ItemPtr:
-		player.act(format, ti.itm->getname(temp, zendof(temp)));
-		break;
-	default:
+	creature* cre = ti;
+	item* itm = ti;
+	if(cre)
+		cre->act(format, player.getname());
+	else if(itm)
+		player.act(format, itm->getname(temp, zendof(temp)));
+	else
 		player.act(format);
-		break;
-	}
 }
 
-static void skill_success(const sceneparam& sp, const target_info& ti) {
+static void skill_success(const sceneparam& sp, const anyptr& ti) {
 	message(sp.player, ti, sp.messages.success);
 	sp.player.addexp(sp.experience);
 }
 
-static void skill_fail(const sceneparam& sp, const target_info& ti) {
+static void skill_fail(const sceneparam& sp, const anyptr& ti) {
 	if(sp.messages.fail)
 		message(sp.player, ti, sp.messages.fail);
 	else
@@ -114,14 +111,6 @@ static bool pickpockets(scene& sc, sceneparam& e, creature& v, bool run) {
 	}
 	return true;
 }
-
-//static bool inbuilding(effectparam& e) {
-//	if(!e.player.getsite()) {
-//		e.player.hint("Ётот навык можно примен€ть только в здании.");
-//		return false;
-//	}
-//	return true;
-//}
 
 static bool literacy(scene& sc, sceneparam& e, item& v, bool run) {
 	if(!v.isreadable())
@@ -281,7 +270,7 @@ bool creature::use(scene& sc, skill_s value) {
 		hint("Ќавык %1 не используетс€ подобным образом", getstr(value));
 		return false;
 	}
-	target_info ti;
+	anyptr ti;
 	if(!choose(e.effect, sc, ti, isinteractive())) {
 		hint("ƒл€ навыка %1 нет подход€щей цели", getstr(value));
 		return false;
