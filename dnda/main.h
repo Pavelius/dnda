@@ -229,7 +229,11 @@ struct creature;
 struct dialog;
 struct effectparam;
 struct scene;
+struct sceneparam;
 struct site;
+typedef bool(*cre_proc)(scene& sc, sceneparam& e, creature& subject, bool run);
+typedef bool(*itm_proc)(scene& sc, sceneparam& e, item& subject, bool run);
+typedef bool(*obj_proc)(scene& sc, sceneparam& e, short unsigned index, bool run);
 struct skillvalue {
 	skill_s				id;
 	char				value;
@@ -399,11 +403,7 @@ struct attackinfo {
 	enchantment_s		effect;
 	char				quality;
 };
-struct sceneparam;
-typedef bool(*cre_proc)(sceneparam& e, creature& subject, bool run);
-typedef bool(*itm_proc)(sceneparam& e, item& subject, bool run);
-typedef bool(*obj_proc)(sceneparam& e, short unsigned index, bool run);
-struct effect_info {
+struct effectinfo {
 	struct textinfo {
 		const char*		action;
 		const char*		success;
@@ -421,13 +421,13 @@ struct effect_info {
 	unsigned			experience;
 	textinfo			messages;
 };
-struct sceneparam : effect_info {
+struct sceneparam : effectinfo {
 	creature&			player;
 	bool				interactive;
 	int					level, param, roll;
 	unsigned			getduration() const;
-	constexpr sceneparam(const effect_info& effect_param, creature& player, bool interactive) :
-		effect_info(effect_param), player(player), interactive(interactive),
+	constexpr sceneparam(const effectinfo& effect_param, creature& player, bool interactive) :
+		effectinfo(effect_param), player(player), interactive(interactive),
 		level(1), param(0), roll(0) {}
 	void				apply(scene& sc, const target_info& ti, const char* format = 0, const char* format_param = 0);
 };
@@ -470,7 +470,7 @@ struct creature {
 	item*				choose(aref<item*> source, bool interactive, const char* title = "Âûבטנאיעו ןנוהלוע") const;
 	creature*			choose(aref<creature*> source, bool interactive) const;
 	short unsigned		choose(aref<short unsigned> source, bool interactive) const;
-	bool				choose(const effect_info& eff, scene& sc, target_info& ti, bool interactive) const;
+	bool				choose(const effectinfo& eff, scene& sc, target_info& ti, bool interactive) const;
 	void				create(race_s race, gender_s gender, class_s type);
 	void				applyability();
 	void				clear();
@@ -501,7 +501,7 @@ struct creature {
 	int					getdefence() const;
 	int					getdiscount(creature* customer) const;
 	direction_s			getdirection() const { return direction; }
-	static const effect_info& geteffect(skill_s v);
+	static const effectinfo& geteffect(skill_s v);
 	creature*			getenemy(aref<creature*> source) const;
 	encumbrance_s		getencumbrance() const { return encumbrance; }
 	int					getexperience() const { return experience; }

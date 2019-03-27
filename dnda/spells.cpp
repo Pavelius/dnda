@@ -2,7 +2,7 @@
 
 void message(creature& player, const target_info& ti, const char* format);
 
-bool setstate(sceneparam& e, creature& opponent, bool run) {
+bool setstate(scene& sc, sceneparam& e, creature& opponent, bool run) {
 	if(opponent.is(e.state.type))
 		return false;
 	if(run) {
@@ -37,7 +37,7 @@ bool setstate(sceneparam& e, creature& opponent, bool run) {
 	return true;
 }
 
-static bool damage(sceneparam& e, creature& opponent, bool run) {
+static bool damage(scene& sc, sceneparam& e, creature& opponent, bool run) {
 	if(run) {
 		auto damage = e.damage;
 		if(e.level > 1) {
@@ -53,19 +53,19 @@ static bool damage(sceneparam& e, creature& opponent, bool run) {
 	return true;
 }
 
-static bool heal(sceneparam& e, creature& v, bool run) {
+static bool heal(scene& sc, sceneparam& e, creature& v, bool run) {
 	if(run)
 		v.heal(e.damage.roll() + e.level - 1, true);
 	return true;
 }
 
-static bool repair(sceneparam& e, item& v, bool run) {
+static bool repair(scene& sc, sceneparam& e, item& v, bool run) {
 	if(run)
 		v.repair(e.level);
 	return true;
 }
 
-static bool bless(sceneparam& e, item& v, bool run) {
+static bool bless(scene& sc, sceneparam& e, item& v, bool run) {
 	if(run) {
 		// Bless item has chance to make item cursed and depend on level.
 		auto chance = 60 + e.level * 5;
@@ -77,7 +77,7 @@ static bool bless(sceneparam& e, item& v, bool run) {
 	return true;
 }
 
-static bool identify(sceneparam& e, item& v, bool run) {
+static bool identify(scene& sc, sceneparam& e, item& v, bool run) {
 	if(run)
 		v.setidentify(true);
 	return true;
@@ -87,7 +87,7 @@ static struct spell_info {
 	const char*			name;
 	const char*			nameof;
 	short unsigned		cost;
-	effect_info			effect;
+	effectinfo			effect;
 } spell_data[] = {{"", ""},
 {"Броня", "брони", 10, {setstate, You, {}, {Armored, 4 * Hour}, 0, {0, "%герой озарил%ась синим светом."}}},
 {"Благословение", "благословения", 8, {setstate, Close, {}, {Blessed, Turn}, 0, {0, "%герой озарил%ась желтым светом."}}},

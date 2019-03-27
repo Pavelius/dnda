@@ -5,7 +5,7 @@ static const char* talk_object[] = {"сокровище", "волшебное кольцо", "проклятый 
 static const char* talk_location[] = {"библиотеку", "ратушу", "магазин", "таверну", "храм"};
 static const char* talk_games[] = {"кубики", "карты", "наперстки", "шарады"};
 
-bool	setstate(sceneparam& e, creature& v, bool run);
+bool	setstate(scene& sc, sceneparam& e, creature& v, bool run);
 int		compare_skills(const void* p1, const void* p2);
 
 void message(creature& player, const target_info& ti, const char* format) {
@@ -44,7 +44,7 @@ static void skill_fail(const sceneparam& sp, const target_info& ti) {
 	}
 }
 
-static bool heal(sceneparam& e, creature& v, bool run) {
+static bool heal(scene& sc, sceneparam& e, creature& v, bool run) {
 	if(run) {
 		auto damage = e.damage.max + e.param / 10;
 		v.heal(e.damage.roll(), true);
@@ -52,7 +52,7 @@ static bool heal(sceneparam& e, creature& v, bool run) {
 	return true;
 }
 
-static bool removetrap(sceneparam& e, short unsigned index, bool run) {
+static bool removetrap(scene& sc, sceneparam& e, short unsigned index, bool run) {
 	auto t = game::getobject(index);
 	if(t != Trap)
 		return false;
@@ -61,7 +61,7 @@ static bool removetrap(sceneparam& e, short unsigned index, bool run) {
 	return true;
 }
 
-static bool bash(sceneparam& e, short unsigned index, bool run) {
+static bool bash(scene& sc, sceneparam& e, short unsigned index, bool run) {
 	auto t = game::getobject(index);
 	if(t != Door)
 		return false;
@@ -77,7 +77,7 @@ static bool bash(sceneparam& e, short unsigned index, bool run) {
 	return true;
 }
 
-static bool openlock(sceneparam& e, short unsigned index, bool run) {
+static bool openlock(scene& sc, sceneparam& e, short unsigned index, bool run) {
 	auto t = game::getobject(index);
 	if(t != Door)
 		return false;
@@ -88,7 +88,7 @@ static bool openlock(sceneparam& e, short unsigned index, bool run) {
 	return true;
 }
 
-static bool pickpockets(sceneparam& e, creature& v, bool run) {
+static bool pickpockets(scene& sc, sceneparam& e, creature& v, bool run) {
 	if(v.isfriend(&e.player))
 		return false;
 	if(!v.getmoney())
@@ -123,7 +123,7 @@ static bool pickpockets(sceneparam& e, creature& v, bool run) {
 //	return true;
 //}
 
-static bool literacy(sceneparam& e, item& v, bool run) {
+static bool literacy(scene& sc, sceneparam& e, item& v, bool run) {
 	if(!v.isreadable())
 		return false;
 	if(run) {
@@ -133,7 +133,7 @@ static bool literacy(sceneparam& e, item& v, bool run) {
 			v.setidentify(true);
 			auto spell = v.getspell();
 			if(spell) {
-				//e.player.use(sc, spell, 1 + v.getquality(), "%герой прочитал%а свиток.");
+				e.player.use(sc, spell, 1 + v.getquality(), "%герой прочитал%а свиток.");
 				v.clear();
 				e.player.wait(Minute / 2);
 			}
@@ -142,11 +142,11 @@ static bool literacy(sceneparam& e, item& v, bool run) {
 	return true;
 }
 
-static bool dance(sceneparam& e, creature& v, bool run) {
+static bool dance(scene& sc, sceneparam& e, creature& v, bool run) {
 	return true;
 }
 
-static bool gamble(sceneparam& e, creature& v, bool run) {
+static bool gamble(scene& sc, sceneparam& e, creature& v, bool run) {
 	auto stack = 20 * (1 + e.param / 20);
 	if(!v.getbasic(Gambling))
 		return false;
@@ -177,7 +177,7 @@ static bool gamble(sceneparam& e, creature& v, bool run) {
 	return true;
 }
 
-static bool backstabbing(sceneparam& e, creature& v, bool run) {
+static bool backstabbing(scene& sc, sceneparam& e, creature& v, bool run) {
 	if(run) {
 		auto total = 0;
 		if(e.player.roll(Backstabbing))
@@ -191,7 +191,7 @@ static struct skill_info {
 	const char*		name;
 	const char*		nameof;
 	ability_s		ability[2];
-	effect_info		effect;
+	effectinfo		effect;
 	enchantment_s	enchant;
 	bool			deny_ability;
 } skill_data[] = {{"Нет навыка"},
@@ -306,7 +306,7 @@ bool creature::use(scene& sc, skill_s value) {
 	return true;
 }
 
-const effect_info& creature::geteffect(skill_s v) {
+const effectinfo& creature::geteffect(skill_s v) {
 	return skill_data[v].effect;
 }
 

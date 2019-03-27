@@ -27,7 +27,7 @@ static unsigned exclude(aref<T> result, const T player) {
 	return ps - result.data;
 }
 
-static unsigned source_select(aref<creature*> result, aref<creature*> source, sceneparam& sp, short unsigned index, int range, creature* player) {
+static unsigned source_select(aref<creature*> result, aref<creature*> source, scene& sc, sceneparam& sp, short unsigned index, int range, creature* player) {
 	auto ps = result.data;
 	auto pe = result.data + result.count;
 	auto flags = sp.flags;
@@ -45,7 +45,7 @@ static unsigned source_select(aref<creature*> result, aref<creature*> source, sc
 			continue;
 		if(range > 0 && p==player)
 			continue;
-		if(!pr(sp, *p, false))
+		if(!pr(sc, sp, *p, false))
 			continue;
 		if(ps < pe)
 			*ps++ = p;
@@ -53,7 +53,7 @@ static unsigned source_select(aref<creature*> result, aref<creature*> source, sc
 	return ps - result.data;
 }
 
-static unsigned source_select(aref<item*> result, sceneparam& sp) {
+static unsigned source_select(aref<item*> result, scene& sc, sceneparam& sp) {
 	auto ps = result.data;
 	auto pe = result.data + result.count;
 	auto flags = sp.flags;
@@ -73,7 +73,7 @@ static unsigned source_select(aref<item*> result, sceneparam& sp) {
 			continue;
 		if((flags&Friendly) != 0 && e.getmagic() < BlessedItem)
 			continue;
-		if(!pr(sp, e, false))
+		if(!pr(sc, sp, e, false))
 			continue;
 		if(ps < pe)
 			*ps++ = &e;
@@ -81,7 +81,7 @@ static unsigned source_select(aref<item*> result, sceneparam& sp) {
 	return ps - result.data;
 }
 
-static unsigned source_select(aref<short unsigned> result, aref<short unsigned> source, sceneparam& sp, short unsigned start_index, int range) {
+static unsigned source_select(aref<short unsigned> result, aref<short unsigned> source, scene& sc, sceneparam& sp, short unsigned start_index, int range) {
 	auto ps = result.data;
 	auto pe = result.data + result.count;
 	auto flags = sp.flags;
@@ -93,7 +93,7 @@ static unsigned source_select(aref<short unsigned> result, aref<short unsigned> 
 			continue;
 		if(range > 0 && game::distance(start_index, index) > range)
 			continue;
-		if(!pr(sp, index, false))
+		if(!pr(sc, sp, index, false))
 			continue;
 		if(ps < pe)
 			*ps++ = index;
@@ -133,7 +133,7 @@ static int compare(const short unsigned e1, const short unsigned e2) {
 	return 0;
 }
 
-bool creature::choose(const effect_info& eff, scene& sc, target_info& ti, bool interactive) const {
+bool creature::choose(const effectinfo& eff, scene& sc, target_info& ti, bool interactive) const {
 	sceneparam sp(eff, const_cast<creature&>(*this), interactive);
 	auto los = getlos(eff.flags);
 	ti.clear();
@@ -141,7 +141,7 @@ bool creature::choose(const effect_info& eff, scene& sc, target_info& ti, bool i
 	cre_proc itm_pr = sp.proc;
 	if((cre_proc)sp.proc) {
 		creature* source_data[32]; aref<creature*> source(source_data);
-		source.count = source_select(source, sc.creatures, sp, sp.player.getposition(), los, &sp.player);
+		source.count = source_select(source, sc.creatures, sc, sp, sp.player.getposition(), los, &sp.player);
 		if(source.count <= 0)
 			return false;
 		if((eff.flags&All) != 0)
@@ -156,7 +156,7 @@ bool creature::choose(const effect_info& eff, scene& sc, target_info& ti, bool i
 		return true;
 	} else if((itm_proc)sp.proc) {
 		item* source_data[64]; aref<item*> source(source_data);
-		source.count = source_select(source, sp);
+		source.count = source_select(source, sc, sp);
 		if(source.count <= 0)
 			return false;
 		if((eff.flags&All) != 0)
@@ -170,7 +170,7 @@ bool creature::choose(const effect_info& eff, scene& sc, target_info& ti, bool i
 		return true;
 	} else if((obj_proc)sp.proc) {
 		short unsigned source_data[256]; aref<short unsigned> source(source_data);
-		source.count = source_select(source, sc.indecies, sp, getposition(), los);
+		source.count = source_select(source, sc.indecies, sc, sp, getposition(), los);
 		if(source.count <= 0)
 			return false;
 		if((eff.flags&All) != 0)
@@ -201,53 +201,53 @@ void sceneparam::apply(scene& sc, const target_info& ti, const char* format, con
 		creature* source_data[32];
 		if((flags&All) != 0) {
 			aref<creature*> source(source_data);
-			source.count = source_select(source_data, sc.creatures, *this, player.getposition(), los, &player);
+			source.count = source_select(source_data, sc.creatures, sc, *this, player.getposition(), los, &player);
 			for(auto& e : source) {
 				if(messages.success)
 					e->act(messages.success);
-				crep(*this, *e, true);
+				crep(sc, *this, *e, true);
 			}
 		} else {
-			crep(*this, *ti.cre, true);
+			crep(sc, *this, *ti.cre, true);
 			if(flags&Splash) {
 				aref<creature*> source(source_data);
-				source.count = source_select(source_data, sc.creatures, *this, ti.cre->getposition(), 1, ti.cre);
+				source.count = source_select(source_data, sc.creatures, sc, *this, ti.cre->getposition(), 1, ti.cre);
 				for(auto& e : source) {
 					if(messages.success)
 						e->act(messages.success);
-					crep(*this, *e, true);
+					crep(sc, *this, *e, true);
 				}
 			}
 		}
 	} else if(itmp) {
 		item* source_data[64]; aref<item*> source(source_data);
-		source.count = source_select(source, *this);
+		source.count = source_select(source, sc, *this);
 		if((flags&All) != 0) {
 			for(auto& e : source)
-				itmp(*this, *e, true);
+				itmp(sc, *this, *e, true);
 		} else {
-			itmp(*this, *ti.itm, true);
+			itmp(sc, *this, *ti.itm, true);
 			if(flags&Splash) {
 				source.count = exclude(source, ti.itm);
 				if(source.count > 2)
 					source.count = 2;
 				for(auto& e : source)
-					itmp(*this, *e, true);
+					itmp(sc, *this, *e, true);
 			}
 		}
 	} else if(objp) {
 		short unsigned source_data[256]; aref<short unsigned> source(source_data);
-		source.count = source_select(source, sc.indecies, *this, 0, 0);
+		source.count = source_select(source, sc.indecies, sc, *this, 0, 0);
 		if((flags&All) != 0) {
 			for(auto index : source)
-				objp(*this, index, true);
+				objp(sc, *this, index, true);
 		} else {
-			objp(*this, ti.obj, true);
+			objp(sc, *this, ti.obj, true);
 			if(flags&Splash) {
-				source.count = source_select(source_data, sc.indecies, *this, ti.obj, 1);
+				source.count = source_select(source_data, sc.indecies, sc, *this, ti.obj, 1);
 				source.count = exclude(source, ti.obj);
 				for(auto index : source)
-					objp(*this, index, true);
+					objp(sc, *this, index, true);
 			}
 		}
 	}
