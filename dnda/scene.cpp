@@ -197,6 +197,7 @@ void sceneparam::apply(scene& sc, const anyptr& ti, const char* format, const ch
 	cre_proc crep = proc;
 	itm_proc itmp = proc;
 	obj_proc objp = proc;
+	assert(crep || itmp || objp);
 	if(crep) {
 		creature* target = ti;
 		creature* source_data[32];
