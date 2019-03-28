@@ -5,13 +5,14 @@ static struct site_info {
 		const char*		text;
 		char			chance; // Bonus to skill Alertness
 		char			quality; // Item quality
-		char			magic; // Blessed or Cursed is fate decided chance to be artifact is magic/10.
-		aref<item_s>	items;
+		char			magic; // There is a percent random chance to be Blessed or Cursed item. Chance to be Artifact is magic/10.
 		explicit operator bool() const { return text != 0; }
 	};
 	const char*			name;
 	const char*			entering; // Message appear to player when enter to room
 	search_item			search;
+	aref<item_s>		items;
+	aref<skill_use_info> skills;
 } site_data[] = {{"Комната"},
 {"Комната"},
 {"Лестница вниз"},
@@ -61,4 +62,8 @@ void site::update() {
 char* site::getname(char* result) const {
 	zcpy(result, getstr(type));
 	return result;
+}
+
+aref<skill_use_info> site::getskills() const {
+	return site_data[type].skills;
 }

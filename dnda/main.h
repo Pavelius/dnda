@@ -220,6 +220,7 @@ enum select_s : unsigned {
 	Special = 0x80000000,
 };
 class item;
+struct archive;
 struct attackinfo;
 struct creature;
 struct dialog;
@@ -573,7 +574,7 @@ struct creature {
 	bool				use(short unsigned index);
 	void				wait(int segments = 0);
 private:
-	friend struct archive;
+	friend archive;
 	char				abilities[Charisma + 1];
 	short				abilities_raise[Charisma + 1];
 	short				hp, mhp, mp, mmp;
@@ -601,11 +602,16 @@ private:
 	void				updateweight();
 	void				walkaround(scene& sc);
 };
+struct skill_use_info {
+	const char*			name;
+	skill_s				id;
+	char				bonus;
+	effectinfo			effect;
+};
 struct site : rect {
 	site_s				type;
-	diety_s				diety;
 	unsigned char		name[2];
-	unsigned char		found;
+	diety_s				diety;
 	creature*			owner;
 	constexpr site() : rect({0, 0, 0, 0}), type(EmpthyRoom), diety(NoGod), name(), owner(),
 		found(0), recoil(0) {}
@@ -614,8 +620,11 @@ struct site : rect {
 	int					getfoundchance() const;
 	char*				getname(char* result) const;
 	short unsigned		getposition() const;
+	aref<skill_use_info> getskills() const;
 	void				update();
 private:
+	friend archive;
+	unsigned char		found;
 	unsigned			recoil;
 	void				wait(unsigned count);
 };

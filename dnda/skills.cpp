@@ -64,13 +64,8 @@ static bool bash(scene& sc, sceneparam& e, short unsigned index, bool run) {
 		return false;
 	if(!game::is(index, Sealed))
 		return false;
-	if(run) {
-		if(e.player.roll(Athletics, -20)) {
-			game::set(index, NoTileObject);
-			skill_success(e, index);
-		} else
-			skill_fail(e, index);
-	}
+	if(run)
+		game::set(index, NoTileObject);
 	return true;
 }
 
@@ -226,6 +221,14 @@ static struct skill_info {
 };
 assert_enum(skill, ResistWater);
 getstr_enum(skill);
+
+static struct personal_skill_info {
+	skill_s			id;
+	const char*		name;
+	char			bonus;
+	effectinfo		effect;
+} personal_skill[] = {{Athletics, "Выбить двери", -20, {bash, Close, {}, {}, 20, {0, "%герой разнес%ла двери в щепки."}}},
+};
 
 const char* creature::getname(skill_s id) {
 	return skill_data[id].nameof;

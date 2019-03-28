@@ -143,6 +143,7 @@ bool creature::use(scene& sc, spell_s value, int level, const char* format, ...)
 		return false;
 	}
 	sceneparam sp(e.effect, *this, true);
+	sp.level = level;
 	sp.apply(sc, ti, format, xva_start(format));
 	if(ti && e.effect.messages.success) {
 		creature* cre = ti;

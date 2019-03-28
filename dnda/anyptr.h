@@ -12,5 +12,4 @@ public:
 	template<class T> constexpr operator int() const { return (type==0) ? int(data) : 0; }
 	constexpr operator bool() const { return data!=0; }
 	void				clear() { data = 0; }
-	template<class T> constexpr bool is() const { return (&typeid(T*))==type; }
 };
