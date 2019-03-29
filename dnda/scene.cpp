@@ -239,7 +239,7 @@ void sceneparam::apply(scene& sc, const anyptr& ti, const char* format, const ch
 			}
 		}
 	} else if(objp) {
-		short unsigned target = ti;
+		short unsigned target = (int)ti;
 		short unsigned source_data[256]; aref<short unsigned> source(source_data);
 		source.count = source_select(source, sc.indecies, sc, *this, 0, 0);
 		if((flags&All) != 0) {

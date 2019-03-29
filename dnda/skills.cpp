@@ -222,14 +222,6 @@ static struct skill_info {
 assert_enum(skill, ResistWater);
 getstr_enum(skill);
 
-static struct personal_skill_info {
-	skill_s			id;
-	const char*		name;
-	char			bonus;
-	effectinfo		effect;
-} personal_skill[] = {{Athletics, "Выбить двери", -20, {bash, Close, {}, {}, 20, {0, "%герой разнес%ла двери в щепки."}}},
-};
-
 const char* creature::getname(skill_s id) {
 	return skill_data[id].nameof;
 }

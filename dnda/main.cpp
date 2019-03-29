@@ -53,11 +53,11 @@ static void test_overland() {
 	logs::worldedit();
 }
 
-static creature* create_character(short unsigned index, class_s type, bool interactive) {
+static creature* create_character(short unsigned index, race_s race, class_s type, bool interactive) {
 	creature* p;
 	if(!interactive) {
 		p = creature::addplayer();
-		p->create((race_s)xrand(Human, Halfling),
+		p->create(race,
 			(gender_s)xrand(Male, Female),
 			type);
 	} else {
@@ -84,9 +84,9 @@ static creature* create_character(short unsigned index, class_s type, bool inter
 
 static void create_party(bool interactive) {
 	auto start_index = game::statistic.positions[0];
-	auto p1 = create_character(start_index, Mage, interactive);
-	auto p2 = create_character(start_index, (class_s)xrand(Cleric, Theif), interactive);
-	auto p3 = create_character(start_index, (class_s)xrand(Cleric, Theif), interactive);
+	auto p1 = create_character(start_index, Human, Mage, interactive);
+	auto p2 = create_character(start_index, Dwarf, Fighter, interactive);
+	auto p3 = create_character(start_index, (race_s)xrand(Human, Halfling), (class_s)xrand(Cleric, Theif), interactive);
 	p1->setplayer();
 #ifdef _DEBUG
 	p1->equip(item(Book1, 4, 20, 20, 40));

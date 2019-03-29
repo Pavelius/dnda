@@ -219,11 +219,11 @@ enum select_s : unsigned {
 	Damaged = 0x1000, Drained = 0x2000, Conceal = 0x4000, Identified = 0x8000,
 	Special = 0x80000000,
 };
-class item;
 struct archive;
 struct attackinfo;
 struct creature;
 struct dialog;
+class item;
 struct scene;
 struct sceneparam;
 struct site;
@@ -395,7 +395,7 @@ struct effectinfo {
 		state_s			type;
 		unsigned		duration;
 	};
-	constexpr explicit operator bool() const { return proc; }
+	constexpr explicit operator bool() const { return static_cast<bool>(proc); }
 	anyptr				proc;
 	unsigned			flags;
 	damageinfo			damage;
@@ -792,3 +792,4 @@ void					turn(creature& e, scene& sc);
 void					worldedit();
 }
 extern adat<grounditem, 2048> grounditems;
+extern aref<skill_use_info> skills_personal;
