@@ -395,13 +395,14 @@ struct effectinfo {
 		state_s			type;
 		unsigned		duration;
 	};
-	constexpr explicit operator bool() const { return static_cast<bool>(proc); }
 	anyptr				proc;
 	unsigned			flags;
 	damageinfo			damage;
 	stateinfo			state;
 	unsigned			experience;
 	textinfo			messages;
+	constexpr explicit operator bool() const { return static_cast<bool>(proc); }
+	bool				iscombat() const;
 };
 struct sceneparam : effectinfo {
 	creature&			player;
@@ -439,8 +440,6 @@ struct creature {
 	void				addexp(int count);
 	static void			addexp(int value, short unsigned position, int range, const creature* exclude, const creature* enemies);
 	static creature*	addplayer();
-	bool				aiboost();
-	bool				aiskills(scene& sc);
 	bool				alertness();
 	void				apply(aref<variant> features);
 	void				apply(state_s state, item_type_s magic, int quality, unsigned duration, bool interactive);
@@ -484,6 +483,7 @@ struct creature {
 	int					getdiscount(creature* customer) const;
 	direction_s			getdirection() const { return direction; }
 	static const effectinfo& geteffect(skill_s v);
+	static const effectinfo& geteffect(spell_s v);
 	creature*			getenemy(aref<creature*> source) const;
 	encumbrance_s		getencumbrance() const { return encumbrance; }
 	int					getexperience() const { return experience; }
@@ -598,6 +598,7 @@ private:
 	int					experience;
 	unsigned			money;
 	//
+	bool				aiboost();
 	static bool			playturn();
 	void				updateweight();
 	void				walkaround(scene& sc);

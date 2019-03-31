@@ -116,21 +116,12 @@ const char* item::getname(spell_s value) {
 	return spell_data[value].nameof;
 }
 
-int creature::getcost(spell_s value) const {
-	return spell_data[value].cost;
+const effectinfo& creature::geteffect(spell_s v) {
+	return spell_data[v].effect;
 }
 
-bool creature::use(scene& sc, spell_s value) {
-	auto cost = getcost(value);
-	if(getmana() < cost) {
-		hint("Не хватает маны.");
-		return false;
-	}
-	if(!use(sc, value, 1, "%герой прокричал%а мистическую формулу."))
-		return false;
-	mp -= cost;
-	wait(Minute);
-	return true;
+int creature::getcost(spell_s value) const {
+	return spell_data[value].cost;
 }
 
 bool creature::use(scene& sc, spell_s value, int level, const char* format, ...) {

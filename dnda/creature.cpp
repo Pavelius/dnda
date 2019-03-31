@@ -644,20 +644,35 @@ void creature::pickup(item& value, bool interactive) {
 		auto loc = getlocation(position);
 		if(loc && loc->owner && loc->owner != this) {
 			auto cost = value.getcost();
-			cost -= cost * loc->owner->getdiscount(this) / 100;
 			if(interactive) {
 				if(!loc->owner->askyn(this, "Хотите купить за %1i монет?", value.getcost()))
 					return;
 			}
 			if(money < cost) {
 				static const char* text[] = {
-					"Возвращайтесь когда будет достаточно денег.",
-					"У вас нету нужного количества денег.",
-					"Нет нужного количества денег - нет товара.",
+					"Возвращайся когда будет достаточно денег.",
+					"У тебя нету нужного количества монет.",
+					"Нет нужного количества монет - нет товара.",
 				};
 				if(interactive)
 					loc->owner->say(maprnd(text));
 				return;
+			}
+			if(roll(Bargaining, 0, *loc->owner, Bargaining, 0) > 0) {
+				cost = cost * 70 / 100;
+				if(interactive) {
+					static const char* ask_discount[] = {
+						"Сколько? Я не собираюсь платить по таким расценкам!",
+						"Твой товар бывший в упортеблении. Сделаешь скидку?",
+						"Я не буду покупать старье а цену нового. Или будет скидка, или сделки не будет!",
+					};
+					static const char* accept_discount[] = {
+						"Уговорил. Плати только [%1i] монет.",
+						"Эх, я сегодня добрый. Давай за [%1i] монет.",
+					};
+					say(maprnd(ask_discount), cost);
+					loc->owner->say(maprnd(accept_discount), cost);
+				}
 			}
 			money -= cost;
 			value.setsold();
@@ -787,6 +802,27 @@ static bool use_skills(creature& player, scene& sc) {
 	return false;
 }
 
+static bool use_spells(creature& player, scene& sc, bool combat) {
+	adat<spell_s, LastSpell + 1> recomended;
+	for(auto i = (spell_s)1; i <= LastSpell; i = (spell_s)(i + 1)) {
+		if(!player.get(i))
+			continue;
+		if(player.getmana() < player.getcost(i))
+			continue;
+		if(combat && !player.geteffect(i).iscombat())
+			continue;
+		recomended.add(i);
+	}
+	if(!recomended)
+		return false;
+	zshuffle(recomended.data, recomended.count);
+	for(auto e : recomended) {
+		if(player.use(sc, e))
+			return true;
+	}
+	return false;
+}
+
 static bool move_skills(creature& player, scene& sc) {
 	for(auto i = (skill_s)1; i <= LastSkill; i = (skill_s)(i + 1)) {
 		if(!player.getbasic(i))
@@ -801,15 +837,22 @@ static bool move_skills(creature& player, scene& sc) {
 }
 
 void creature::walkaround(scene& sc) {
-	if(d100() < 40) {
+	const int chance_act = 40;
+	if(d100() < chance_act) {
 		// Do nothing
 		wait(xrand(Minute / 2, Minute));
 		return;
 	}
 	// When we try to stand and think
-	if(d100() < 40) {
+	if(d100() < chance_act) {
+		if(aiboost())
+			return;
 		if(use_skills(*this, sc))
 			return;
+		if(d100() < chance_act) {
+			if(use_spells(*this, sc, false))
+				return;
+		}
 		wait(Minute / 3);
 	}
 	// When we move and traps or close door just before our step
@@ -948,6 +991,8 @@ void creature::makemove() {
 		return;
 	}
 	if(sc.isenemy(*this)) {
+		if(use_spells(*this, sc, true))
+			return;
 		//	if(aiboost())
 		//		return;
 		//	if(aiusewand(creatures, TargetHostile))
@@ -958,20 +1003,21 @@ void creature::makemove() {
 		//	else if(isranged(false))
 		//		rangeattack(enemy);
 		//	else
-		//	moveto(enemy->position);
+		//		moveto(enemy->position);
 		return;
 	}
+	// If creature guard some square move to guard position
 	if(guard != Blocked) {
 		moveto(guard);
 		return;
 	}
-	if(getleader()) {
-		auto target = getleader();
-		if(distance(target->position, position) <= 2)
-			walkaround(sc);
-		else
-			moveto(target->position);
-		return;
+	// If creature have a leader don't move far away from him
+	auto leader = getleader();
+	if(leader) {
+		if(distance(leader->position, position) > 2) {
+			moveto(leader->position);
+			return;
+		}
 	}
 	walkaround(sc);
 }
@@ -1746,15 +1792,11 @@ int creature::roll(skill_s skill, int bonus, const creature& opponent, skill_s o
 	auto s2 = opponent.get(opponent_skill) + opponent_bonus;
 	auto d1 = d100();
 	auto d2 = d100();
-	if(d1 > s1 && d2 > s2)
-		return 0;
-	else if(d1 < s1 && d2 < s2) {
-		if(d1 > d2)
-			return 1;
-		return -1;
-	} else if(d1 < s1)
-		return 1;
-	return -1;
+	if(d1 >= s1 && d2 >= s2)
+		return 0; // Both parcipant loose
+	else if(d1 < s1 && d2 < s2)
+		return (d1 > d2) ? 1 : -1; // Win parcipant with greater total result
+	return (d1 < s1) ? 1 : -1; // Win those who make roll
 }
 
 void creature::actv(creature& opponent, const char* format, const char* param) const {
@@ -1854,6 +1896,19 @@ void creature::apply(aref<variant> features) {
 		default: break;
 		}
 	}
+}
+
+bool creature::use(scene& sc, spell_s value) {
+	auto cost = getcost(value);
+	if(getmana() < cost) {
+		hint("Не хватает маны.");
+		return false;
+	}
+	if(!use(sc, value, 1, "%герой прокричал%а мистическую формулу."))
+		return false;
+	mp -= cost;
+	wait(Minute);
+	return true;
 }
 
 void creature::use(scene& sc, item& it) {

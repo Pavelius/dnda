@@ -264,3 +264,9 @@ bool scene::isenemy(const creature& player) const {
 	}
 	return false;
 }
+
+bool effectinfo::iscombat() const {
+	if(flags&Hostile)
+		return true;
+	return false;
+}
