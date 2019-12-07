@@ -1065,6 +1065,7 @@ item* logs::choose(const creature& e, item** source, unsigned count, const char*
 		draw::domodal();
 		switch(hot::key) {
 		case KeyEscape:
+		case KeySpace:
 			return 0;
 		default:
 			if(getkey(hot::key, count))
@@ -1165,6 +1166,7 @@ static void character_invertory(creature& e, scene& sc) {
 		draw::domodal();
 		switch(hot::key) {
 		case KeyEscape:
+		case KeySpace:
 			return;
 		default:
 			if(getkey(hot::key, Amunitions + 1)) {
@@ -1205,6 +1207,7 @@ short unsigned logs::choose(const creature& e, short unsigned* source, int count
 		draw::domodal();
 		switch(hot::key) {
 		case KeyEscape:
+		case KeySpace:
 			clear_state();
 			return Blocked;
 		case KeyEnter:
@@ -1246,6 +1249,7 @@ static short unsigned choose_target(creature& e, short unsigned current_index) {
 		}
 		switch(hot::key) {
 		case KeyEscape:
+		case KeySpace:
 			return Blocked;
 		case KeyEnter:
 			return current_index;
@@ -1341,6 +1345,7 @@ bool logs::choose(creature& e, skill_s& result, aref<skill_s> source, bool can_e
 		draw::domodal();
 		switch(hot::key) {
 		case KeyEscape:
+		case KeySpace:
 			if(can_escape)
 				return false;
 			break;
@@ -1398,6 +1403,7 @@ bool logs::choose(creature& e, spell_s& result, aref<spell_s> source) {
 		draw::domodal();
 		switch(hot::key) {
 		case KeyEscape:
+		case KeySpace:
 			return false;
 		default:
 			if(getkey(hot::key, index)) {
@@ -1498,6 +1504,7 @@ void logs::minimap(short unsigned position) {
 		switch(hot::key) {
 		case 0:
 		case KeyEscape:
+		case KeySpace:
 			return;
 		}
 	}
@@ -1713,6 +1720,7 @@ static void view_manual(creature& e, stringbuffer& sc, manual& element) {
 		draw::domodal();
 		switch(hot::key) {
 		case KeyEscape:
+		case KeySpace:
 			clear_state();
 			return;
 		default:
@@ -1767,7 +1775,9 @@ static void character_logs(creature& e, scene& sc) {
 			y += draw::textf(x, y, width, messages[i]);
 		draw::domodal();
 		switch(hot::key) {
-		case KeyEscape: return;
+		case KeyEscape:
+		case KeySpace:
+			return;
 		case KeyUp: index--; break;
 		case KeyDown: index++; break;
 		case KeyPageDown: index += lines_per_screen - 2; break;
@@ -1806,7 +1816,7 @@ static hotkey hotkeys[] = {{KeyLeft, "Двигаться влево"},
 {Alpha + 'Q', "Атака дистанционным оружием", character_ranged_attack},
 {Alpha + 'U', "Использовать ближайший объект", character_use},
 {Alpha + 'S', "Использовать заклинание", character_spell},
-{KeyEscape, "Помощь", character_help},
+{Ctrl + KeySpace, "Помощь", character_help},
 {F1, "Выбрать 1-го игрока", character_setplayer1},
 {F2, "Выбрать 2-го игрока", character_setplayer2},
 {F3, "Выбрать 3-го игрока", character_setplayer3},
@@ -1981,6 +1991,7 @@ static void character_help(creature& e, scene& sc) {
 		draw::domodal();
 		switch(hot::key) {
 		case KeyEscape:
+		case KeySpace:
 			return;
 		}
 	}
